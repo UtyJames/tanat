@@ -1,0 +1,28 @@
+name = "tanat-api"
+main = "src/index.ts"
+compatibility_date = "2024-11-01"
+compatibility_flags = ["nodejs_compat"]
+
+# M-12: expire stale approvals every 15 minutes.
+[triggers]
+crons = ["*/15 * * * *"]
+
+[vars]
+# Fail closed: production requires API_KEY_SALT, MASTER_API_KEY, and an explicit
+# CORS_ORIGINS allowlist. Set them with `wrangler secret put` before deploying.
+ENVIRONMENT = "production"
+API_VERSION = "v1"
+CORS_ORIGINS = "https://tanat-web.pages.dev"
+AUTH_APP_URL = "https://tanat-web.pages.dev"
+AUTH_EMAIL_FROM = "Tanat <hello@tanat.space>"
+
+# Rate limiting (shared D1 fixed-window counters)
+RATE_LIMIT_REQUESTS = "100"
+RATE_LIMIT_WINDOW_SECONDS = "60"
+PREAUTH_RATE_LIMIT_REQUESTS = "300"
+OPERATOR_RATE_LIMIT_REQUESTS = "10"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "tanat-db"
+database_id = "dd23162f-16db-4b5f-b6b3-bdc87ed6c6bb"
