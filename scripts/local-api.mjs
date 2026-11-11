@@ -16,14 +16,14 @@
  *   TANAT_DB_PATH=.wrangler/local.sqlite   (persist data between runs)
  */
 
-import { readFileSync, mkdirSync } from 'node:fs';
+import { readFileSync, readdirSync, mkdirSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { createServer } from 'node:http';
 import { DatabaseSync } from 'node:sqlite';
 import worker from '../dist/index.js';
 
 const PORT = Number(process.env.PORT ?? '8787');
-const DB_PATH = process.env.TANAT_DB_PATH ?? ':memory:';
+const DB_PATH = process.env.TANAT_DB_PATH ?? '.wrangler/local.sqlite';
 
 // ── D1-compatible shim ────────────────────────────────────────────────
 class Statement {
@@ -97,11 +97,16 @@ function loadDatabase() {
     .get();
 
   if (!alreadyInitialised) {
-    database.exec(readFileSync('src/db/migrations/0001_init.sql', 'utf8'));
-    database.exec(readFileSync('src/db/migrations/0002_phase0.sql', 'utf8'));
-    database.exec(readFileSync('src/db/migrations/0003_security.sql', 'utf8'));
+    // Apply every migration in order so new tables (auth, payments, ...) exist.
+    const migrationsDir = 'src/db/migrations';
+    for (const file of readdirSync(migrationsDir).filter((name) => name.endsWith('.sql')).sort()) {
+      database.exec(readFileSync(`${migrationsDir}/${file}`, 'utf8'));
+    }
     database.exec(readFileSync('scripts/seed.sql', 'utf8'));
     console.log('Database initialised with schema and seed data.');
+  } else {
+    // Ensure additive platform tables from 0007 exist on already-initialised DBs.
+    database.exec(readFileSync('src/db/migrations/0007_channels_and_publishable_keys.sql', 'utf8'));
   }
 
   return database;
@@ -134,6 +139,9 @@ const env = {
   API_VERSION: 'v1',
   RATE_LIMIT_REQUESTS: '100',
   RATE_LIMIT_WINDOW_SECONDS: '60',
+  // wrangler.toml [vars] are not loaded here; mirror the auth defaults.
+  AUTH_APP_URL: 'http://localhost:3000',
+  AUTH_EMAIL_FROM: 'Tanat <hello@tanat.space>',
   MASTER_API_KEY: devVars.MASTER_API_KEY ?? randomHex(32),
   API_KEY_SALT: devVars.API_KEY_SALT ?? randomHex(32),
   ...devVars,

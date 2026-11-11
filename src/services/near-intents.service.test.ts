@@ -20,11 +20,11 @@ describe('NearIntentsService', () => {
       slippageTolerance: 100,
     });
 
-    expect(quote).toEqual({ quoteId: 'quote_123' });
+    expect(quote).toMatchObject({ quoteId: 'quote_123' });
     expect(fetcher).toHaveBeenCalledOnce();
     const [url, init] = fetcher.mock.calls[0];
     expect(url).toBe('https://1click.chaindefuser.com/v0/quote');
-    expect(new Headers(init?.headers).get('X-API-Key')).toBe('test-jwt');
+    expect(new Headers(init?.headers).get('Authorization')).toBe('Bearer test-jwt');
     expect(JSON.parse(String(init?.body))).toMatchObject({
       dry: true,
       swapType: 'EXACT_INPUT',

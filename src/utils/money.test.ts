@@ -9,8 +9,10 @@ import { describe, expect, it } from 'vitest';
 import {
   YOCTO_PER_NEAR,
   addYocto,
+  formatTokenAmount,
   formatYoctoToNear,
   parseNearToYocto,
+  parseTokenAmount,
   toYoctoString,
 } from './money';
 
@@ -89,5 +91,30 @@ describe('round trips', () => {
     const left = parseNearToYocto('0.1');
     const right = parseNearToYocto('0.2');
     expect(formatYoctoToNear(addYocto(left, right))).toBe('0.3');
+  });
+});
+
+describe('token amounts (cross-chain payments)', () => {
+  it('converts USDC amounts with 6 decimals', () => {
+    expect(parseTokenAmount('1', 6)).toBe(1_000_000n);
+    expect(parseTokenAmount('1.25', 6)).toBe(1_250_000n);
+    expect(parseTokenAmount('0.000001', 6)).toBe(1n);
+  });
+
+  it('rejects too many decimals for the token', () => {
+    expect(() => parseTokenAmount('0.0000001', 6)).toThrow('Invalid token amount');
+  });
+
+  it('formats token amounts without trailing zeros', () => {
+    expect(formatTokenAmount(1_000_000n, 6)).toBe('1');
+    expect(formatTokenAmount(1_250_000n, 6)).toBe('1.25');
+    expect(formatTokenAmount(1n, 6)).toBe('0.000001');
+    expect(formatTokenAmount(100n, 0)).toBe('100');
+  });
+
+  it('round trips token amounts', () => {
+    for (const value of ['0', '1', '12.345678', '999999.000001']) {
+      expect(formatTokenAmount(parseTokenAmount(value, 6), 6)).toBe(value);
+    }
   });
 });

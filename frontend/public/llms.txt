@@ -1,0 +1,40 @@
+# Tanat — AI Infrastructure for Business Operations
+
+> Provision, configure, govern, and deploy AI agents across your website, messaging channels, and business systems.
+
+## 1. Mental Model
+- **Tenant (Business Workspace):** Isolated organisation owning multiple agents, shared business knowledge, connected integrations, and team members.
+- **Agents:** Distinct operational roles (`Customer Support`, `Sales`, `Lead Generation`, `Booking & Appointment`, `Order Management`, `Product Advisory`, `HR`, `Finance`, `Operations`, `IT Support`, `Knowledge & Research`, `Procurement`, `Executive`, `Custom`).
+- **Channels / Deployments:** Delivery interfaces (`website`, `whatsapp`, `telegram`, `slack`, `email`, `api`) connected to a single agent brain.
+- **Publishable Key (`pk_...`):** Browser-safe, origin-allowlisted key for website widgets.
+- **Secret API Key (`tnt_...`):** Server-side credential for full REST API, SDK, and action approvals.
+
+## 2. Website Widget (1-Line Embed)
+```html
+<script
+  src="http://localhost:3000/embed/tanat-widget.js"
+  data-key="pk_live_YOUR_PUBLISHABLE_KEY"
+  data-agent="inst_YOUR_INSTALLATION_ID"
+  data-api="http://localhost:8787"
+  data-theme="dark"
+  defer
+></script>
+```
+
+## 3. Public Widget API (`/api/public/v1`)
+Pass header `X-Tanat-Key: pk_...` on all calls:
+- `GET /api/public/v1/config` — Returns business name, agent name, greeting, and capabilities.
+- `POST /api/public/v1/sessions` — Starts a session (`{ user_id?, user_signature?, metadata? }`).
+- `POST /api/public/v1/sessions/:id/messages` — Sends a message (`{ content }`) and returns `{ id, session_id, role, content, model, sources_used }`.
+
+## 4. Authenticated REST API (`/api/v1`)
+Pass header `Authorization: Bearer tnt_...`:
+- `GET /api/v1/tenants` — Current workspace.
+- `GET /api/v1/agents` & `POST /api/v1/agents` & `PATCH /api/v1/agents/:id` — Create and configure agents.
+- `GET /api/v1/platform/templates?industry=...&responsibilities=...` — Industry-matched agent templates.
+- `GET /api/v1/platform/knowledge` & `POST /api/v1/platform/knowledge` — Manage business knowledge (`website`, `faq`, `document`, `policy`, `text`, `catalog`).
+- `GET /api/v1/platform/memories` & `POST /api/v1/platform/memories` — Read and write persistent customer & business memories.
+- `POST /api/v1/sessions` & `POST /api/v1/sessions/:id/messages` — Server-side agent conversations.
+- `GET /api/v1/actions` & `POST /api/v1/actions/:id/approve|reject|execute` — Human-in-the-loop governance.
+- `POST /api/v1/platform/verify-user-token` — Generate HMAC signature (`{ user_id }`) for verified widget users.
+- `GET /api/mcp` — Model Context Protocol tool discovery manifest.

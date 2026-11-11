@@ -35,6 +35,23 @@ export function generateApiKey(): { key: string; prefix: string } {
 }
 
 /**
+ * Generate a publishable browser key.
+ * Format: pk_test_<32 hex chars>
+ *
+ * Publishable keys are not secrets. They are still hashed at rest, bound to one
+ * installation, and rejected unless the request Origin is allowlisted.
+ */
+export function generatePublishableKey(): { key: string; prefix: string } {
+  const bytes = new Uint8Array(16);
+  crypto.getRandomValues(bytes);
+  const hex = Array.from(bytes)
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('');
+  const key = `pk_test_${hex}`;
+  return { key, prefix: key.substring(0, 16) };
+}
+
+/**
  * Hash an API key using SHA-256 with an optional salt.
  * Returns a hex-encoded hash.
  */

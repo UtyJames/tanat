@@ -23,7 +23,11 @@ installationsRouter.use('*', requireScopeForMethod('read', 'write'));
  * `write` key may configure presentation settings, but it must never be able
  * to raise its own per-installation payment cap or re-enable payments.
  */
-const OPERATOR_ONLY_CONFIG_KEYS = ['maxRefundNear', 'features'] as const;
+const OPERATOR_ONLY_CONFIG_KEYS = [
+  'maxRefundNear',
+  'maxPaymentUsd',
+  'features',
+] as const;
 
 function assertNoOperatorConfig(
   config: Record<string, unknown> | undefined,
@@ -76,7 +80,9 @@ installationsRouter.get('/', async (c) => {
     .first<{ count: number }>();
 
   const { results } = await c.env.DB.prepare(
-    `SELECT i.*, a.name as agent_name, a.slug as agent_slug
+    `SELECT i.*, a.name as agent_name, a.slug as agent_slug,
+            a.description as agent_description, a.config as agent_config,
+            a.status as agent_status
      FROM installations i
      JOIN agents a ON a.id = i.agent_id
      WHERE i.tenant_id = ? AND i.status != 'removed'

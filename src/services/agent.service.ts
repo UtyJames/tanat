@@ -69,7 +69,7 @@ export async function createAgent(
       data.description ?? null,
       data.system_prompt,
       data.tools ? JSON.stringify(data.tools) : '[]',
-      data.model ?? 'gpt-4o-mini',
+      data.model ?? 'z-ai/glm-5.3',
       data.max_tokens ?? 4096,
       data.temperature ?? 0.7,
       data.config ? JSON.stringify(data.config) : '{}',

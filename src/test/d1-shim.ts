@@ -105,6 +105,8 @@ export function createTestDatabase(): {
     readFileSync(new URL('../db/migrations/0003_security.sql', import.meta.url), 'utf8'),
     readFileSync(new URL('../db/migrations/0004_dashboard_auth.sql', import.meta.url), 'utf8'),
     readFileSync(new URL('../db/migrations/0005_email_otp.sql', import.meta.url), 'utf8'),
+    readFileSync(new URL('../db/migrations/0006_payment_intents.sql', import.meta.url), 'utf8'),
+    readFileSync(new URL('../db/migrations/0007_channels_and_publishable_keys.sql', import.meta.url), 'utf8'),
   ];
 
   for (const migration of migrations) {

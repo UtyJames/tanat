@@ -30,7 +30,6 @@ export interface Env {
   NEAR_RPC_URL: string;
   INTENTS_API_KEY?: string;
   NEAR_AI_API_KEY?: string;
-  NEAR_AI_BASE_URL?: string;
   RESEND_API_KEY?: string;
   AUTH_EMAIL_FROM?: string;
   AUTH_APP_URL?: string;

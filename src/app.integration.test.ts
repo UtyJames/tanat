@@ -17,6 +17,7 @@ import { createTestDatabase } from './test/d1-shim';
 import { generateApiKey, hashApiKey } from './utils/crypto';
 import * as actionService from './services/action.service';
 import { NearService, NearTransferError } from './services/near.service';
+import type { NearIntentsService } from './services/near-intents.service';
 import type { DatabaseSync } from 'node:sqlite';
 
 const MASTER_KEY = `op_${crypto.randomUUID().replace(/-/g, '')}`;
@@ -1252,5 +1253,221 @@ describe('key management', () => {
     expect(result.status).toBe(201);
     expect(result.json.data.key).toMatch(/^tnt_[0-9a-f]{64}$/);
     expect(result.headers.get('cache-control')).toBe('no-store');
+  });
+});
+
+// ── Payment intents (real-world objects and stores) ───────────────────
+
+function fakeIntents(options: { amountInUsd?: string; status?: string } = {}) {
+  return {
+    listTokens: async () => [
+      { assetId: 'nep141:wrap.near', decimals: 24, blockchain: 'near', symbol: 'wNEAR' },
+      { assetId: 'nep141:usdc.near', decimals: 6, blockchain: 'near', symbol: 'USDC' },
+    ],
+    requestQuote: async (input: { amount: string }) => ({
+      quoteId: 'quote_test',
+      depositAddress: `deposit_${crypto.randomUUID()}`,
+      amountIn: input.amount,
+      amountInFormatted: '1',
+      amountInUsd: options.amountInUsd ?? '3.5',
+      amountOut: '1000000',
+      amountOutFormatted: '1',
+      amountOutUsd: '1',
+      minAmountOut: null,
+      timeEstimate: 20,
+      deadline: new Date(Date.now() + 900_000).toISOString(),
+      raw: {
+        quote: {
+          amountInFormatted: '1',
+          amountInUsd: options.amountInUsd ?? '3.5',
+          amountOutFormatted: '1',
+          amountOutUsd: '1',
+          minAmountOut: null,
+          timeEstimate: 20,
+        },
+      },
+    }),
+    getStatus: async () => ({
+      status: options.status ?? 'SUCCESS',
+      updatedAt: null,
+      swapDetails: null,
+      raw: { status: options.status ?? 'SUCCESS' },
+    }),
+    submitDeposit: async () => undefined,
+  } as unknown as NearIntentsService;
+}
+
+async function paymentRequest(
+  app: ReturnType<typeof createApp>,
+  path: string,
+  options: {
+    method?: string;
+    key?: string;
+    body?: unknown;
+    headers?: Record<string, string>;
+  } = {},
+): Promise<{ status: number; json: any }> {
+  const headers: Record<string, string> = {
+    Authorization: `Bearer ${options.key ?? acmeKey}`,
+    ...options.headers,
+  };
+  if (options.body !== undefined) headers['Content-Type'] = 'application/json';
+
+  const response = await app.request(
+    path,
+    {
+      method: options.method ?? 'GET',
+      headers,
+      body: options.body === undefined ? undefined : JSON.stringify(options.body),
+    },
+    env,
+  );
+
+  return { status: response.status, json: await response.json() };
+}
+
+const paymentBody = {
+  installation_id: 'inst_acme_cs_001',
+  description: 'Blue hoodie, size M',
+  amount: '1',
+  currency: 'NEAR',
+  origin_asset: 'nep141:wrap.near',
+  destination_asset: 'nep141:usdc.near',
+  recipient: 'acme.near',
+  refund_to: 'acme.near',
+};
+
+describe('payment intents', () => {
+  it('creates a real quote with a deposit address and a checkout link', async () => {
+    const app = createApp(() => new NearService(true), undefined, () => fakeIntents());
+
+    const result = await paymentRequest(app, '/api/v1/payments/intents', {
+      method: 'POST',
+      body: paymentBody,
+    });
+
+    expect(result.status).toBe(201);
+    expect(result.json.data.status).toBe('pending_deposit');
+    expect(result.json.data.deposit_address).toMatch(/^deposit_/);
+    expect(result.json.data.amount_raw).toBe('1000000000000000000000000');
+    expect(result.json.data.checkout_url).toContain('/pay/');
+
+    const row = raw
+      .prepare('SELECT tenant_id, amount_raw, status FROM payment_intents WHERE id = ?')
+      .get(result.json.data.id) as
+      | { tenant_id: string; amount_raw: string; status: string }
+      | undefined;
+    expect(row).toMatchObject({
+      tenant_id: 'tnt_acme_000001',
+      amount_raw: '1000000000000000000000000',
+      status: 'pending_deposit',
+    });
+
+    const audit = raw
+      .prepare("SELECT action FROM audit_log WHERE resource_id = ?")
+      .get(result.json.data.id) as { action: string } | undefined;
+    expect(audit?.action).toBe('payment_intent.created');
+  });
+
+  it('rejects a read-only key', async () => {
+    const app = createApp(() => new NearService(true), undefined, () => fakeIntents());
+    const result = await paymentRequest(app, '/api/v1/payments/intents', {
+      method: 'POST',
+      key: readOnlyKey,
+      body: paymentBody,
+    });
+    expect(result.status).toBe(403);
+  });
+
+  it('accepts a valid NEAR account with a testnet-style suffix', async () => {
+    const app = createApp(() => new NearService(true), undefined, () => fakeIntents());
+    const result = await paymentRequest(app, '/api/v1/payments/intents', {
+      method: 'POST',
+      body: { ...paymentBody, recipient: 'acme-corp.testnet' },
+    });
+    expect(result.status).toBe(201);
+  });
+
+  it('keeps payment intents tenant-scoped', async () => {
+    const app = createApp(() => new NearService(true), undefined, () => fakeIntents());
+    const created = await paymentRequest(app, '/api/v1/payments/intents', {
+      method: 'POST',
+      body: paymentBody,
+    });
+    expect(created.status).toBe(201);
+
+    const other = await paymentRequest(
+      app,
+      `/api/v1/payments/intents/${created.json.data.id}`,
+      { key: starkKey },
+    );
+    expect(other.status).toBe(404);
+  });
+
+  it('enforces the operator-controlled USD cap', async () => {
+    const tenant = raw
+      .prepare('SELECT settings FROM tenants WHERE id = ?')
+      .get('tnt_acme_000001') as { settings: string };
+    raw
+      .prepare('UPDATE tenants SET settings = ? WHERE id = ?')
+      .run(
+        JSON.stringify({ maxApiCalls: 10000, maxPaymentUsd: 1 }),
+        'tnt_acme_000001',
+      );
+
+    try {
+      const app = createApp(() => new NearService(true), undefined, () =>
+        fakeIntents({ amountInUsd: '3.5' }),
+      );
+      const result = await paymentRequest(app, '/api/v1/payments/intents', {
+        method: 'POST',
+        body: paymentBody,
+      });
+      expect(result.status).toBe(403);
+      expect(result.json.error.code).toBe('PAYMENT_LIMIT_EXCEEDED');
+    } finally {
+      raw
+        .prepare('UPDATE tenants SET settings = ? WHERE id = ?')
+        .run(tenant.settings, 'tnt_acme_000001');
+    }
+  });
+
+  it('is idempotent when the same Idempotency-Key is retried', async () => {
+    const app = createApp(() => new NearService(true), undefined, () => fakeIntents());
+    const key = `pay-${crypto.randomUUID()}`;
+
+    const first = await paymentRequest(app, '/api/v1/payments/intents', {
+      method: 'POST',
+      headers: { 'Idempotency-Key': key },
+      body: paymentBody,
+    });
+    const second = await paymentRequest(app, '/api/v1/payments/intents', {
+      method: 'POST',
+      headers: { 'Idempotency-Key': key },
+      body: paymentBody,
+    });
+
+    expect(first.status).toBe(201);
+    expect(second.status).toBe(200);
+    expect(second.json.meta.idempotent_replay).toBe(true);
+    expect(second.json.data.id).toBe(first.json.data.id);
+  });
+
+  it('refreshes status from NEAR Intents', async () => {
+    const app = createApp(() => new NearService(true), undefined, () =>
+      fakeIntents({ status: 'SUCCESS' }),
+    );
+    const created = await paymentRequest(app, '/api/v1/payments/intents', {
+      method: 'POST',
+      body: paymentBody,
+    });
+
+    const refreshed = await paymentRequest(
+      app,
+      `/api/v1/payments/intents/${created.json.data.id}`,
+    );
+    expect(refreshed.status).toBe(200);
+    expect(refreshed.json.data.status).toBe('succeeded');
+    expect(refreshed.json.data.paid_at).toBeTruthy();
   });
 });

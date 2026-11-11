@@ -92,10 +92,33 @@ npm run db:migrate
 # Seed demo data
 npm run db:seed
 
+# Add NEAR_AI_API_KEY to the ignored .dev.vars file to enable AI chat locally.
+# Never put provider keys in wrangler.toml or frontend environment variables.
+
 # Start dev server
 npm run dev
 # → API running at http://localhost:8787
 ```
+
+For local AI chat, add the following to the root `.dev.vars` file using a
+rotated NEAR AI Cloud key:
+
+```dotenv
+NEAR_AI_API_KEY=your-near-ai-cloud-key
+```
+
+`.dev.vars` is gitignored. For production, store the key as a Cloudflare Worker
+secret, not a `[vars]` entry:
+
+```bash
+npx wrangler secret put NEAR_AI_API_KEY
+npm run deploy
+```
+
+The backend sends chat requests only to the official NEAR AI Cloud endpoint.
+Never expose this key in the dashboard, browser bundles, logs, or source
+control. If a key has been pasted into chat or otherwise disclosed, revoke it
+and create a replacement before configuring it.
 
 ### Frontend
 

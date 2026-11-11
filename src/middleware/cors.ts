@@ -11,6 +11,12 @@ import type { HonoEnv } from '../types';
 import type { MiddlewareHandler } from 'hono';
 
 export const corsMiddleware: MiddlewareHandler<HonoEnv> = async (c, next) => {
+  // The public widget API resolves CORS per publishable key.
+  if (c.req.path.startsWith('/api/public/')) {
+    await next();
+    return;
+  }
+
   const origins = (c.env.CORS_ORIGINS ?? '')
     .split(',')
     .map((origin) => origin.trim())

@@ -9,7 +9,10 @@ out/
 
 # Environment & secrets
 .dev.vars
+.prod-secrets
 .env
+.tmp-*
+*.tmp
 .env.local
 .env.*.local
 

@@ -7,12 +7,13 @@ import { generateId, hashApiKey } from '../utils/crypto';
 import { AppError, RateLimitError, UnauthorizedError } from '../utils/errors';
 import { logAudit, requestIp } from '../utils/audit';
 import { parseNearToYocto } from '../utils/money';
+import { NEAR_AI_DEFAULT_MODEL } from '../services/near-ai.service';
 
 export const authRouter = new Hono<HonoEnv>();
 
 const otpRequestSchema = z.object({
   email: z.string().email().max(254),
-  tenant_name: z.string().trim().min(2).max(100),
+  tenant_name: z.string().trim().min(2).max(100).optional(),
 }).strict();
 
 const otpVerifySchema = z.object({
@@ -155,11 +156,12 @@ authRouter.post('/otp/request', validateBody(otpRequestSchema), async (c) => {
   )
     .bind(email)
     .run();
+  const tenantNameInput = (body.tenant_name ?? '').trim() || 'My Workspace';
   await c.env.DB.prepare(
     `INSERT INTO auth_link_tokens (token_hash, email, tenant_name, expires_at, attempts)
      VALUES (?, ?, ?, datetime('now', ?), 0)`,
   )
-    .bind(tokenHash, email, body.tenant_name.trim(), `+${OTP_TTL_MINUTES} minutes`)
+    .bind(tokenHash, email, tenantNameInput, `+${OTP_TTL_MINUTES} minutes`)
     .run();
 
   try {
@@ -242,6 +244,7 @@ authRouter.post('/otp/verify', validateBody(otpVerifySchema), async (c) => {
     const tenantId = generateId('ten');
     const agentId = generateId('agt');
     const installationId = generateId('inst');
+    const memberId = generateId('mem');
     const slugBase = otp.tenant_name
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
@@ -252,7 +255,7 @@ authRouter.post('/otp/verify', validateBody(otpVerifySchema), async (c) => {
     await c.env.DB.batch([
       c.env.DB.prepare(
         `INSERT INTO tenants (id, name, slug, status, settings, near_account_id, spending_limit_near, total_spent_near)
-         SELECT ?, ?, ?, 'active', '{}', NULL, ?, '0'
+         SELECT ?, ?, ?, 'active', '{"onboarding":{"completed":false,"step":1}}', NULL, ?, '0'
          WHERE NOT EXISTS (SELECT 1 FROM dashboard_users WHERE email = ?)`,
       ).bind(tenantId, otp.tenant_name, slug, parseNearToYocto('0').toString(), otp.email),
       c.env.DB.prepare(
@@ -261,14 +264,19 @@ authRouter.post('/otp/verify', validateBody(otpVerifySchema), async (c) => {
          ON CONFLICT(email) DO NOTHING`,
       ).bind(userId, otp.email, tenantId, tenantId),
       c.env.DB.prepare(
+        `INSERT INTO workspace_members (id, tenant_id, user_id, email, role, status)
+         SELECT ?, ?, ?, ?, 'owner', 'active' WHERE EXISTS (SELECT 1 FROM tenants WHERE id = ?)
+         ON CONFLICT(tenant_id, email) DO NOTHING`,
+      ).bind(memberId, tenantId, userId, otp.email, tenantId),
+      c.env.DB.prepare(
         `INSERT INTO agents (id, tenant_id, name, slug, description, system_prompt, tools, model, max_tokens, temperature, config)
-         SELECT ?, ?, 'Store Assistant', 'store-assistant',
-           'Starter agent for customer support and payment-intent previews.',
-           'Help customers with store questions. Never claim that a payment has settled. Payment actions require human approval.',
-           '[]', 'gpt-4o-mini', 4096, 0.7, '{}'
+         SELECT ?, ?, 'Customer Support Agent', 'customer-support',
+           'Primary business operations and customer support agent.',
+           'Help customers and team members accurately using approved business knowledge. Never fabricate orders, balances, or policies. Actions that modify records or move funds require explicit permission and approval.',
+           '[]', ?, 4096, 0.5, '{"category":"customer","tone":"professional","lifecycle":"draft"}'
          WHERE EXISTS (SELECT 1 FROM dashboard_users WHERE id = ? AND tenant_id = ?)
          ON CONFLICT(tenant_id, slug) DO NOTHING`,
-      ).bind(agentId, tenantId, userId, tenantId),
+      ).bind(agentId, tenantId, NEAR_AI_DEFAULT_MODEL, userId, tenantId),
       c.env.DB.prepare(
         `INSERT INTO installations (id, tenant_id, agent_id, config, status)
          SELECT ?, ?, ?, '{"features":{"nearPayments":false},"maxRefundNear":"0"}', 'active'

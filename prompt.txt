@@ -1,0 +1,2010 @@
+# TANAT — MASTER PRODUCT DIRECTION, ARCHITECTURE, UX, ONBOARDING & LANDING PAGE IMPLEMENTATION PROMPT
+
+## 1. YOUR ROLE
+
+You are acting as a combination of:
+
+- Senior Product Architect
+- SaaS Product Designer
+- Senior Full-Stack Engineer
+- AI Infrastructure Engineer
+- UX Researcher
+- Brand and Visual Design Lead
+- Technical Documentation Engineer
+
+Your responsibility is to understand, refine, and implement Tanat as a coherent, production-oriented AI infrastructure product.
+
+Do not approach this as a simple website redesign or chatbot project.
+
+You must first understand the existing codebase, identify what has already been implemented, understand the current architecture, and then improve the product without unnecessarily replacing working functionality.
+
+You have the authority to recommend improvements to the existing architecture, onboarding, information architecture, UI, and user experience. However, preserve existing functionality unless there is a clear technical or product reason to change it.
+
+**Do not begin by blindly generating components. Understand the product first.**
+
+---
+
+# 2. PRODUCT DEFINITION: WHAT TANAT ACTUALLY IS
+
+Tanat is an AI infrastructure platform that enables businesses to provision, configure, manage, and deploy intelligent AI agents across their business operations and existing digital channels.
+
+The fundamental problem Tanat solves is this:
+
+Businesses increasingly need AI to handle different operational responsibilities, but building production-ready AI agents requires technical expertise, model integrations, orchestration, memory, knowledge retrieval, tool integrations, permissions, security, and ongoing infrastructure management.
+
+Most businesses should not have to build all of this themselves.
+
+Tanat provides that infrastructure.
+
+A business should be able to:
+
+1. Create an account.
+2. Register its business and establish its workspace (tenant).
+3. Describe its business, industry, products, services, and operations.
+4. Identify the responsibilities it wants AI agents to handle.
+5. Provision agents for those responsibilities.
+6. Configure each agent's knowledge, behaviour, tools, permissions, and workflows.
+7. Connect the agent to the channels and business systems it already uses.
+8. Test the agent.
+9. Deploy it.
+10. Monitor its activity, performance, usage, and costs.
+
+The business should not need to understand model orchestration, vector databases, inference infrastructure, agent execution engines, or the complexity of building AI systems.
+
+Tanat handles the underlying infrastructure.
+
+### Core positioning
+
+**Tanat is the AI infrastructure behind your business operations.**
+
+Supporting positioning:
+
+"Provision intelligent AI agents for your business, connect them to your tools, and deploy them wherever your customers and teams work. Tanat handles the intelligence and infrastructure behind them."
+
+Alternative messaging:
+
+- AI agents for every part of your business.
+- Your business needs AI. Tanat provides the infrastructure.
+- From business knowledge to deployed AI agents.
+- Configure once. Deploy across your business.
+- Give your business an AI workforce without building AI from scratch.
+
+Do not position Tanat exclusively as:
+- An AI chatbot builder.
+- An AI sales assistant.
+- A payment processing platform.
+- An e-commerce AI tool.
+- A WhatsApp bot generator.
+- A generic AI wrapper.
+
+Those are either possible use cases or individual capabilities, not the entire product.
+
+---
+
+# 3. UNDERSTAND THE USERS: TANAT IS NOT EXCLUSIVELY FOR E-COMMERCE
+
+One of the most important product requirements is that Tanat must support different business types and operational requirements.
+
+Do not design the entire platform around businesses selling physical products.
+
+A business may need AI for customer support without having a sales function. Another may need internal HR automation. A software company may need a technical support agent. A hospital may need appointment assistance. An educational institution may need student support.
+
+Design Tanat around business functions, workflows, and agent capabilities rather than a single industry.
+
+## Supported business categories
+
+The onboarding experience should accommodate, but not be limited to:
+
+1. E-commerce and retail.
+2. Restaurants, hospitality, and food services.
+3. SaaS and technology companies.
+4. Professional services and consulting.
+5. Financial services and fintech.
+6. Healthcare and wellness.
+7. Education and training institutions.
+8. Real estate and property management.
+9. Logistics and transportation.
+10. Travel and tourism.
+11. Manufacturing and distribution.
+12. Agriculture and agribusiness.
+13. Media, entertainment, and content businesses.
+14. Recruitment and HR agencies.
+15. Nonprofits and development organisations.
+16. Government-facing service organisations.
+17. Other businesses.
+
+Include an "Other" option that allows a business to describe its industry.
+
+Industry selection should inform recommendations and templates, not restrict what an organisation can build.
+
+## Possible AI agent categories
+
+Tanat must support multiple agents under one business tenant.
+
+Examples include:
+
+### Customer-facing agents
+
+**Customer Support Agent**
+- Answer customer enquiries.
+- Resolve common issues.
+- Explain policies.
+- Handle complaints.
+- Escalate unresolved cases.
+- Retrieve customer-specific information where authorised.
+- Provide support across website chat, WhatsApp, email, and other channels.
+
+**Sales Agent**
+- Understand customer requirements.
+- Recommend products and services.
+- Answer product questions.
+- Qualify leads.
+- Generate quotations where supported.
+- Follow up with prospective customers.
+- Assist customers through purchasing workflows.
+
+**Lead Generation Agent**
+- Engage website visitors.
+- Collect prospect information.
+- Qualify leads.
+- Schedule consultations.
+- Route prospects to the appropriate sales team.
+
+**Booking and Appointment Agent**
+- Check availability.
+- Schedule appointments.
+- Reschedule and cancel bookings.
+- Send confirmations and reminders.
+- Integrate with calendars and booking systems.
+
+**Order Management Agent**
+- Check order status.
+- Retrieve delivery information.
+- Handle order-related enquiries.
+- Initiate permitted order changes.
+- Escalate exceptional cases.
+
+**Product Advisory Agent**
+- Explain product specifications.
+- Compare options.
+- Provide recommendations.
+- Answer technical product questions.
+
+### Internal business agents
+
+**HR Agent**
+- Answer employee policy questions.
+- Explain onboarding procedures.
+- Retrieve approved HR documentation.
+- Assist with leave requests.
+- Route HR requests.
+
+**Finance Agent**
+- Explain invoices and financial policies.
+- Retrieve authorised financial records.
+- Assist with payment reconciliation.
+- Prepare financial summaries.
+- Initiate permitted finance workflows.
+
+**Operations Agent**
+- Monitor operational workflows.
+- Retrieve business information.
+- Coordinate routine tasks.
+- Generate operational reports.
+- Escalate exceptions.
+
+**IT and Technical Support Agent**
+- Troubleshoot common IT problems.
+- Explain internal technical procedures.
+- Search technical documentation.
+- Create support tickets.
+- Escalate technical issues.
+
+**Knowledge and Research Agent**
+- Search internal documents.
+- Summarise company knowledge.
+- Retrieve research.
+- Generate structured reports.
+- Assist staff with information discovery.
+
+**Procurement Agent**
+- Retrieve supplier information.
+- Compare approved quotations.
+- Assist with purchase requests.
+- Track procurement workflows.
+
+**Executive and Administrative Agent**
+- Prepare meeting briefs.
+- Summarise approved business information.
+- Assist with scheduling.
+- Generate internal reports.
+- Coordinate administrative workflows.
+
+These are illustrative capabilities, not a requirement to build every agent independently from scratch.
+
+Design an extensible agent system where new agent templates and capabilities can be introduced without redesigning the entire platform.
+
+---
+
+# 4. THE FUNDAMENTAL TANAT ARCHITECTURE
+
+Use the following conceptual model throughout the application.
+
+## A. Tenant / Business Workspace
+
+A tenant represents a business organisation or workspace.
+
+A tenant is NOT necessarily a single domain.
+
+One tenant may have:
+- Multiple business users.
+- Multiple domains.
+- Multiple brands.
+- Multiple AI agents.
+- Multiple integrations.
+- Multiple deployments.
+- Different business environments.
+
+Tenant-level resources and data must be isolated.
+
+The business owner or workspace administrator manages the tenant.
+
+## B. Agents
+
+A tenant can create and manage multiple agents.
+
+Examples:
+
+- Customer Support Agent
+- Sales Agent
+- HR Assistant
+- Booking Agent
+- Operations Assistant
+
+Each agent has its own configuration, knowledge access, permissions, integrations, and deployment settings.
+
+## C. Agent configuration
+
+Each agent should have a structured configuration consisting of:
+
+- Name.
+- Description.
+- Purpose.
+- Agent category.
+- Instructions and behaviour.
+- Personality and communication tone.
+- Model configuration.
+- Knowledge sources.
+- Memory configuration.
+- Available tools.
+- Permissions.
+- Connected systems.
+- Workflows.
+- Escalation rules.
+- Usage limits.
+- Version information.
+- Deployment status.
+
+Avoid presenting all these technical settings to a new user immediately.
+
+Use progressive disclosure: simple setup first, advanced configuration when needed.
+
+## D. Channels and deployments
+
+An agent's intelligence should be independent of the channel where it operates.
+
+The same configured agent should be deployable to multiple channels.
+
+For example, one Customer Support Agent can operate on:
+
+- Website widget.
+- WhatsApp.
+- Telegram.
+- Slack.
+- Email.
+- A custom application through the API.
+
+The agent should not need to be recreated for each channel.
+
+Channels are interfaces and delivery mechanisms connected to the same underlying agent configuration.
+
+Support channel-specific capabilities where necessary, without creating separate agent brains.
+
+## E. Business system integrations
+
+Separate communication channels from business-system integrations.
+
+Communication channels include:
+- Website.
+- WhatsApp.
+- Telegram.
+- Slack.
+- Email.
+- Other supported messaging interfaces.
+
+Business-system integrations include:
+- Shopify.
+- CRM systems.
+- Calendars.
+- Payment providers.
+- Inventory systems.
+- Accounting software.
+- Internal APIs.
+- Databases.
+- Project management tools.
+
+A business may connect a communication channel and multiple business systems to one agent.
+
+## F. Tanat infrastructure
+
+Tanat owns the underlying AI infrastructure:
+
+- AI inference.
+- Agent orchestration.
+- Knowledge retrieval.
+- Memory.
+- Tool execution.
+- Workflow execution.
+- Tenant isolation.
+- Credential management.
+- Permissions and approvals.
+- Conversation management.
+- Logging and observability.
+- Usage metering.
+- Billing.
+- APIs and SDKs.
+
+The business interacts with a simple product experience while Tanat manages the complexity.
+
+---
+
+# 5. EXISTING IMPLEMENTATION: IMPORTANT CONSTRAINTS
+
+The existing application already has:
+
+1. NEAR AI Cloud integration.
+2. OTP-based authentication.
+
+These have already been wired into the project.
+
+**Do not rebuild these features from scratch.**
+
+First inspect their implementation.
+
+### NEAR AI Cloud
+
+- Identify how inference is currently connected.
+- Understand the existing API configuration.
+- Identify existing model invocation and response handling.
+- Preserve working credentials and environment-variable conventions.
+- Identify how agents will use the existing inference integration.
+- Build the required agent orchestration and business functionality around it.
+- Keep inference provider logic modular so other providers can be added in the future.
+
+NEAR AI Cloud is the current inference foundation, not the entire Tanat product.
+
+Do not assume it already provides Tanat's tenant management, knowledge management, connector infrastructure, agent lifecycle, or business workflows.
+
+Implement those responsibilities at the Tanat application level where required.
+
+### OTP authentication
+
+- Preserve the existing OTP sign-in experience.
+- Inspect the authentication implementation before changing anything.
+- Ensure the authenticated user is associated with a tenant/workspace.
+- Support invitations and membership in multiple workspaces if the existing architecture permits.
+- Do not unnecessarily introduce passwords or another authentication system.
+
+### General preservation requirements
+
+- Inspect the repository before making architectural changes.
+- Identify existing pages, routes, APIs, database models, and reusable components.
+- Reuse existing functionality wherever possible.
+- Do not replace working implementations simply because you prefer another library.
+- Do not introduce unnecessary dependencies.
+- Keep existing environment variables secure.
+- Never expose API keys or provider credentials in frontend code.
+- Do not create fake integrations that appear functional but are not connected.
+
+If an integration is not yet implemented, clearly represent it as unavailable, in development, or awaiting connection.
+
+---
+
+# 6. THE MOST IMPORTANT PART: A PROPER BUSINESS ONBOARDING EXPERIENCE
+
+The onboarding experience must be one of the strongest parts of Tanat.
+
+A business owner should be able to arrive, understand the platform, register their business, configure an initial AI agent, and reach a successful deployment without needing to understand AI engineering.
+
+Do not dump the user into an empty dashboard immediately after OTP authentication.
+
+Build a guided onboarding journey.
+
+Use a persistent onboarding progress indicator, clear explanations, useful defaults, and the ability to return to previous steps.
+
+## Recommended onboarding flow
+
+### STEP 1 — Welcome to Tanat
+
+After successful OTP authentication, check whether the user already belongs to an existing workspace.
+
+If no workspace exists, start onboarding.
+
+Welcome headline:
+
+**Let's get AI working for your business.**
+
+Supporting text:
+
+"Set up your business, choose what you want AI to handle, and deploy your first agent. Tanat takes care of the infrastructure."
+
+Primary action:
+"Set up my business"
+
+Secondary information:
+"Already have a workspace? Join an existing workspace."
+
+Do not ask the user for technical configuration at this stage.
+
+### STEP 2 — Business information
+
+Collect:
+
+- Business name.
+- Business type / industry.
+- Business description.
+- Website URL (optional).
+- Business email.
+- Business country.
+- Business timezone.
+- Business logo (optional).
+
+The website URL can later be used as a knowledge source, subject to an explicit crawl/import step.
+
+Allow the user to describe their business naturally.
+
+Example:
+
+"We operate a logistics company that provides interstate deliveries and shipment tracking for individuals and businesses."
+
+Use this information to personalise subsequent recommendations.
+
+Create the tenant/workspace with a unique identifier.
+
+Allow a workspace slug or URL where relevant, but do not force users to configure a custom domain just to register a tenant.
+
+A business tenant is the organisation identity, not its domain name.
+
+### STEP 3 — What do you want AI to do?
+
+This step is critical.
+
+Do not assume the business wants to sell products.
+
+Ask:
+
+**What would you like AI to handle in your business?**
+
+Allow multiple selections.
+
+Organise options into categories:
+
+CUSTOMER EXPERIENCE
+- Customer support.
+- Sales and lead qualification.
+- Product and service enquiries.
+- Order management.
+- Appointment and booking management.
+- Customer feedback and complaints.
+
+BUSINESS OPERATIONS
+- HR and employee support.
+- Internal IT support.
+- Operations and administration.
+- Procurement and supplier enquiries.
+- Finance and invoice assistance.
+- Reporting and business intelligence.
+
+KNOWLEDGE AND PRODUCTIVITY
+- Internal knowledge assistant.
+- Document research.
+- Data analysis.
+- Report generation.
+- Team productivity.
+- Technical documentation support.
+
+CUSTOM WORKFLOWS
+- Custom business automation.
+- Custom AI agent.
+- Other.
+
+Allow users to select multiple capabilities.
+
+Provide an "I'm not sure yet" option.
+
+Do not force the user to choose an agent category before they understand the possibilities.
+
+### STEP 4 — Recommend agents
+
+Based on the business description, industry, and selected responsibilities, recommend relevant agent templates.
+
+For example:
+
+A logistics company might receive:
+- Customer Support Agent.
+- Shipment Enquiry Agent.
+- Booking Agent.
+- Internal Operations Agent.
+
+A SaaS company might receive:
+- Technical Support Agent.
+- Customer Success Agent.
+- Product Knowledge Agent.
+- Lead Qualification Agent.
+
+A school might receive:
+- Admissions Enquiry Agent.
+- Student Support Agent.
+- Parent Communication Agent.
+- Internal Knowledge Assistant.
+
+A hospital might receive:
+- Appointment Assistance Agent.
+- General Enquiry Agent.
+- Patient Information Agent.
+
+For healthcare and other regulated use cases, clearly distinguish administrative assistance from diagnosis, treatment, or other restricted professional decisions.
+
+A restaurant might receive:
+- Customer Enquiry Agent.
+- Reservation Agent.
+- Menu Information Agent.
+- Order Assistance Agent.
+
+Let the user select which recommended agents to provision.
+
+Include the option to create a custom agent.
+
+Do not automatically activate every recommendation.
+
+### STEP 5 — Configure the first agent
+
+Provide a guided agent setup screen.
+
+Collect:
+
+- Agent name.
+- Agent purpose.
+- Description.
+- Communication tone.
+- Responsibilities.
+- Things the agent must not do.
+- Escalation destination or process.
+
+Provide editable defaults based on the selected template.
+
+For example, a Customer Support Agent should receive a sensible initial configuration.
+
+The user should be able to customise its instructions without having to write a complicated system prompt.
+
+Include a simple preview of how the agent will behave.
+
+### STEP 6 — Add business knowledge
+
+An agent must understand the business before it can provide reliable answers.
+
+Provide several knowledge ingestion methods:
+
+- Add website URL.
+- Upload documents.
+- Upload PDFs.
+- Upload FAQs.
+- Add text manually.
+- Add product or service information.
+- Import approved business data.
+- Connect supported business systems.
+
+Explain why knowledge matters.
+
+Suggested text:
+
+"Give your agent the information it needs to represent your business accurately."
+
+Allow the user to skip this step, but clearly explain that the agent may have limited business-specific knowledge until sources are added.
+
+Knowledge sources should be reusable across agents, with access controls determining which agents can retrieve them.
+
+Do not expose another tenant's knowledge under any circumstances.
+
+### STEP 7 — Choose where the agent should work
+
+Ask:
+
+**Where should your AI agent be available?**
+
+Organise choices into three groups.
+
+CUSTOMER COMMUNICATION
+- Website chat widget.
+- WhatsApp.
+- Telegram.
+- Email.
+- Other supported channels.
+
+TEAM COMMUNICATION
+- Slack.
+- Microsoft Teams.
+- Other supported internal channels.
+
+BUSINESS APPLICATIONS
+- Shopify.
+- CRM.
+- Calendar.
+- Inventory.
+- Other supported integrations.
+
+Show which integrations are available, which require authorisation, and which are coming soon.
+
+The user should be able to configure multiple deployments for the same agent.
+
+If a user chooses website deployment, show the appropriate setup instructions.
+
+If a user chooses WhatsApp, guide them through the actual supported connection flow.
+
+Never display a successful connection state unless the connection has been verified.
+
+### STEP 8 — Permissions and actions
+
+Before deploying an agent, explain what it can and cannot do.
+
+For example:
+
+A customer support agent may:
+- Read approved FAQs.
+- Check order status.
+- Create a support ticket.
+
+It should not automatically:
+- Refund a customer.
+- Change account ownership.
+- Transfer money.
+- Access unrelated customer records.
+
+Use permission controls for actions that change external systems.
+
+Support:
+- Read-only permissions.
+- Action permissions.
+- Human approval requirements.
+- Restricted actions.
+- Escalation rules.
+
+Sensitive financial, account, and irreversible operations should require explicit permission and appropriate approval policies.
+
+### STEP 9 — Test your agent
+
+Provide an interactive testing environment.
+
+The user should be able to ask questions as though they are a real customer or employee.
+
+Display:
+- Agent response.
+- Sources used, where appropriate.
+- Tool actions taken.
+- Errors.
+- Escalation behaviour.
+- Permission restrictions.
+
+Allow the user to edit configuration and retest.
+
+Make the testing environment feel like a real conversation rather than a technical debugging console.
+
+### STEP 10 — Deploy
+
+Show a deployment summary:
+
+- Agent name.
+- Business workspace.
+- Connected knowledge sources.
+- Enabled capabilities.
+- Configured permissions.
+- Selected channels.
+- Deployment readiness.
+
+Primary action:
+
+**Deploy agent**
+
+Once successfully deployed, display a clear success screen.
+
+For website deployments, provide:
+- Installation instructions.
+- Copyable embed code where supported.
+- Widget preview.
+- Installation status.
+- Domain configuration where required.
+
+For other channels, display their actual connection status and next steps.
+
+### STEP 11 — Enter the workspace
+
+After deployment, take the user to a populated dashboard that shows their actual setup.
+
+Do not leave users with an empty, confusing dashboard.
+
+---
+
+# 7. APPLICATION INFORMATION ARCHITECTURE
+
+Design Tanat as a complete product, not just a landing page.
+
+Create the following main pages and navigation structure.
+
+## Public pages
+
+1. Home / Landing page.
+2. Product overview.
+3. Use cases.
+4. Integrations.
+5. Developers.
+6. Pricing.
+7. Documentation.
+8. Security and trust.
+9. Sign in.
+10. Sign up / OTP authentication.
+
+## Authenticated workspace
+
+### Overview / Dashboard
+
+Display:
+
+- Active agents.
+- Total conversations.
+- Tasks completed.
+- Recent agent activity.
+- Connected integrations.
+- Usage overview.
+- Deployment status.
+- Recent errors or attention-required items.
+
+Avoid meaningless vanity metrics.
+
+Use empty states with clear actions for new businesses.
+
+### Agents
+
+A dedicated area for managing all agents.
+
+Include:
+- Agent list.
+- Agent templates.
+- Create agent.
+- Agent details.
+- Agent configuration.
+- Agent testing.
+- Agent versions.
+- Deployment status.
+
+Each agent should have a meaningful status:
+- Draft.
+- Testing.
+- Published.
+- Paused.
+- Error / Attention required.
+
+### Agent details
+
+Organise agent configuration into intuitive sections:
+
+1. Overview.
+2. Instructions and behaviour.
+3. Knowledge.
+4. Tools and actions.
+5. Integrations.
+6. Channels and deployments.
+7. Permissions.
+8. Memory.
+9. Testing.
+10. Activity and logs.
+11. Versions.
+
+Do not overwhelm the user with every setting on one page.
+
+### Knowledge
+
+Central knowledge management.
+
+Features:
+- Upload documents.
+- Add website sources.
+- Manage FAQs.
+- Add text sources.
+- Import supported business information.
+- View processing status.
+- View indexing status.
+- Assign knowledge sources to agents.
+- Remove or update sources.
+
+### Integrations
+
+A central integrations marketplace/catalogue.
+
+Organise integrations into:
+- Messaging and communication.
+- E-commerce.
+- CRM and sales.
+- Productivity.
+- Scheduling.
+- Finance.
+- Storage and documents.
+- Developer tools.
+- Custom APIs.
+
+Each integration should have:
+- Description.
+- Logo.
+- Supported capabilities.
+- Connection status.
+- Connect/disconnect action.
+- Permission information.
+- Documentation.
+
+Only show integrations that exist or are genuinely planned. Clearly mark unavailable integrations.
+
+### Channels / Deployments
+
+Manage where agents are deployed.
+
+Show:
+- Channel.
+- Agent assigned.
+- Deployment status.
+- Installation information.
+- Last connection.
+- Configuration.
+
+A single agent can have several deployments.
+
+### Conversations
+
+Provide a unified conversation interface where applicable.
+
+Features:
+- View conversations.
+- Search.
+- Filter by agent and channel.
+- View conversation details.
+- See relevant agent actions.
+- Escalate or assign conversations where supported.
+
+### Activity / Runs
+
+A technical and operational view of agent execution.
+
+Display:
+- Execution history.
+- Tool calls.
+- Status.
+- Duration.
+- Errors.
+- Usage.
+- Approval requirements.
+- Relevant logs.
+
+Keep this separate from ordinary customer conversations.
+
+### Analytics
+
+Show meaningful measurements:
+- Conversations handled.
+- Tasks completed.
+- Human escalations.
+- Agent response performance.
+- Failed executions.
+- Usage by agent.
+- Usage by channel.
+- Knowledge retrieval effectiveness where measurable.
+
+Do not fabricate analytics.
+
+### Team / Members
+
+Support:
+- Workspace members.
+- Invitations.
+- Roles.
+- Access control.
+- Ownership.
+- Membership status.
+
+### Settings
+
+Organise:
+- Workspace settings.
+- Business profile.
+- Domains.
+- Security.
+- API keys.
+- Webhooks.
+- Billing and usage.
+- Model configuration where appropriate.
+- Audit history.
+
+### Developer area
+
+This is important because Tanat must also serve developers and companies building products on top of its infrastructure.
+
+Provide a dedicated developer experience with:
+- API keys.
+- API reference.
+- SDKs.
+- Webhooks.
+- Agent runtime documentation.
+- Widget installation.
+- Integration guides.
+- Example projects.
+- Usage information.
+
+Do not force nontechnical business owners through developer configuration during onboarding.
+
+---
+
+# 8. THE DEVELOPER EXPERIENCE: BUILD FOR VIBECODERS TOO
+
+Tanat should be usable by business owners without code, but it must also be attractive to developers.
+
+Developers should be able to use Tanat as infrastructure rather than merely as a dashboard product.
+
+Design the architecture and future developer experience around:
+
+### REST API
+
+Allow developers to:
+- Create/manage tenants.
+- Create/manage agents.
+- Manage agent configurations.
+- Add knowledge sources.
+- Start agent conversations.
+- Execute permitted agent tasks.
+- Manage deployments.
+- Retrieve usage information.
+- Receive webhooks.
+
+### SDKs
+
+Plan for:
+- TypeScript / JavaScript SDK.
+- React integration.
+- Python SDK.
+- Other SDKs as demand develops.
+
+### Website widget
+
+Provide a lightweight installation method.
+
+Potential methods:
+- Copy-paste embed script.
+- React component / npm package.
+- Framework-specific integrations.
+
+A business owner should be able to install a widget without understanding the underlying runtime.
+
+A developer should be able to customise it.
+
+Widget capabilities should eventually include:
+- Branding.
+- Theme.
+- Position.
+- Welcome message.
+- Launcher icon.
+- Agent selection.
+- Context passing.
+- Authenticated user context.
+- Streaming responses.
+- Mobile responsiveness.
+
+### MCP
+
+Design for future Model Context Protocol interoperability so external AI systems can discover and use authorised Tanat capabilities.
+
+Do not prioritise MCP above the core business experience, but avoid architectural decisions that make it unnecessarily difficult to add.
+
+### Developer documentation
+
+Use practical quickstarts.
+
+A developer should be able to go from account creation to a working agent integration without reading an enormous conceptual manual.
+
+Include:
+- Getting started.
+- Authentication.
+- Tenants.
+- Agents.
+- Conversations.
+- Knowledge.
+- Tools.
+- Integrations.
+- Webhooks.
+- SDKs.
+- Widget.
+- Errors.
+- Security.
+- Production deployment.
+
+---
+
+# 9. LANDING PAGE: THE FIRST 10 SECONDS MUST EXPLAIN TANAT
+
+The landing page must communicate what Tanat does immediately.
+
+A visitor should not need to scroll through several sections before understanding the product.
+
+The landing page must speak to both:
+
+1. Business owners who want AI working in their business.
+2. Developers and SaaS builders who want AI infrastructure they can integrate.
+
+The business owner should be the primary audience in the hero.
+
+Developers should have a clear secondary pathway.
+
+## HERO SECTION
+
+Recommended headline:
+
+**Your business needs AI. Tanat provides the infrastructure.**
+
+Alternative:
+
+**Put AI agents to work across your business.**
+
+Supporting text:
+
+"Create intelligent agents for customer support, sales, operations, HR and more. Connect them to your business knowledge and tools, then deploy them across your website, WhatsApp, Slack and existing systems. No AI infrastructure to build."
+
+Primary CTA:
+"Get started"
+
+Secondary CTA:
+"Explore how it works"
+
+Additional developer link:
+"Build with Tanat →"
+
+### Hero visual
+
+Do not use a generic robot illustration.
+
+Create an actual product-oriented visual that communicates Tanat's architecture.
+
+The visual should show:
+
+- Tanat as the central AI infrastructure.
+- Multiple business agents around or connected to it.
+- A Customer Support Agent.
+- A Sales Agent.
+- An HR Agent.
+- An Operations Agent.
+- Different channels such as Website, WhatsApp, Slack and Shopify.
+- Business knowledge and connected tools feeding into the agents.
+
+The visual should communicate that one business can have multiple agents, and each agent can operate across different channels.
+
+Use tasteful motion:
+- Animated connection lines.
+- Subtle channel-to-agent connections.
+- Agent cards appearing in sequence.
+- Small status indicators.
+- Subtle floating interface elements.
+- A restrained animated conversation preview.
+
+Keep the composition readable.
+
+Avoid excessive motion, random floating objects, and decorative gradients that do not explain the product.
+
+## SECTION 2 — THE PROBLEM
+
+Headline:
+
+**Businesses need AI. Building it shouldn't be your job.**
+
+Explain that businesses currently have to piece together:
+- AI models.
+- Agent frameworks.
+- Memory systems.
+- Business knowledge.
+- Integrations.
+- Permissions.
+- Execution infrastructure.
+- Monitoring.
+
+This creates complexity and delays adoption.
+
+Tanat brings these capabilities together in one platform.
+
+Use a clean visual comparison:
+
+WITHOUT TANAT:
+Separate tools, complex infrastructure, disconnected workflows.
+
+WITH TANAT:
+One platform, configured agents, connected systems, deployed workflows.
+
+## SECTION 3 — WHAT YOU CAN DO WITH TANAT
+
+Headline:
+
+**One infrastructure. AI for every business function.**
+
+Use attractive cards for:
+
+- Customer support.
+- Sales and lead generation.
+- HR and employee support.
+- Booking and appointments.
+- Operations and administration.
+- Finance and procurement.
+- Knowledge and research.
+- Custom business workflows.
+
+Each card should explain a real business outcome.
+
+Do not make every card look like a product sales bot.
+
+## SECTION 4 — HOW TANAT WORKS
+
+Headline:
+
+**From business knowledge to working AI agents in a few steps.**
+
+Show a clear four-step process.
+
+1. Tell Tanat about your business.
+2. Choose what AI should handle.
+3. Connect your knowledge, tools and channels.
+4. Test and deploy your agents.
+
+Use an animated horizontal or vertical journey.
+
+On desktop, use a visually connected flow.
+
+On mobile, use a vertical sequence.
+
+## SECTION 5 — DEPLOY EVERYWHERE
+
+Headline:
+
+**Your agents work where your business already operates.**
+
+Show channel integrations.
+
+Examples:
+- Website.
+- WhatsApp.
+- Telegram.
+- Slack.
+- Shopify.
+- Email.
+- APIs and custom applications.
+
+Make clear that the same agent can be deployed across multiple channels.
+
+Do not imply that every listed integration is already available unless it is actually implemented.
+
+Distinguish live integrations from upcoming integrations.
+
+## SECTION 6 — BUSINESS KNOWLEDGE
+
+Headline:
+
+**Your agents should understand your business, not just answer questions.**
+
+Explain:
+- Website knowledge.
+- Documents.
+- Policies.
+- Product and service information.
+- Internal knowledge.
+- Approved business data.
+
+Show a visual of information flowing into a business knowledge layer and then becoming available to authorised agents.
+
+## SECTION 7 — MULTIPLE AGENTS, ONE WORKSPACE
+
+Headline:
+
+**Give every part of your business the right AI agent.**
+
+Show a business workspace with multiple agents.
+
+For example:
+- Customer Support.
+- Sales.
+- HR.
+- Operations.
+
+Show how they share approved business knowledge while retaining their own permissions and responsibilities.
+
+## SECTION 8 — FOR DEVELOPERS
+
+Headline:
+
+**Build on Tanat. Don't rebuild AI infrastructure.**
+
+Explain the developer offering.
+
+Highlight:
+- APIs.
+- SDKs.
+- Website widgets.
+- Webhooks.
+- Custom integrations.
+- Agent runtime.
+- MCP direction.
+
+Show a clean, attractive code snippet or integration preview.
+
+CTA:
+"Explore developer docs"
+
+## SECTION 9 — INFRASTRUCTURE / SECURITY / TRUST
+
+Headline:
+
+**The infrastructure behind every agent.**
+
+Explain the platform's underlying capabilities without exaggerating.
+
+Potential subjects:
+- AI inference.
+- Agent orchestration.
+- Knowledge retrieval.
+- Memory.
+- Secure credentials.
+- Permissions.
+- Execution monitoring.
+- Tenant isolation.
+
+NEAR AI Cloud is part of the current inference foundation.
+
+You may explain the privacy and confidential-compute properties that are actually supported by the configured NEAR AI Cloud integration.
+
+Do not make blanket claims such as "fully secure", "zero risk", or "100% private" without evidence.
+
+## SECTION 10 — FINAL CTA
+
+Headline:
+
+**Your next AI agent starts here.**
+
+Supporting text:
+
+"Bring your business knowledge, choose what AI should handle, and deploy your first agent with Tanat."
+
+CTA:
+"Get started with Tanat"
+
+Secondary:
+"Talk to our team"
+
+## FOOTER
+
+Include:
+- Product.
+- Use cases.
+- Integrations.
+- Developers.
+- Documentation.
+- Pricing.
+- Security.
+- About.
+- Contact.
+- Terms.
+- Privacy.
+
+---
+
+# 10. VISUAL IDENTITY AND DESIGN DIRECTION
+
+Tanat should look like a serious, modern AI infrastructure company.
+
+Do not use the default generic AI SaaS design.
+
+Avoid:
+- Excessive purple/blue AI gradients.
+- Cartoon robots.
+- Generic AI brain illustrations.
+- Too many glowing elements.
+- Random floating dashboard cards.
+- Excessive glassmorphism.
+- Oversized rounded cards everywhere.
+- Decorative animations with no purpose.
+- Unnecessary icons and emojis.
+
+Use the following design references as inspiration, not templates:
+
+- Ctrl.xyz: distinctive editorial feel and visual restraint.
+- Aave.com: strong product hierarchy and polished interaction design.
+- Sprint.app: modern SaaS composition and clear visual communication.
+
+Create a distinctive Tanat identity.
+
+### Suggested visual direction
+
+Use:
+- Deep charcoal or near-black.
+- Warm off-white.
+- A distinctive lime, green, or warm orange accent.
+- Strong editorial typography.
+- High-contrast headings.
+- Carefully structured whitespace.
+- Subtle borders.
+- Refined card surfaces.
+- Clear interaction states.
+
+Choose one primary accent and use it consistently.
+
+The result should feel premium, confident, technical, and approachable.
+
+### Logo
+
+Create a distinctive Tanat wordmark and symbol.
+
+Explore a symbol inspired by:
+- Connected systems.
+- An intelligent infrastructure layer.
+- Multiple agents working through one central platform.
+- A structured network.
+
+Avoid generic robot heads, generic AI sparkles, and copied logos.
+
+The logo must work:
+- On the website.
+- In the application sidebar.
+- As a favicon.
+- In a compact mobile layout.
+- On documentation pages.
+
+Use a clean vector-based logo where possible.
+
+### Typography
+
+Use a modern, highly readable type system.
+
+Use clear hierarchy for:
+- Hero headings.
+- Section headings.
+- Body text.
+- Labels.
+- Technical information.
+- Dashboard metrics.
+
+Do not make the entire interface use the same font size and weight.
+
+---
+
+# 11. ANIMATION AND INTERACTION REQUIREMENTS
+
+Animation is important because Tanat's product is about connected systems, agents, and workflows.
+
+However, animation must explain the product and make the interface feel alive, not distract users.
+
+Use a consistent motion system.
+
+### Landing page animations
+
+Implement:
+
+1. Hero architecture animation.
+   - Business workspace appears.
+   - Agents appear.
+   - Channels connect to agents.
+   - Knowledge and integrations become visible.
+
+2. Scroll-triggered section reveals.
+   - Subtle fade and translate.
+   - Staggered card appearances.
+   - No excessive bouncing.
+
+3. Animated workflow diagram.
+   - Connection lines.
+   - Progress states.
+   - Flow between knowledge, agents, tools, and channels.
+
+4. Interactive agent cards.
+   - Subtle hover response.
+   - Clear active state.
+   - Restrained transitions.
+
+5. Integration strip.
+   - Subtle motion where useful.
+   - Avoid an endlessly moving marquee that makes logos difficult to read.
+
+### Application animations
+
+Use motion for:
+- Navigation transitions.
+- Modal opening and closing.
+- Dropdowns.
+- Toasts.
+- Loading states.
+- Agent provisioning.
+- Knowledge processing.
+- Connection states.
+- Test conversations.
+- Deployment success.
+
+Provide skeleton loaders and meaningful empty states.
+
+Respect reduced-motion accessibility preferences.
+
+Animations must remain smooth on lower-powered devices.
+
+Do not add unnecessary heavy animation libraries if existing project dependencies can support the desired motion.
+
+---
+
+# 12. WIREFRAME REQUIREMENTS
+
+Before implementation, produce a clear wireframe specification for the following.
+
+## Public landing page
+
+Desktop layout:
+
+1. Navigation.
+2. Hero with headline, CTAs and animated product architecture visual.
+3. Problem and solution.
+4. Agent capabilities grid.
+5. How it works.
+6. Channel integrations.
+7. Knowledge infrastructure.
+8. Multiple-agent workspace demonstration.
+9. Developer experience.
+10. Infrastructure and security.
+11. Final CTA.
+12. Footer.
+
+Mobile layout:
+
+- Compact navigation.
+- Stacked hero.
+- Clear primary CTA.
+- Simplified architecture animation.
+- Single-column agent cards.
+- Vertical workflow.
+- Horizontally scrollable integration list where appropriate.
+- Stacked developer section.
+- Readable footer.
+
+## Onboarding wireframes
+
+Create wireframes for:
+
+1. Welcome.
+2. Business profile.
+3. Business type.
+4. AI responsibilities.
+5. Recommended agents.
+6. Agent configuration.
+7. Knowledge setup.
+8. Channel selection.
+9. Permissions.
+10. Agent testing.
+11. Deployment.
+12. Success screen.
+
+Show desktop and mobile behaviour.
+
+## Dashboard wireframe
+
+Desktop:
+- Persistent sidebar.
+- Workspace selector.
+- Top-level actions.
+- Overview metrics.
+- Agent cards.
+- Activity.
+- Integration status.
+
+Mobile:
+- Compact navigation.
+- Responsive cards.
+- Bottom navigation or a suitable mobile menu.
+- No desktop sidebar squeezed onto a small screen.
+
+## Agent management wireframes
+
+Show:
+- Agent list.
+- Agent detail.
+- Configuration.
+- Knowledge.
+- Integrations.
+- Permissions.
+- Testing.
+- Deployment.
+- Activity.
+
+Do not treat wireframes as an excuse to stop at static designs. Use them to guide the actual implementation.
+
+---
+
+# 13. PRODUCT UX PRINCIPLES
+
+Follow these principles throughout the platform.
+
+### Business-first, technical depth when needed
+
+A nontechnical business owner should be able to provision an agent without writing code.
+
+A developer should be able to access deeper configuration and integration capabilities.
+
+### Progressive disclosure
+
+Do not show every advanced setting during onboarding.
+
+Start with the minimum information required to create a useful agent.
+
+Make advanced configuration accessible later.
+
+### No dead ends
+
+Every empty state should explain:
+- What this area does.
+- Why the user might need it.
+- What they should do next.
+
+### Clear status
+
+Always communicate whether something is:
+- Connected.
+- Disconnected.
+- Processing.
+- Failed.
+- Awaiting approval.
+- Draft.
+- Published.
+- Paused.
+
+### Realistic feedback
+
+Never show fake success messages.
+
+If an operation fails, explain what happened and how to resolve it.
+
+### Responsive design
+
+Design for desktop, tablet, and mobile.
+
+Do not simply shrink the desktop interface.
+
+### Accessibility
+
+Use proper contrast, keyboard navigation, semantic structure, visible focus states, and accessible form controls.
+
+### Empty, loading, and error states
+
+Design all three for every important workflow.
+
+---
+
+# 14. SECURITY, MULTI-TENANCY AND AGENT GOVERNANCE
+
+This is infrastructure software, so security cannot be an afterthought.
+
+Inspect and implement appropriate protections for:
+
+- Tenant data isolation.
+- User authentication.
+- Workspace membership.
+- Role-based access control.
+- Secure API keys.
+- Integration credentials.
+- Knowledge access.
+- Agent tool permissions.
+- Conversation access.
+- Audit logs.
+- Rate limits.
+- Usage limits.
+- Execution timeouts.
+- Human approvals.
+
+Agents should operate with least-privilege access.
+
+A Customer Support Agent should not automatically gain access to financial operations because both agents belong to the same tenant.
+
+Sensitive actions should have explicit permissions and, where appropriate, human approval.
+
+Ensure that one tenant cannot access another tenant's:
+- Knowledge.
+- Conversations.
+- Agents.
+- Credentials.
+- Usage data.
+- Deployments.
+- Logs.
+
+Do not rely on frontend restrictions for security. Enforce permissions on the backend.
+
+---
+
+# 15. PRICING AND COMMERCIAL PRODUCT DIRECTION
+
+Tanat should eventually support a usage-based or tiered commercial model.
+
+Do not hardcode a pricing strategy before the actual cost model is understood.
+
+Design the architecture to measure:
+- Inference usage.
+- Agent executions.
+- Conversations.
+- Tool calls.
+- Knowledge storage.
+- Integration usage.
+- Other billable resources.
+
+Potential packaging:
+
+STARTER
+For small businesses getting started with AI.
+
+GROWTH
+For businesses running multiple agents and integrations.
+
+BUSINESS
+For organisations requiring more control, users, and operational capacity.
+
+ENTERPRISE
+For larger organisations requiring advanced governance, custom integrations, higher limits, and support.
+
+DEVELOPER / PLATFORM
+For developers embedding Tanat into their own applications or building products on top of its infrastructure.
+
+These are product packaging directions, not final prices or confirmed plan entitlements.
+
+Make billing architecture flexible.
+
+---
+
+# 16. TECHNICAL IMPLEMENTATION GUIDELINES
+
+Before making changes:
+
+1. Inspect the complete project structure.
+2. Identify the existing frontend framework and styling system.
+3. Identify backend services and database models.
+4. Inspect the current OTP authentication flow.
+5. Inspect the existing NEAR AI Cloud integration.
+6. Identify existing routes and navigation.
+7. Identify reusable UI components.
+8. Identify existing API conventions.
+9. Identify incomplete or placeholder features.
+10. Produce an implementation plan.
+
+Do not introduce an entirely new framework unnecessarily.
+
+Respect the existing stack and conventions.
+
+### Backend architecture
+
+Where not already implemented, organise functionality around clear domains:
+
+- Authentication.
+- Tenants.
+- Memberships.
+- Agents.
+- Agent templates.
+- Agent configurations.
+- Agent versions.
+- Knowledge.
+- Integrations.
+- Channels.
+- Deployments.
+- Conversations.
+- Agent executions.
+- Tools.
+- Permissions.
+- Approvals.
+- Analytics.
+- Usage and billing.
+- Webhooks.
+
+Keep the design modular.
+
+### Data model considerations
+
+Review the current schema and identify whether it supports:
+
+- Multiple tenants per user.
+- Multiple users per tenant.
+- Multiple agents per tenant.
+- Multiple versions per agent.
+- Multiple knowledge sources per tenant.
+- Agent-specific knowledge permissions.
+- Multiple deployments per agent.
+- Multiple channel connections.
+- Integration credentials.
+- Agent execution history.
+- Conversation history.
+- Tool permissions.
+- Approval records.
+- Usage metering.
+
+Do not blindly add duplicate tables if equivalent models already exist.
+
+Use migrations and preserve existing data.
+
+### Agent lifecycle
+
+Support an understandable lifecycle:
+
+Draft → Testing → Published → Paused.
+
+Publishing should create a clear, identifiable version.
+
+Where feasible, support rollback to a previous published version.
+
+### Integration architecture
+
+Use a consistent connector architecture so integrations do not become hardcoded into individual agent implementations.
+
+Separate:
+- Connection management.
+- Authentication.
+- Credential storage.
+- Capability definitions.
+- Event handling.
+- Agent access permissions.
+
+### Inference architecture
+
+Keep the current NEAR AI Cloud integration as the active provider.
+
+Place it behind a provider abstraction where practical.
+
+Do not rewrite the existing integration just to create an abstraction. Preserve its working behaviour and introduce the abstraction incrementally.
+
+---
+
+# 17. WHAT MUST NOT HAPPEN
+
+These are important product restrictions.
+
+1. Do not build Tanat as only a sales chatbot.
+2. Do not assume all businesses sell products.
+3. Do not make payments the central product feature.
+4. Do not force a business to create one agent per communication channel.
+5. Do not treat a domain as the tenant itself.
+6. Do not require developers to use the platform before business owners can understand it.
+7. Do not expose technical infrastructure unnecessarily during onboarding.
+8. Do not present integrations as functional when they are not.
+9. Do not fabricate analytics or execution history.
+10. Do not create a landing page full of vague AI marketing statements.
+11. Do not build a dashboard that has no relationship to the actual product.
+12. Do not discard the existing NEAR AI Cloud integration.
+13. Do not discard the existing OTP authentication.
+14. Do not compromise tenant isolation for convenience.
+15. Do not create every proposed feature as a separate independent AI system.
+
+Tanat should be one coherent infrastructure platform.
+
+---
+
+# 18. IMPLEMENTATION PHASES
+
+Work in deliberate phases.
+
+Do not attempt to implement everything in one uncontrolled generation.
+
+## PHASE 1 — CODEBASE AND PRODUCT AUDIT
+
+- Inspect the full repository.
+- Document the current architecture.
+- Identify existing features.
+- Verify OTP authentication.
+- Verify NEAR AI Cloud integration.
+- Identify missing product capabilities.
+- Identify design inconsistencies.
+- Produce a concise gap analysis.
+
+Do not modify the code until this assessment is complete.
+
+## PHASE 2 — PRODUCT INFORMATION ARCHITECTURE
+
+- Define the application navigation.
+- Define public and authenticated routes.
+- Define the tenant and agent mental models.
+- Define the onboarding journey.
+- Define agent lifecycle and configuration structure.
+- Define the integration and deployment experience.
+
+## PHASE 3 — BRAND AND LANDING PAGE
+
+- Establish the Tanat visual identity.
+- Design the logo and wordmark.
+- Implement the responsive landing page.
+- Implement the product architecture animation.
+- Implement the use-case sections.
+- Implement the developer section.
+- Implement clear CTAs.
+- Ensure the landing page communicates the product immediately.
+
+## PHASE 4 — BUSINESS ONBOARDING
+
+Implement the complete guided onboarding journey.
+
+Connect it to real backend operations wherever supported.
+
+Persist progress so users can return to incomplete onboarding.
+
+Do not make users repeat completed steps unnecessarily.
+
+## PHASE 5 — TENANT AND AGENT MANAGEMENT
+
+Implement or refine:
+- Workspace creation.
+- Workspace switching.
+- Agent provisioning.
+- Agent configuration.
+- Agent templates.
+- Agent lifecycle.
+- Agent testing.
+
+## PHASE 6 — KNOWLEDGE AND INTEGRATIONS
+
+Implement or refine:
+- Knowledge management.
+- Website and document ingestion.
+- Channel configuration.
+- Business-system integrations.
+- Deployment management.
+- Permissions.
+
+Clearly distinguish implemented integrations from planned integrations.
+
+## PHASE 7 — DASHBOARD AND OPERATIONAL EXPERIENCE
+
+Implement:
+- Overview.
+- Agent activity.
+- Conversations.
+- Execution history.
+- Analytics.
+- Team management.
+- Settings.
+- Developer area.
+
+## PHASE 8 — QUALITY ASSURANCE
+
+Test:
+
+- OTP sign-in.
+- New user onboarding.
+- Existing user sign-in.
+- Workspace creation.
+- Workspace membership.
+- Agent creation.
+- Agent configuration.
+- Knowledge upload.
+- Agent testing.
+- Deployment.
+- Channel connection.
+- Permission enforcement.
+- Tenant isolation.
+- Mobile responsiveness.
+- Error handling.
+
+Check for broken routes, dead buttons, fake success states, console errors, and inconsistent navigation.
+
+---
+
+# 19. REQUIRED DELIVERABLES
+
+Before implementation, produce:
+
+1. Product understanding and concise positioning statement.
+2. Existing codebase audit.
+3. Current versus required feature gap analysis.
+4. Proposed application architecture.
+5. Application sitemap.
+6. Complete onboarding flow.
+7. Landing page wireframe.
+8. Dashboard wireframe.
+9. Agent management wireframe.
+10. Mobile responsiveness plan.
+11. Animation and interaction plan.
+12. Phased implementation plan.
+
+After approval of the internal plan, implement the product in phases.
+
+If your IDE environment supports autonomous execution, continue with the implementation after the audit and plan. Do not stop at a document or a collection of static mockups.
+
+---
+
+# 20. FINAL PRODUCT QUALITY TEST
+
+Before considering the work successful, ask:
+
+**If a business owner opens Tanat for the first time, can they immediately understand that Tanat provides AI infrastructure for their business?**
+
+**Can a business that only needs customer support AI use the platform without encountering sales-focused assumptions?**
+
+**Can a business create multiple agents for different departments?**
+
+**Can the same agent be deployed across multiple channels?**
+
+**Can a nontechnical business owner complete onboarding without understanding AI engineering?**
+
+**Can a developer integrate Tanat into a custom application?**
+
+**Does the dashboard reflect real agent activity and business operations?**
+
+**Does the product feel like a serious AI infrastructure platform rather than a generic chatbot template?**
+
+If any answer is no, the implementation is incomplete.
+
+## THE NORTH STAR
+
+Tanat should make provisioning AI for a business feel as straightforward as setting up a business email account or connecting a payment provider.
+
+A business should not need to build AI.
+
+It should simply tell Tanat what it needs AI to do, provide the relevant business knowledge, configure the necessary permissions, connect its systems, and deploy.
+
+**Tanat provides the infrastructure. Businesses provide the purpose. Their agents do the work.**
+
+
+A few strategic decisions I want your IDE to get right
+There are three things I would pay particular attention to when it executes this prompt.
+
+1. Don't make onboarding feel like filling out a long registration form.
+
+The onboarding should feel like a guided setup experience. The business owner should progressively discover what Tanat can do. For example, after selecting Customer Support, Tanat should explain what that agent can handle, what information it needs, and where it can be deployed.
+
+2. The distinction between agents, channels and integrations is fundamental.
+Business Workspace (Tenant)
+
+One organisation, multiple agents
+
+Customer Support
+
+Agent
+
+
+HR Assistant
+
+Agent
+
+
+Sales Agent
+
+Agent
+
+
+Operations
+
+Agent
+
+
+
+Deployments / Channels
+Website
+WhatsApp
+Telegram
+Slack
+API
+
+
+Business systems and tools
+
+Shopify · CRM · Calendar · Database · Payments
+
+
+Conceptual product relationship, not a prescribed implementation diagram.
+3. Don't let the landing page become a beautiful but vague AI website.
+
+A visitor must see an actual demonstration of what happens: a business creates a Customer Support Agent, gives it company knowledge, connects WhatsApp and its website, tests it, and deploys it. That demonstration will communicate Tanat better than paragraphs about artificial intelligence.
+What I would do next
+Once your IDE has implemented the first pass, I would review its actual onboarding, dashboard, agent configuration and landing page against this product specification, then identify what needs correcting before you build more features.

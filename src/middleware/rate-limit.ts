@@ -17,7 +17,7 @@ import type { HonoEnv } from '../types';
 import { RateLimitError } from '../utils/errors';
 import { logAudit, requestIp } from '../utils/audit';
 
-interface LimitResult {
+export interface LimitResult {
   count: number;
   maxRequests: number;
   resetAt: number;
@@ -72,6 +72,19 @@ async function consume(
     windowStart,
     windowMs,
   };
+}
+
+/**
+ * Shared fixed-window counter. Exported for the public widget API, which is
+ * keyed by publishable key + IP rather than by tenant.
+ */
+export async function consumeRateLimit(
+  db: D1Database,
+  identifier: string,
+  maxRequests: number,
+  windowSeconds: number,
+): Promise<LimitResult> {
+  return consume(db, identifier, maxRequests, windowSeconds);
 }
 
 function setHeaders(

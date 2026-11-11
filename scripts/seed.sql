@@ -45,7 +45,7 @@ VALUES (
     {"name": "propose_refund", "description": "Propose a NEAR refund for approval", "parameters": {"type": "object", "properties": {"recipient": {"type": "string"}, "amount": {"type": "string"}, "reason": {"type": "string"}}, "required": ["recipient", "amount", "reason"]}},
     {"name": "escalate_to_human", "description": "Escalate the conversation to a human agent", "parameters": {"type": "object", "properties": {"reason": {"type": "string"}, "priority": {"type": "string", "enum": ["low", "medium", "high"]}}, "required": ["reason", "priority"]}}
   ]',
-  'gpt-4o-mini',
+  'z-ai/glm-5.3',
   4096,
   0.7,
   '{}',
@@ -81,14 +81,14 @@ VALUES
     'inst_acme_cs_001',
     'tnt_acme_000001',
     'agt_acme_support',
-    '{"greeting": "Welcome to Acme Corp support!", "maxRefundNear": "5"}',
+    '{"greeting": "Welcome to Acme Corp support!", "maxRefundNear": "5", "maxPaymentUsd": 500}',
     'active'
   ),
   (
     'inst_stark_cs_01',
     'tnt_stark_00001',
     'agt_stark_support',
-    '{"greeting": "Welcome to Stark Industries support.", "maxRefundNear": "25"}',
+    '{"greeting": "Welcome to Stark Industries support.", "maxRefundNear": "25", "maxPaymentUsd": 1000}',
     'active'
   );
 

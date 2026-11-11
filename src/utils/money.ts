@@ -54,6 +54,55 @@ export function toYoctoString(value: string | number): string {
 }
 
 /**
+ * Convert a decimal token amount to its smallest unit for an arbitrary
+ * token (USDC has 6 decimals, ETH has 18, and so on).
+ */
+export function parseTokenAmount(value: string, decimals: number): bigint {
+  if (!Number.isInteger(decimals) || decimals < 0 || decimals > 36) {
+    throw new Error(`Invalid token decimals: ${decimals}`);
+  }
+
+  const text = String(value).trim();
+  const pattern =
+    decimals === 0
+      ? /^(?:0|[1-9]\d*)$/
+      : new RegExp(`^(?:0|[1-9]\\d*)(?:\\.\\d{1,${decimals}})?$`);
+
+  if (!pattern.test(text)) {
+    throw new Error(`Invalid token amount: ${String(value)}`);
+  }
+
+  const [whole, fraction = ''] = text.split('.');
+  const paddedFraction = (fraction + '0'.repeat(decimals)).slice(0, decimals);
+
+  return BigInt(whole) * 10n ** BigInt(decimals) + BigInt(paddedFraction || '0');
+}
+
+/**
+ * Convert a smallest-unit token amount to a decimal string without trailing
+ * zeros.
+ */
+export function formatTokenAmount(value: bigint | string, decimals: number): string {
+  if (!Number.isInteger(decimals) || decimals < 0 || decimals > 36) {
+    throw new Error(`Invalid token decimals: ${decimals}`);
+  }
+
+  const raw = typeof value === 'bigint' ? value : BigInt(value);
+  if (raw < 0n) throw new Error('Token amount cannot be negative');
+
+  if (decimals === 0) return raw.toString();
+
+  const divisor = 10n ** BigInt(decimals);
+  const whole = raw / divisor;
+  const fraction = (raw % divisor)
+    .toString()
+    .padStart(decimals, '0')
+    .replace(/0+$/, '');
+
+  return fraction.length > 0 ? `${whole}.${fraction}` : whole.toString();
+}
+
+/**
  * Add two yoctoNEAR amounts.
  */
 export function addYocto(left: bigint, right: bigint): bigint {
