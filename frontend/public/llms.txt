@@ -38,3 +38,4 @@ Pass header `Authorization: Bearer tnt_...`:
 - `GET /api/v1/actions` & `POST /api/v1/actions/:id/approve|reject|execute` — Human-in-the-loop governance.
 - `POST /api/v1/platform/verify-user-token` — Generate HMAC signature (`{ user_id }`) for verified widget users.
 - `GET /api/mcp` — Model Context Protocol tool discovery manifest.
+
