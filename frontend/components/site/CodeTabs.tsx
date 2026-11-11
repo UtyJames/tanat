@@ -16,63 +16,93 @@ const tabs: Tab[] = [
     id: 'widget',
     name: 'Website widget',
     fileName: 'index.html',
-    blurb: 'One line. Any site.',
-    code: `<!-- Paste once, anywhere in <body> -->
+    blurb: 'One script tag. Any site.',
+    code: `<!-- Embed any Tanat agent on your website -->
 <script
-  src="https://tanat.app/embed/tanat-widget.js"
+  src="https://your-tanat-host/embed/tanat-widget.js"
   data-key="pk_live_7f3a9c2e"
-  data-agent="agt_store"
+  data-agent="inst_support_agent"
   data-theme="light"
   data-position="bottom-right"
+  data-welcome="Hi! Ask me anything about our services, policies, or bookings."
   defer
 ></script>`,
-    foot: 'No build step · Shadow DOM · 11kb gzipped',
+    foot: 'Zero dependencies · Shadow DOM isolated · Origin-locked publishable key',
   },
   {
     id: 'react',
     name: 'React / Next.js',
     fileName: 'app/layout.tsx',
-    blurb: 'For the vibecoders.',
-    code: `import { TanatWidget } from '@tanat/react';
+    blurb: 'For modern web apps.',
+    code: `import Script from 'next/script';
 
-export default function Layout({ children }) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <>
-      {children}
-      <TanatWidget
-        publishableKey="pk_live_7f3a9c2e"
-        agent="agt_store"
-        theme="light"
-        onPaymentApproved={(payment) => {
-          console.log('paid', payment.id);
-        }}
-      />
-    </>
+    <html lang="en">
+      <body>
+        {children}
+        <Script
+          src="https://your-tanat-host/embed/tanat-widget.js"
+          data-key={process.env.NEXT_PUBLIC_TANAT_PUBLISHABLE_KEY}
+          data-agent={process.env.NEXT_PUBLIC_TANAT_INSTALLATION_ID}
+          data-user-id="usr_4821"
+          data-user-signature="hmac_sha256_verified_token"
+          strategy="afterInteractive"
+        />
+      </body>
+    </html>
   );
 }`,
-    foot: 'npm i @tanat/react · TypeScript · SSR-safe',
+    foot: 'Verified customer identity via HMAC · Works in Next.js App Router, Remix & Vite',
   },
   {
     id: 'api',
-    name: 'Headless API',
-    fileName: 'server.ts',
-    blurb: 'Your UI, our agent.',
-    code: `import { Tanat } from '@tanat/server';
-
-const tanat = new Tanat(process.env.TANAT_SECRET_KEY);
-
-const session = await tanat.sessions.create({
-  installation: 'inst_store',
-  customer: { id: user.id, email: user.email },
+    name: 'REST & Headless API',
+    fileName: 'agent-workflow.ts',
+    blurb: 'Full programmatic control.',
+    code: `// Open a tenant-isolated conversation & run an agent with knowledge + memory
+const sessionRes = await fetch('https://your-tanat-host/api/v1/sessions', {
+  method: 'POST',
+  headers: {
+    Authorization: \`Bearer \${process.env.TANAT_SECRET_KEY}\`,
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify({
+    installation_id: 'inst_ops_agent',
+    user_id: 'employee_94',
+  }),
 });
+const { data: session } = await sessionRes.json();
 
-const reply = await tanat.messages.send(session.id, {
-  text: 'Refund order #4821 — the mug arrived cracked.',
+const replyRes = await fetch(\`https://your-tanat-host/api/v1/sessions/\${session.id}/messages\`, {
+  method: 'POST',
+  headers: {
+    Authorization: \`Bearer \${process.env.TANAT_SECRET_KEY}\`,
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify({
+    content: 'Summarize our Q3 vendor onboarding policy and flag any required approvals.',
+  }),
 });
+const { data: reply } = await replyRes.json();
+// reply.sources_used -> cited knowledge docs
+// reply.proposed_action -> human-in-the-loop approval record`,
+    foot: 'Tenant-scoped API keys · Knowledge citations · Human-in-the-loop approvals',
+  },
+  {
+    id: 'vibecode',
+    name: 'Cursor / Lovable / v0',
+    fileName: 'llms.txt & MCP',
+    blurb: 'AI-native integration.',
+    code: `# Drop this prompt into Cursor, Lovable, Bolt, v0, or Claude Code:
 
-// reply.proposal = { id, amount, currency, status: 'pending_approval' }
-// Nothing moves until a human approves.`,
-    foot: 'Typed SDK · webhooks · idempotency built in',
+Read https://your-tanat-host/llms.txt and https://your-tanat-host/api/mcp
+Integrate our Tanat AI agent into this app:
+1. Embed /embed/tanat-widget.js with data-key="pk_live_..." and data-agent="inst_..."
+2. Or call POST /api/public/v1/sessions and /api/public/v1/sessions/:id/messages
+   with header X-Tanat-Publishable-Key.
+3. Render knowledge citations and approval cards when proposed_action is returned.`,
+    foot: 'Machine-readable /llms.txt · /api/mcp tool discovery · One-click prompt copy in dashboard',
   },
 ];
 
@@ -86,7 +116,7 @@ function escapeHtml(value: string): string {
 function highlight(code: string): string {
   const escaped = escapeHtml(code);
   return escaped.replace(
-    /(<!--[\s\S]*?-->|\/\/[^\n]*)|(&quot;[^&]*?&quot;|&#39;[^&]*?&#39;|`[^`]*?`)/g,
+    /(<!--[\s\S]*?-->|\/\/[^\n]*|#[^\n]*)|(&quot;[^&]*?&quot;|&#39;[^&]*?&#39;|`[^`]*?`)/g,
     (match, comment, string) => {
       if (comment) return `<span class="c-comment">${comment}</span>`;
       if (string) return `<span class="c-str">${string}</span>`;
@@ -137,8 +167,9 @@ export default function CodeTabs() {
             maxWidth: 360,
           }}
         >
-          Same agent, same approval rules, same audit trail — whichever door you
-          walk through. Start with the widget, graduate to the API.
+          Every agent you configure in Tanat is immediately available as a no-code
+          website widget, a verified customer chat session, or a programmable REST
+          and MCP endpoint.
         </p>
       </div>
 

@@ -1,10 +1,11 @@
 import type { CSSProperties } from 'react';
 
 /**
- * Tanat brand mark — "the tally".
+ * Tanat brand mark — "The Infrastructure Nexus".
  *
- * A speech bubble whose check mark is the payment confirmation: the two things
- * Tanat does in one shape. Drawn on a 40×40 grid so it stays legible at 16px.
+ * A geometric symbol representing one central intelligence infrastructure
+ * connecting multiple specialized business agents and channels across a
+ * 40×40 grid, scalable from 16px favicons up to full display size.
  */
 export function LogoMark({
   size = 32,
@@ -17,10 +18,12 @@ export function LogoMark({
   style?: CSSProperties;
   tone?: 'ink' | 'lime' | 'bone';
 }) {
-  const fill =
+  const bg =
     tone === 'lime' ? '#C9F26B' : tone === 'bone' ? '#F6F3EA' : '#0C0D0B';
-  const cut =
+  const primary =
     tone === 'lime' ? '#0C0D0B' : tone === 'bone' ? '#0C0D0B' : '#C9F26B';
+  const secondary =
+    tone === 'lime' ? '#161814' : tone === 'bone' ? '#383B33' : '#F6F3EA';
 
   return (
     <svg
@@ -33,17 +36,30 @@ export function LogoMark({
       style={style}
       aria-hidden="true"
     >
+      <rect x="2" y="2" width="36" height="36" rx="10" fill={bg} />
+      {/* Top horizontal infrastructure bar & vertical spine forming a connected T-nexus */}
       <path
-        d="M12.4 3.5h15.2c5.4 0 9.9 4.4 9.9 9.9v11.4c0 5.5-4.5 9.9-9.9 9.9h-9.9l-9.3 5.4 2.1-8.1a9.9 9.9 0 0 1-3.4-7.7V13.4c0-5.5 4.4-9.9 9.9-9.9Z"
-        fill={fill}
-      />
-      <path
-        d="M12.2 19.6l4.9 4.9L28.3 13"
-        stroke={cut}
-        strokeWidth="3.6"
+        d="M11 12.5H29M20 12.5V29.5M11 22.5L20 19.5L29 22.5"
+        stroke={primary}
+        strokeWidth="2.8"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
+      {/* Central core intelligence node */}
+      <rect
+        x="16.2"
+        y="15.7"
+        width="7.6"
+        height="7.6"
+        rx="2.2"
+        fill={primary}
+      />
+      {/* Surrounding connected agent/channel nodes */}
+      <circle cx="11" cy="12.5" r="2.7" fill={secondary} />
+      <circle cx="29" cy="12.5" r="2.7" fill={secondary} />
+      <circle cx="11" cy="22.5" r="2.3" fill={primary} />
+      <circle cx="29" cy="22.5" r="2.3" fill={primary} />
+      <circle cx="20" cy="29.5" r="2.7" fill={secondary} />
     </svg>
   );
 }
@@ -64,7 +80,7 @@ export function Logo({
       <LogoMark size={size} tone={tone} />
       {wordmark && (
         <span className={`brand-word ${tone === 'bone' ? 'brand-word-bone' : ''}`}>
-          tanat<span className="brand-dot">.</span>
+          Tanat<span className="brand-dot">.</span>
         </span>
       )}
     </span>

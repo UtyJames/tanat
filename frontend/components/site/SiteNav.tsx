@@ -1,3 +1,5 @@
+
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -5,10 +7,11 @@ import Link from 'next/link';
 import { Logo } from '@/components/brand/Logo';
 
 const links = [
-  { href: '/#product', label: 'Product' },
+  { href: '/#capabilities', label: 'Capabilities' },
+  { href: '/#how-it-works', label: 'How it works' },
   { href: '/#channels', label: 'Channels' },
-  { href: '/docs', label: 'Developers' },
-  { href: '/#pricing', label: 'Pricing' },
+  { href: '/#developers', label: 'Developers' },
+  { href: '/docs', label: 'Docs' },
 ];
 
 export default function SiteNav() {
@@ -20,7 +23,6 @@ export default function SiteNav() {
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
 
-    // Lightweight scroll reveal. Runs once; no layout thrash.
     const items = Array.from(document.querySelectorAll<HTMLElement>('.t-reveal'));
     if ('IntersectionObserver' in window) {
       const observer = new IntersectionObserver(
@@ -66,7 +68,7 @@ export default function SiteNav() {
               Sign in
             </Link>
             <Link className="t-btn t-btn-lime t-btn-sm" href="/start">
-              Start free
+              Get started
             </Link>
             <button
               className="t-mobile-toggle"
@@ -94,6 +96,9 @@ export default function SiteNav() {
           ))}
           <Link href="/login" onClick={() => setOpen(false)}>
             Sign in
+          </Link>
+          <Link href="/start" onClick={() => setOpen(false)}>
+            Get started
           </Link>
         </div>
       </div>

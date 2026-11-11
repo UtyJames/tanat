@@ -21,14 +21,14 @@ export default function LoginPage() {
     setError(null);
     setNotice(null);
     try {
-      await requestOtp({ email: email.trim(), tenant_name: 'Workspace' });
+      await requestOtp({ email: email.trim() });
       setStep('code');
-      setNotice(`We sent a six-digit code to ${email.trim()}. It expires in 10 minutes.`);
+      setNotice(`We sent a six-digit verification code to ${email.trim()}. It expires in 10 minutes.`);
     } catch (err) {
       setError(
         err instanceof ApiError
           ? err.message
-          : 'We could not send the code. Please try again.',
+          : 'We could not send the verification code. Please try again.',
       );
     } finally {
       setBusy(false);
@@ -59,22 +59,20 @@ export default function LoginPage() {
         </Link>
         <div className="login-quote">
           <p className="t-eyebrow t-eyebrow-dark" style={{ marginBottom: 18 }}>
-            Your workspace
+            Tanat Workspace
           </p>
           <h2>
-            The agent talks.
-            <br />
-            You keep the keys.
+            AI infrastructure behind your business operations.
           </h2>
           <p>
-            Sign in to review conversations, approve payments, and change what your
-            agent is allowed to do.
+            Sign in to manage your AI agents, update business knowledge, review
+            conversations and approvals, and deploy across your channels.
           </p>
         </div>
         <div className="login-art-foot">
-          <span>✓ Human approval</span>
-          <span>✓ Non-custodial</span>
-          <span>✓ Full audit trail</span>
+          <span>✓ Multi-agent workspace</span>
+          <span>✓ Knowledge & memory</span>
+          <span>✓ Governed permissions</span>
         </div>
       </aside>
 
@@ -83,8 +81,8 @@ export default function LoginPage() {
           <p className="t-eyebrow">Welcome back</p>
           <h1 style={{ marginTop: 16 }}>Sign in to Tanat.</h1>
           <p>
-            We use a one-time code. No password to forget, no wallet seed phrase
-            to paste. Ever.
+            Enter your work email and we’ll send a one-time verification code to
+            open your workspace.
           </p>
 
           {step === 'email' ? (
@@ -108,7 +106,7 @@ export default function LoginPage() {
             </form>
           ) : (
             <form className="login-form" onSubmit={(event) => void verify(event)}>
-              <label htmlFor="login-code">Six-digit code</label>
+              <label htmlFor="login-code">Six-digit verification code</label>
               <input
                 id="login-code"
                 className="start-input"
@@ -151,10 +149,7 @@ export default function LoginPage() {
           {error && <div className="login-msg error">{error}</div>}
 
           <p className="login-alt">
-            New here? <Link href="/start">Create a workspace</Link>
-          </p>
-          <p className="login-alt" style={{ marginTop: 8 }}>
-            Never enter a wallet seed phrase or private key on this page.
+            New to Tanat? <Link href="/start">Set up your business workspace</Link>
           </p>
         </div>
       </main>

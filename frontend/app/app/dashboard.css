@@ -769,3 +769,227 @@
     display: none;
   }
 }
+
+
+/* ==========================================================================
+   Workspace Sidebar & Multi-Section Layout
+   ========================================================================== */
+
+.ws-shell {
+  display: grid;
+  grid-template-columns: 248px 1fr;
+  min-height: calc(100vh - 64px - 34px);
+  background: var(--bg);
+}
+
+.ws-sidebar {
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  padding: 16px 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.ws-nav-group {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.ws-nav-label {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-secondary);
+  padding: 8px 10px 4px;
+}
+
+.ws-nav-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 8px 11px;
+  border-radius: 9px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: #45493f;
+  font-size: 13px;
+  font-weight: 550;
+  text-align: left;
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease;
+}
+
+.ws-nav-btn:hover {
+  background: rgba(12, 13, 11, 0.04);
+  color: var(--text-primary);
+}
+
+.ws-nav-btn.active {
+  background: #0c0d0b;
+  color: #f6f3ea;
+  font-weight: 600;
+}
+
+.ws-nav-btn.active .badge-count {
+  background: #c9f26b;
+  color: #0c0d0b;
+}
+
+.ws-main {
+  min-width: 0;
+  overflow-y: auto;
+}
+
+.ws-page {
+  padding: 26px 30px;
+  max-width: 1180px;
+  margin: 0 auto;
+}
+
+.ws-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 22px;
+  flex-wrap: wrap;
+}
+
+.ws-head h1 {
+  font-size: 24px;
+  letter-spacing: -0.03em;
+  margin: 0 0 4px;
+  color: var(--text-primary);
+}
+
+.ws-head p {
+  margin: 0;
+  font-size: 13.5px;
+  color: var(--text-secondary);
+  max-width: 640px;
+}
+
+.ws-grid-4 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+  margin-bottom: 22px;
+}
+
+.ws-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 14px;
+  margin-bottom: 22px;
+}
+
+.ws-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+  gap: 16px;
+  margin-bottom: 22px;
+}
+
+.ws-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 18px;
+}
+
+.ws-card h3 {
+  font-size: 15px;
+  letter-spacing: -0.02em;
+  margin: 0 0 6px;
+  color: var(--text-primary);
+}
+
+.ws-card p {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.55;
+}
+
+.ws-subtabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding-bottom: 14px;
+  margin-bottom: 18px;
+  border-bottom: 1px solid var(--border);
+}
+
+.ws-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: rgba(12, 13, 11, 0.06);
+  color: var(--text-primary);
+}
+
+.ws-pill.published,
+.ws-pill.active,
+.ws-pill.ready,
+.ws-pill.connected {
+  background: rgba(201, 242, 107, 0.38);
+  color: #2f3b12;
+}
+
+.ws-pill.testing,
+.ws-pill.beta,
+.ws-pill.pending {
+  background: rgba(235, 175, 60, 0.22);
+  color: #7a4f08;
+}
+
+.ws-CodeBox {
+  background: #0c0d0b;
+  color: #f6f3ea;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  line-height: 1.55;
+}
+
+@media (max-width: 960px) {
+  .ws-shell {
+    grid-template-columns: 1fr;
+  }
+  .ws-sidebar {
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+    flex-direction: row;
+    overflow-x: auto;
+    padding: 10px 12px;
+  }
+  .ws-nav-group {
+    flex-direction: row;
+    align-items: center;
+  }
+  .ws-nav-label {
+    display: none;
+  }
+  .ws-nav-btn {
+    white-space: nowrap;
+    width: auto;
+  }
+  .ws-page {
+    padding: 18px 16px;
+  }
+}
