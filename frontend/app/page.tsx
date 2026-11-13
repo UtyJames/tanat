@@ -1,93 +1,44 @@
 import Link from 'next/link';
 import SiteNav from '@/components/site/SiteNav';
+import GsapEffects from '@/components/site/GsapEffects';
 import HeroDemo from '@/components/site/HeroDemo';
-import CodeTabs from '@/components/site/CodeTabs';
 import UseCaseExplorer from '@/components/site/UseCaseExplorer';
+import CodeTabs from '@/components/site/CodeTabs';
 import { ArrowIcon, CheckIcon, Logo } from '@/components/brand/Logo';
-
-const workspaceAgents = [
-  {
-    name: 'Customer Support Agent',
-    role: 'External · Website & WhatsApp',
-    knowledge: 'FAQs, Return Policy, SLA Guide',
-    governance: 'Read-only by default · Credits require approval',
-    status: 'Published',
-  },
-  {
-    name: 'Sales & Qualification Agent',
-    role: 'External · Website & Telegram',
-    knowledge: 'Service Catalog, Case Studies, Pricing Tiers',
-    governance: 'Captures leads · Routes enterprise deals',
-    status: 'Published',
-  },
-  {
-    name: 'HR & People Assistant',
-    role: 'Internal · Workspace & Slack',
-    knowledge: 'Employee Handbook, Onboarding SOPs, Benefits',
-    governance: 'Internal access only · Escalates sensitive HR issues',
-    status: 'Published',
-  },
-  {
-    name: 'Operations & Procurement Agent',
-    role: 'Internal · Operations Console & API',
-    knowledge: 'Vendor Matrix, Inventory SOPs, Spend Policy',
-    governance: 'Spend cap enforced · Dual approval over threshold',
-    status: 'Testing',
-  },
-];
-
-const infrastructurePillars = [
-  {
-    title: 'Hardware-attested AI inference',
-    body: 'Powered by NEAR AI Cloud running inside Trusted Execution Environments (TEE), keeping business prompts and customer conversations confidential.',
-  },
-  {
-    title: 'Structured knowledge & persistent memory',
-    body: 'Ground every agent in your website, FAQs, policies, and documents while maintaining per-customer and per-workspace memory across sessions.',
-  },
-  {
-    title: 'Granular permissions & human approvals',
-    body: 'Define exactly what each agent can read, propose, or execute. Sensitive operations and financial actions wait for named human approval.',
-  },
-  {
-    title: 'Strict multi-tenant isolation & audit logs',
-    body: 'Every workspace, agent version, publishable key, conversation, and action is isolated by tenant and recorded in an append-only audit trail.',
-  },
-];
 
 export default function Home() {
   return (
     <div className="site">
+      <GsapEffects />
       <SiteNav />
 
       <main>
-        {/* ── Section 1: Hero ─────────────────────────────────────────── */}
+        {/* ── 1. Hero: Clear in 5 seconds ─────────────────────────────── */}
         <section className="t-hero">
           <div className="t-wrap">
             <div className="t-hero-grid">
               <div className="t-hero-copy">
-                <span className="t-eyebrow">
-                  AI Infrastructure for Modern Businesses
+                <span className="t-eyebrow gsap-hero-item">
+                  AI Assistants for Real Businesses
                 </span>
-                <h1>
-                  Your business needs AI.
-                  <br />
-                  Tanat provides the <span className="t-serif">infrastructure.</span>
+                <h1 className="gsap-hero-item">
+                  Put an AI assistant on your business{' '}
+                  <span className="t-serif">in 3 minutes.</span>
                 </h1>
-                <p className="t-hero-lede">
-                  Create, govern, and deploy specialized AI agents for customer
-                  support, sales, bookings, HR, and operations — grounded in your
-                  real business knowledge and ready in minutes.
+                <p className="t-hero-lede gsap-hero-item">
+                  Tanat gives your business a smart AI assistant that knows your
+                  services, remembers your customers, and works on your website,
+                  WhatsApp, or Telegram — without writing complex code.
                 </p>
 
-                <div className="t-hero-points">
+                <div className="t-hero-points gsap-hero-item">
                   <div className="t-hero-point">
                     <i>
                       <CheckIcon size={11} />
                     </i>
                     <span>
-                      <strong>Trained on your business:</strong> upload policies,
-                      FAQs, websites, and catalogs with source citations.
+                      <strong>Knows your business:</strong> paste your website,
+                      FAQs, or policies so it gives real answers.
                     </span>
                   </div>
                   <div className="t-hero-point">
@@ -95,8 +46,8 @@ export default function Home() {
                       <CheckIcon size={11} />
                     </i>
                     <span>
-                      <strong>Remembers your customers:</strong> persistent
-                      per-customer memory across sessions and channels.
+                      <strong>Remembers customers:</strong> picks up right where
+                      returning customers left off.
                     </span>
                   </div>
                   <div className="t-hero-point">
@@ -104,39 +55,25 @@ export default function Home() {
                       <CheckIcon size={11} />
                     </i>
                     <span>
-                      <strong>Stays under your control:</strong> human-in-the-loop
-                      approvals, spend caps, and 1-line website embedding.
+                      <strong>You stay in control:</strong> refunds, bookings,
+                      and payments wait for your approval.
                     </span>
                   </div>
                 </div>
 
-                <div className="t-hero-ctas">
+                <div className="t-hero-ctas gsap-hero-item">
                   <Link className="t-btn t-btn-lime t-btn-lg" href="/start">
-                    Get started free <ArrowIcon />
+                    Set up your assistant <ArrowIcon />
                   </Link>
-                  <Link className="t-btn t-btn-ghost t-btn-lg" href="#capabilities">
-                    See what it does
-                  </Link>
-                  <Link
-                    href="/docs"
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: 6,
-                      fontSize: 13.5,
-                      fontWeight: 600,
-                      color: 'var(--ink)',
-                      padding: '0 8px',
-                    }}
-                  >
-                    Developer docs →
+                  <Link className="t-btn t-btn-ghost t-btn-lg" href="#how-it-works">
+                    See how it works
                   </Link>
                 </div>
 
-                <div className="t-hero-micro">
-                  <span>Multi-agent workspaces</span>
-                  <span>No-code widget + REST & MCP API</span>
-                  <span>TEE-attested inference</span>
+                <div className="t-hero-micro gsap-hero-item">
+                  <span>Free to start</span>
+                  <span>Live in 3 minutes</span>
+                  <span>No coding required</span>
                 </div>
               </div>
 
@@ -144,604 +81,119 @@ export default function Home() {
                 <HeroDemo />
               </div>
             </div>
+          </div>
+        </section>
 
-            <div className="t-rail">
-              <div className="t-rail-inner">
-                <span className="t-rail-label">Built for every industry</span>
-                <span className="t-rail-item">
-                  SaaS & Technology <span>support & onboarding</span>
-                </span>
-                <span className="t-rail-item">
-                  Healthcare & Clinics <span>intake & FAQs</span>
-                </span>
-                <span className="t-rail-item">
-                  Commerce & Retail <span>advisory & orders</span>
-                </span>
-                <span className="t-rail-item">
-                  Professional Services <span>lead qualification</span>
-                </span>
-                <span className="t-rail-item">
-                  Logistics & Operations <span>SOPs & dispatch</span>
-                </span>
+        {/* ── 2. How It Works: 3 Simple Steps ─────────────────────────── */}
+        <section className="t-section" id="how-it-works">
+          <div className="t-wrap">
+            <div className="t-section-head gsap-reveal">
+              <div>
+                <span className="t-eyebrow">How it works</span>
+                <h2 style={{ marginTop: 14 }}>
+                  Three steps from “I need AI” to live on your site.
+                </h2>
+              </div>
+              <p>
+                No prompt engineering. No servers to manage. Answer a few plain
+                questions about your business and test your assistant right away.
+              </p>
+            </div>
+
+            <div className="t-steps gsap-stagger">
+              <div className="t-step">
+                <span className="t-step-num">1</span>
+                <h3>Add your business info</h3>
+                <p>
+                  Enter your business name, what you offer, and your FAQs or
+                  policies. Your assistant learns how you talk and what you stand
+                  for.
+                </p>
+                <span className="t-step-tag">~1 minute</span>
+              </div>
+              <div className="t-step">
+                <span className="t-step-num">2</span>
+                <h3>Set your rules</h3>
+                <p>
+                  Choose what it can answer on its own and what needs a human OK —
+                  like refunds, custom quotes, or sensitive requests.
+                </p>
+                <span className="t-step-tag">~1 minute</span>
+              </div>
+              <div className="t-step">
+                <span className="t-step-num">3</span>
+                <h3>Put it on your website</h3>
+                <p>
+                  Test it live, then copy one line onto your website (Shopify,
+                  WordPress, Wix, or custom) — or connect WhatsApp & Telegram.
+                </p>
+                <span className="t-step-tag">~1 minute</span>
               </div>
             </div>
           </div>
         </section>
 
-        {/* ── Section 2: Interactive Use-Case Explorer ────────────────── */}
-        <section className="t-section" id="capabilities">
+        {/* ── 3. Business Examples ────────────────────────────────────── */}
+        <section className="t-section-tight" id="examples">
           <div className="t-wrap">
-            <div className="t-section-head t-reveal">
+            <div className="t-section-head gsap-reveal">
               <div>
-                <span className="t-eyebrow">What Tanat does for your business</span>
-                <h2 style={{ marginTop: 18 }}>
-                  One infrastructure.
-                  <br />
-                  AI for every business function.
+                <span className="t-eyebrow">Built for real businesses</span>
+                <h2 style={{ marginTop: 14 }}>
+                  See how businesses use Tanat every day.
                 </h2>
               </div>
               <p>
-                Explore how businesses use Tanat across customer-facing and
-                internal departments. Click any role below to see what the agent
-                handles, what it reads, and how you stay in control.
+                Pick your business type to see what your assistant handles
+                automatically and how a real customer conversation looks.
               </p>
             </div>
 
-            <div className="t-reveal">
+            <div className="gsap-reveal">
               <UseCaseExplorer />
             </div>
           </div>
         </section>
 
-        {/* ── Section 3: The Problem (Before vs After) ────────────────── */}
-        <section className="t-section-tight" id="problem">
+        {/* ── 4. Easiest Ways to Integrate ────────────────────────────── */}
+        <section className="t-section" id="integrate">
           <div className="t-wrap">
-            <div className="t-section-head t-reveal">
+            <div className="t-section-head gsap-reveal">
               <div>
-                <span className="t-eyebrow">Why businesses choose Tanat</span>
-                <h2 style={{ marginTop: 18 }}>
-                  Businesses need AI.
-                  <br />
-                  Building it shouldn’t be your job.
+                <span className="t-eyebrow">Easy integration</span>
+                <h2 style={{ marginTop: 14 }}>
+                  Add it to your website in 60 seconds.
                 </h2>
               </div>
               <p>
-                Most companies want AI agents that understand their policies,
-                remember their customers, and work safely across channels — not a
-                six-month engineering project stitching models, vector stores, and
-                permissions together.
+                Whether you use Shopify, WordPress, an AI builder like Lovable
+                or Cursor, or your own React app — Tanat fits right in.
               </p>
             </div>
 
-            <div className="t-compare t-reveal">
-              <article className="t-compare-card">
-                <span className="t-problem-num">WITHOUT TANAT · FRAGMENTED STACK</span>
-                <h3 style={{ fontSize: 22, marginTop: 8 }}>
-                  Months of plumbing before the first useful answer
-                </h3>
-                <p style={{ marginTop: 10, color: 'var(--muted)' }}>
-                  Teams end up managing separate model keys, custom prompt
-                  wrappers, brittle knowledge scrapers, per-channel webhook
-                  servers, and ad-hoc permission checks with no unified audit log.
-                </p>
-                <div className="t-compare-list" style={{ color: 'var(--muted)' }}>
-                  <div>✕ Raw LLM APIs with no business context or memory</div>
-                  <div>✕ Separate bots rebuilt for Website, WhatsApp, and Slack</div>
-                  <div>✕ No human approval gates or spend/action governance</div>
-                  <div>✕ Non-technical teams locked out of updating knowledge</div>
-                </div>
-              </article>
-
-              <article className="t-compare-card dark">
-                <span className="t-problem-num" style={{ color: '#C9F26B' }}>
-                  WITH TANAT · UNIFIED AI INFRASTRUCTURE
-                </span>
-                <h3 style={{ fontSize: 22, marginTop: 8, color: '#F6F3EA' }}>
-                  One infrastructure layer behind every business agent
-                </h3>
-                <p style={{ marginTop: 10, color: 'rgba(246,243,234,0.74)' }}>
-                  Configure specialized agents in minutes, ground them in your
-                  verified business knowledge, enforce role and approval boundaries,
-                  and deploy across customer and internal channels from one workspace.
-                </p>
-                <div className="t-compare-list" style={{ color: '#C9F26B' }}>
-                  <div>✓ Guided setup for any business or industry in minutes</div>
-                  <div>✓ Shared knowledge sources + persistent customer memory</div>
-                  <div>✓ Built-in permissions, human approvals, and audit trails</div>
-                  <div>✓ Embed via 1-line widget, React, REST API, or MCP</div>
-                </div>
-              </article>
-            </div>
-          </div>
-        </section>
-
-        {/* ── Section 4: How Tanat Works ──────────────────────────────── */}
-        <section className="t-section" id="how-it-works">
-          <div className="t-wrap">
-            <div className="t-section-head t-reveal">
-              <div>
-                <span className="t-eyebrow">How Tanat works</span>
-                <h2 style={{ marginTop: 18 }}>
-                  From business knowledge to working AI agents in a few steps.
-                </h2>
-              </div>
-              <p>
-                No prompt engineering degree or infrastructure setup required.
-                Start with a guided business profile and refine as your needs grow.
-              </p>
-            </div>
-
-            <div
-              className="t-steps t-reveal"
-              style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' }}
-            >
-              <div className="t-step">
-                <span className="t-step-num">1</span>
-                <h3>Tell Tanat about your business</h3>
-                <p>
-                  Share your industry, what your business does, and what you want
-                  AI to handle across customer experience or internal operations.
-                </p>
-                <span className="t-step-tag">Step 01 · Business profile</span>
-              </div>
-              <div className="t-step">
-                <span className="t-step-num">2</span>
-                <h3>Choose or configure your agents</h3>
-                <p>
-                  Pick from 14+ tailored agent blueprints — Support, Sales, HR,
-                  Booking, Operations, Finance — or configure a custom agent.
-                </p>
-                <span className="t-step-tag">Step 02 · Agent design</span>
-              </div>
-              <div className="t-step">
-                <span className="t-step-num">3</span>
-                <h3>Connect your knowledge & rules</h3>
-                <p>
-                  Add your website, FAQs, policies, and documents, and set clear
-                  permissions for what the agent can answer, propose, or escalate.
-                </p>
-                <span className="t-step-tag">Step 03 · Grounding & governance</span>
-              </div>
-              <div className="t-step">
-                <span className="t-step-num">4</span>
-                <h3>Deploy where your business works</h3>
-                <p>
-                  Test live in the sandbox, then launch on your website with one
-                  script tag, connect messaging channels, or integrate via API.
-                </p>
-                <span className="t-step-tag">Step 04 · Live deployment</span>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* ── Section 5: Deploy Everywhere ────────────────────────────── */}
-        <section className="t-section-tight" id="channels">
-          <div className="t-wrap">
-            <div className="t-section-head t-reveal">
-              <div>
-                <span className="t-eyebrow">Deploy everywhere</span>
-                <h2 style={{ marginTop: 18 }}>
-                  Your agents work where your business already operates.
-                </h2>
-              </div>
-              <p>
-                Configure an agent once and expose it across customer-facing
-                touchpoints, internal team workspaces, and custom software.
-              </p>
-            </div>
-
-            <div className="t-bento t-reveal">
-              <article className="t-card t-card-a">
-                <span className="t-pill t-pill-lime">Available now</span>
-                <h3 style={{ marginTop: 16 }}>Website Widget</h3>
-                <p>
-                  Embed a customizable, style-isolated Shadow DOM chat widget on
-                  any website, store, or web app. Protected by origin-locked
-                  publishable keys (<code>pk_...</code>) and optional HMAC
-                  verified customer identity.
-                </p>
-                <div className="t-channel-chips">
-                  <span className="t-chip">
-                    <i className="t-chip-dot" /> 1-line script tag
-                  </span>
-                  <span className="t-chip">Domain allowlist</span>
-                  <span className="t-chip">Verified user memory</span>
-                </div>
-                <div className="t-card-visual">
-                  <div>
-                    <span className="t-k">visitor:</span> “What is your onboarding
-                    timeline for 50 seats?”
-                  </div>
-                  <div>
-                    <span className="t-k">agent:</span> “Standard onboarding takes
-                    5 business days. Want me to schedule a kickoff call?”
-                  </div>
-                  <div>
-                    <span className="t-k">→</span> cites Service SLA Guide · logs
-                    run in 640ms
-                  </div>
-                </div>
-              </article>
-
-              <article className="t-card t-card-b">
-                <span className="t-pill">Channel connector</span>
-                <h3 style={{ marginTop: 12 }}>WhatsApp & Telegram</h3>
-                <p>
-                  Meet customers in the messaging threads they check every day for
-                  support, appointment intake, lead qualification, and order updates.
-                </p>
-                <div className="t-card-visual">
-                  <div>✓ Customer identity matched</div>
-                  <div>→ Policy-grounded reply sent</div>
-                  <div>↩ Escalation routed when needed</div>
-                </div>
-              </article>
-
-              <article className="t-card t-card-c t-card-dark">
-                <span className="t-pill t-pill-lime">Internal & Ops</span>
-                <h3 style={{ marginTop: 12 }}>Slack & Team Workspaces</h3>
-                <p>
-                  Give employees an internal HR, IT, or Operations assistant right
-                  where they collaborate, backed by internal handbooks and SOPs.
-                </p>
-                <div className="t-card-visual">
-                  <div>#people-ops · @TanatHR</div>
-                  <div>“Cited: 2026 Employee Handbook §4”</div>
-                  <div>[ Escalate to People Partner ]</div>
-                </div>
-              </article>
-
-              <article className="t-card t-card-d">
-                <span className="t-pill t-pill-lime">Available now</span>
-                <h3 style={{ marginTop: 12 }}>Custom Apps, REST API & Commerce</h3>
-                <p>
-                  Connect Shopify, CRMs, helpdesks, or your own product backend
-                  using tenant-scoped API keys, sessions, knowledge APIs, and
-                  governed action webhooks.
-                </p>
-                <div className="t-card-visual">
-                  <div>
-                    <span className="t-k">POST</span> /api/v1/sessions/:id/messages → 200
-                  </div>
-                  <div>
-                    <span className="t-k">sources_used</span> [&quot;Policy v4&quot;, &quot;FAQ #12&quot;]
-                  </div>
-                  <div>
-                    <span className="t-k">memories_used</span> 3 customer facts recalled
-                  </div>
-                </div>
-              </article>
-
-              <article className="t-card t-card-e t-card-lime">
-                <h3>MCP & Vibecoding Native</h3>
-                <p>
-                  Built-in <code>/llms.txt</code> and <code>/api/mcp</code> Model
-                  Context Protocol discovery so Cursor, Lovable, Bolt, v0, and
-                  Claude Code can wire Tanat into your app in one prompt.
-                </p>
-                <div className="t-channel-chips">
-                  <span
-                    className="t-chip"
-                    style={{ background: 'rgba(12,13,11,.08)', borderColor: 'transparent' }}
-                  >
-                    GET /llms.txt
-                  </span>
-                  <span
-                    className="t-chip"
-                    style={{ background: 'rgba(12,13,11,.08)', borderColor: 'transparent' }}
-                  >
-                    GET /api/mcp
-                  </span>
-                  <span
-                    className="t-chip"
-                    style={{ background: 'rgba(12,13,11,.08)', borderColor: 'transparent' }}
-                  >
-                    One-click prompt copy
-                  </span>
-                </div>
-              </article>
-            </div>
-          </div>
-        </section>
-
-        {/* ── Section 6: Business Knowledge & Memory ──────────────────── */}
-        <section className="t-section" id="knowledge">
-          <div className="t-wrap">
-            <div className="t-section-head t-reveal">
-              <div>
-                <span className="t-eyebrow">Business knowledge & memory</span>
-                <h2 style={{ marginTop: 18 }}>
-                  Your agents should understand your business, not just answer
-                  questions.
-                </h2>
-              </div>
-              <p>
-                Generic chatbots hallucinate because they lack context. Tanat
-                combines a structured business knowledge layer with persistent
-                conversation memory so every response reflects your real policies
-                and customer history.
-              </p>
-            </div>
-
-            <div
-              className="t-reveal"
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-                gap: 18,
-                padding: 24,
-                borderRadius: 18,
-                background: '#11130F',
-                color: '#F6F3EA',
-                border: '1px solid var(--line)',
-              }}
-            >
-              <div
-                style={{
-                  padding: 20,
-                  borderRadius: 12,
-                  background: 'rgba(255,255,255,0.04)',
-                  border: '1px solid rgba(255,255,255,0.08)',
-                }}
-              >
-                <div
-                  className="t-mono"
-                  style={{ fontSize: 11, color: '#C9F26B', marginBottom: 8 }}
-                >
-                  01 / INPUT SOURCES
-                </div>
-                <h3 style={{ fontSize: 18, color: '#F6F3EA', marginBottom: 10 }}>
-                  Your Business Knowledge
-                </h3>
-                <p style={{ fontSize: 13.5, color: 'rgba(246,243,234,0.72)', lineHeight: 1.6 }}>
-                  Ingest websites, FAQs, return & SLA policies, employee handbooks,
-                  service catalogs, and operational notes. Assign sources globally
-                  across your workspace or scope them to specific agents.
-                </p>
-              </div>
-
-              <div
-                style={{
-                  padding: 20,
-                  borderRadius: 12,
-                  background: 'rgba(201,242,107,0.09)',
-                  border: '1px solid rgba(201,242,107,0.35)',
-                }}
-              >
-                <div
-                  className="t-mono"
-                  style={{ fontSize: 11, color: '#C9F26B', marginBottom: 8 }}
-                >
-                  02 / PERSISTENT MEMORY
-                </div>
-                <h3 style={{ fontSize: 18, color: '#F6F3EA', marginBottom: 10 }}>
-                  Customer & Workspace Recall
-                </h3>
-                <p style={{ fontSize: 13.5, color: 'rgba(246,243,234,0.78)', lineHeight: 1.6 }}>
-                  Tanat remembers customer preferences, account details, and prior
-                  context across sessions (scoped per tenant and verified user), so
-                  returning customers never have to repeat themselves.
-                </p>
-              </div>
-
-              <div
-                style={{
-                  padding: 20,
-                  borderRadius: 12,
-                  background: 'rgba(255,255,255,0.04)',
-                  border: '1px solid rgba(255,255,255,0.08)',
-                }}
-              >
-                <div
-                  className="t-mono"
-                  style={{ fontSize: 11, color: '#C9F26B', marginBottom: 8 }}
-                >
-                  03 / CITED EXECUTION
-                </div>
-                <h3 style={{ fontSize: 18, color: '#F6F3EA', marginBottom: 10 }}>
-                  Source-Grounded Responses
-                </h3>
-                <p style={{ fontSize: 13.5, color: 'rgba(246,243,234,0.72)', lineHeight: 1.6 }}>
-                  Every agent turn logs which knowledge sources and memories were
-                  used, how long inference took, and whether a tool or human
-                  approval rule was triggered.
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* ── Section 7: Multiple Agents, One Workspace ───────────────── */}
-        <section className="t-section-tight" id="workspace">
-          <div className="t-wrap">
-            <div className="t-section-head t-reveal">
-              <div>
-                <span className="t-eyebrow">Multiple agents, one workspace</span>
-                <h2 style={{ marginTop: 18 }}>
-                  Give every part of your business the right AI agent.
-                </h2>
-              </div>
-              <p>
-                Instead of cramming every department into one fragile prompt,
-                run dedicated agents for Support, Sales, HR, and Operations — each
-                with its own instructions, channels, knowledge scope, and
-                permissions.
-              </p>
-            </div>
-
-            <div
-              className="t-reveal"
-              style={{
-                border: '1px solid var(--line)',
-                borderRadius: 16,
-                background: '#FFFFFF',
-                overflow: 'hidden',
-              }}
-            >
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  padding: '14px 20px',
-                  background: '#0C0D0B',
-                  color: '#F6F3EA',
-                  fontSize: 12,
-                  fontFamily: 'var(--font-mono)',
-                }}
-              >
-                <span>WORKSPACE · ACME GLOBAL OPERATIONS</span>
-                <span style={{ color: '#C9F26B' }}>4 ACTIVE AGENTS · SHARED KNOWLEDGE</span>
-              </div>
-
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-                  gap: 1,
-                  background: 'var(--line)',
-                }}
-              >
-                {workspaceAgents.map((agent) => (
-                  <div
-                    key={agent.name}
-                    style={{
-                      background: '#FFFFFF',
-                      padding: 20,
-                      display: 'flex',
-                      flexDirection: 'column',
-                      justifyContent: 'space-between',
-                      gap: 12,
-                    }}
-                  >
-                    <div>
-                      <div
-                        style={{
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center',
-                          marginBottom: 8,
-                        }}
-                      >
-                        <span
-                          className="t-pill t-pill-lime"
-                          style={{ fontSize: 10 }}
-                        >
-                          {agent.status}
-                        </span>
-                        <span
-                          className="t-mono"
-                          style={{ fontSize: 10.5, color: 'var(--muted)' }}
-                        >
-                          {agent.role}
-                        </span>
-                      </div>
-                      <h3 style={{ fontSize: 17, marginBottom: 8 }}>{agent.name}</h3>
-                      <p style={{ fontSize: 12.5, color: 'var(--muted)', marginBottom: 6 }}>
-                        <strong>Knowledge:</strong> {agent.knowledge}
-                      </p>
-                      <p style={{ fontSize: 12.5, color: 'var(--muted)' }}>
-                        <strong>Governance:</strong> {agent.governance}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* ── Section 8: For Developers & Technical Teams ─────────────── */}
-        <section className="t-section" id="developers">
-          <div className="t-wrap">
-            <div className="t-section-head t-reveal">
-              <div>
-                <span className="t-eyebrow">For developers & technical teams</span>
-                <h2 style={{ marginTop: 18 }}>
-                  Build on Tanat.
-                  <br />
-                  Don’t rebuild AI infrastructure.
-                </h2>
-              </div>
-              <p>
-                Business owners can launch from the dashboard with zero code.
-                Developers and vibecoders get clean REST endpoints, publishable
-                widget keys, HMAC user verification, <code>/llms.txt</code>, and
-                MCP tool definitions.
-              </p>
-            </div>
-            <div className="t-reveal">
+            <div className="gsap-reveal">
               <CodeTabs />
             </div>
           </div>
         </section>
 
-        {/* ── Section 9: Infrastructure, Security & Trust ─────────────── */}
-        <section className="t-section-tight" id="security">
-          <div className="t-wrap">
-            <div className="t-section-head t-reveal">
-              <div>
-                <span className="t-eyebrow">Infrastructure, security & trust</span>
-                <h2 style={{ marginTop: 18 }}>
-                  The infrastructure behind every agent.
-                </h2>
-              </div>
-              <p>
-                Deploying AI across a business requires clear boundaries. Tanat
-                combines confidential compute on NEAR AI Cloud with strict
-                tenant isolation, origin-locked keys, and human-in-the-loop
-                governance.
-              </p>
-            </div>
-
-            <div className="t-security-grid t-reveal">
-              {infrastructurePillars.map((item) => (
-                <article className="t-security" key={item.title}>
-                  <span className="t-security-icon">
-                    <CheckIcon size={15} />
-                  </span>
-                  <div>
-                    <h3>{item.title}</h3>
-                    <p>{item.body}</p>
-                  </div>
-                </article>
-              ))}
-            </div>
-
-            <p
-              className="t-reveal"
-              style={{
-                marginTop: 26,
-                fontFamily: 'var(--font-mono)',
-                fontSize: 11,
-                color: 'var(--muted-2)',
-              }}
-            >
-              NEAR AI Cloud TEE inference · SHA-256 hashed API credentials ·
-              Origin-locked publishable keys · Append-only audit log
-            </p>
-          </div>
-        </section>
-
-        {/* ── Section 10: Final CTA ───────────────────────────────────── */}
+        {/* ── 5. Simple Trust + Final CTA ─────────────────────────────── */}
         <section className="t-cta">
           <div className="t-wrap">
-            <div className="t-cta-box t-reveal">
+            <div className="t-cta-box gsap-reveal">
               <div>
-                <h2>Your next AI agent starts here.</h2>
+                <h2>Ready to put your AI assistant to work?</h2>
                 <p>
-                  Set up your business workspace, configure your first agent with
-                  your real knowledge and permissions, test it live, and deploy it
-                  across your website or operations in minutes.
+                  Set up your workspace in 3 minutes, test your assistant with
+                  your own questions, and paste one line to go live on your site.
                 </p>
               </div>
               <div className="t-cta-actions">
                 <Link className="t-btn t-btn-ink t-btn-lg" href="/start">
-                  Get started <ArrowIcon />
+                  Get started free <ArrowIcon />
                 </Link>
                 <Link className="t-btn t-btn-ghost t-btn-lg" href="/docs">
-                  Developer docs
+                  Integration guide
                 </Link>
               </div>
             </div>
@@ -749,48 +201,41 @@ export default function Home() {
         </section>
       </main>
 
-      {/* ── Footer ──────────────────────────────────────────────────── */}
       <footer className="t-footer">
         <div className="t-wrap">
           <div className="t-footer-grid">
             <div className="t-footer-brand">
               <Logo size={30} tone="bone" />
               <p>
-                AI infrastructure behind business operations — helping companies
-                create, govern, and deploy specialized AI agents across every
-                channel.
+                AI assistants for businesses — trained on your info, connected
+                to your channels, and always under your control.
               </p>
             </div>
             <div className="t-footer-col">
-              <h4>Platform</h4>
-              <Link href="/#capabilities">Capabilities</Link>
+              <h4>Product</h4>
               <Link href="/#how-it-works">How it works</Link>
-              <Link href="/#channels">Channels</Link>
-              <Link href="/#workspace">Multi-agent workspace</Link>
+              <Link href="/#examples">Business examples</Link>
+              <Link href="/#integrate">Website widget</Link>
               <Link href="/start">Get started</Link>
             </div>
             <div className="t-footer-col">
-              <h4>Developers</h4>
+              <h4>Integration</h4>
               <Link href="/docs">Documentation</Link>
-              <Link href="/docs#widget">Website Widget</Link>
-              <Link href="/docs#api">REST API</Link>
-              <Link href="/docs#vibecoding">Vibecoding & MCP</Link>
-              <a href="/llms.txt" target="_blank" rel="noreferrer">
+              <Link href="/docs#widget">1-Line Widget</Link>
+              <Link href="/docs#vibecoding">Cursor / Lovable / v0</Link>
+              <a href="https://api.tanat.space/llms.txt" target="_blank" rel="noreferrer">
                 llms.txt
               </a>
             </div>
             <div className="t-footer-col">
-              <h4>Workspace</h4>
+              <h4>Account</h4>
               <Link href="/login">Sign in</Link>
-              <Link href="/app">Dashboard</Link>
-              <Link href="/#security">Security & TEE</Link>
-              <a href="https://near.ai" target="_blank" rel="noreferrer">
-                Powered by NEAR AI
-              </a>
+              <Link href="/app">Workspace dashboard</Link>
+              <a href="mailto:hello@tanat.space">hello@tanat.space</a>
             </div>
           </div>
           <div className="t-footer-bottom">
-            <span>© 2026 Tanat. AI infrastructure for modern businesses.</span>
+            <span>© 2026 Tanat. Built for real businesses.</span>
             <span className="t-footer-status">All systems operational</span>
           </div>
         </div>

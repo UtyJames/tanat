@@ -12,7 +12,7 @@
 ## 2. Website Widget (1-Line Embed)
 ```html
 <script
-  src="https://tanat.space/embed/tanat-widget.js"
+  src="https://www.tanat.space/embed/tanat-widget.js"
   data-key="pk_live_YOUR_PUBLISHABLE_KEY"
   data-agent="inst_YOUR_INSTALLATION_ID"
   data-api="https://api.tanat.space"

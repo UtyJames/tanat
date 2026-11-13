@@ -9,10 +9,7 @@ type UseCase = {
   label: string;
   badge: string;
   headline: string;
-  problemSolved: string;
   outcomes: string[];
-  knowledgeUsed: string[];
-  guardrail: string;
   sampleUser: string;
   sampleAgent: string;
   sampleCitation: string;
@@ -21,117 +18,63 @@ type UseCase = {
 const USE_CASES: UseCase[] = [
   {
     id: 'support',
-    label: 'Customer Support',
-    badge: '24/7 Resolution',
-    headline: 'Answer customer questions accurately using your real policies.',
-    problemSolved:
-      'Stop losing customers to slow ticket queues or generic chatbots that guess wrong.',
+    label: 'Online Stores & Retail',
+    badge: 'Support & Orders',
+    headline: 'Answer product questions, handle returns, and send checkout links.',
     outcomes: [
-      'Resolves routine questions about pricing, shipping, warranties, and troubleshooting instantly',
-      'Recalls returning customer history and account context across sessions',
-      'Escalates billing disputes or edge cases to your human team with a clean summary',
+      'Replies instantly to sizing, shipping, and return questions using your store policies',
+      'Remembers returning shoppers and what they bought before',
+      'Prepares refunds or payment links — you approve with one click',
     ],
-    knowledgeUsed: ['Help Center & FAQs', 'Return & SLA Policy', 'Product Manuals'],
-    guardrail: 'Refunds & account credits always wait for human approval.',
-    sampleUser: 'My shipment arrived 6 hours past our SLA window — can we apply our service credit?',
+    sampleUser: 'Do you ship the linen duvet to Austin by Friday?',
     sampleAgent:
-      'I verified your Enterprise SLA policy: delays over 4 hours qualify for a 15% service credit ($120.00). I have drafted the credit proposal for your account manager to approve.',
-    sampleCitation: 'Cited: Enterprise SLA Policy §3.2 · Memory: Enterprise Tier',
-  },
-  {
-    id: 'sales',
-    label: 'Sales & Lead Gen',
-    badge: 'Pipeline Growth',
-    headline: 'Qualify visitors, recommend the right plan, and capture high-intent leads.',
-    problemSolved:
-      'Turn passive website traffic into qualified sales conversations without static contact forms.',
-    outcomes: [
-      'Asks smart discovery questions based on team size, industry, and timeline',
-      'Recommends the right service package or pricing tier from your catalog',
-      'Captures verified lead details and hands off hot prospects to your sales team',
-    ],
-    knowledgeUsed: ['Pricing & Packaging', 'Service Catalog', 'Case Studies'],
-    guardrail: 'Never promises custom discounts without sales leadership sign-off.',
-    sampleUser: 'We have a 120-person clinic and need HIPAA-ready AI intake. What plan fits?',
-    sampleAgent:
-      'For 120 staff with strict tenant isolation and TEE inference, our Growth Workspace fits best. Would you like me to prepare a technical walkthrough and send your requirements to our team?',
-    sampleCitation: 'Cited: Healthcare Security Brief · Pricing Guide 2026',
+      'Yes! Orders placed before 2 PM arrive in Austin by Friday with Express Shipping ($12). Want me to send a quick checkout link?',
+    sampleCitation: 'From your Shipping FAQ',
   },
   {
     id: 'bookings',
-    label: 'Bookings & Intake',
-    badge: 'Zero Back-and-Forth',
-    headline: 'Collect client intake details and coordinate appointments smoothly.',
-    problemSolved:
-      'Eliminate endless email tag for clinics, agencies, salons, and service businesses.',
+    label: 'Clinics, Salons & Bookings',
+    badge: 'Appointments',
+    headline: 'Answer prep questions and book clients without back-and-forth emails.',
     outcomes: [
-      'Guides clients through eligibility checks and preparation requirements',
-      'Collects structured intake information before the appointment',
-      'Shares clear cancellation, deposit, and rescheduling policies upfront',
+      'Shares hours, pricing, location, and preparation steps automatically',
+      'Collects intake details before the client walks in',
+      'Handles booking deposits safely without asking for card numbers in chat',
     ],
-    knowledgeUsed: ['Service Menu & Duration', 'Prep Instructions', 'Cancellation Policy'],
-    guardrail: 'Never gives medical or legal diagnoses; escalates urgent cases immediately.',
-    sampleUser: 'Do I need anything before my initial physical therapy evaluation tomorrow?',
+    sampleUser: 'What should I bring to my first physiotherapy session tomorrow?',
     sampleAgent:
-      'Please wear comfortable athletic clothing and bring any recent imaging reports. Arrive 10 minutes early for check-in. Need to adjust your 2:00 PM slot?',
-    sampleCitation: 'Cited: Patient Intake Checklist · Clinic Hours',
+      'Wear comfortable athletic clothes and bring any recent scans. Please arrive 10 minutes early for check-in!',
+    sampleCitation: 'From your Patient Guide',
+  },
+  {
+    id: 'sales',
+    label: 'Agencies & Service Businesses',
+    badge: 'Lead Qualification',
+    headline: 'Turn website visitors into qualified leads while you sleep.',
+    outcomes: [
+      'Explains your packages, timelines, and pricing clearly',
+      'Asks what the prospect needs and captures their contact info',
+      'Routes serious buyers straight to your team with a clean summary',
+    ],
+    sampleUser: 'We need a brand refresh and new website in 6 weeks. Can you help?',
+    sampleAgent:
+      'Yes — our 6-week Launch Package covers brand identity and web build starting at $4,500. What’s your email so our lead partner can send times for a quick intro call?',
+    sampleCitation: 'From your Services & Pricing',
   },
   {
     id: 'hr',
-    label: 'HR & People Ops',
-    badge: 'Internal Helpdesk',
-    headline: 'Give employees instant, private answers on policies, leave, and onboarding.',
-    problemSolved:
-      'Free your People team from answering the same handbook and PTO questions every week.',
+    label: 'Internal Team & HR Helpdesk',
+    badge: 'Employee Support',
+    headline: 'Stop answering the same handbook and policy questions every week.',
     outcomes: [
-      'Answers leave, benefits, expense, and remote-work questions with handbook citations',
-      'Walks new hires through Day-1 to Day-30 onboarding checklists',
-      'Keeps internal employee knowledge strictly separated from public website bots',
+      'Gives staff instant answers on PTO, expenses, and onboarding checklists',
+      'Stays private to your team — separate from your public website bot',
+      'Escalates sensitive HR or IT issues to the right person',
     ],
-    knowledgeUsed: ['Employee Handbook', 'Leave & Benefits Policy', 'Onboarding SOPs'],
-    guardrail: 'Scoped to internal workspace only; sensitive HR matters escalate privately.',
-    sampleUser: 'How many weeks of paid parental leave do we offer after 12 months?',
+    sampleUser: 'How do I submit a software reimbursement under $100?',
     sampleAgent:
-      'Full-time team members with 12+ months tenure receive 16 weeks of 100% paid parental leave. Submit your expected window in the People portal at least 30 days ahead.',
-    sampleCitation: 'Cited: 2026 Employee Handbook §4.2',
-  },
-  {
-    id: 'operations',
-    label: 'Operations & SOPs',
-    badge: 'Team Execution',
-    headline: 'Standardize operational checklists, vendor workflows, and internal triage.',
-    problemSolved:
-      'Stop tribal knowledge from living in Slack threads and scattered PDFs.',
-    outcomes: [
-      'Surfaces exact SOP steps for logistics, warehouse, IT, or field teams',
-      'Prepares purchase orders, vendor checks, and incident summaries',
-      'Logs every execution turn, latency, and cited document for auditability',
-    ],
-    knowledgeUsed: ['Standard Operating Procedures', 'Vendor Matrix', 'Incident Runbooks'],
-    guardrail: 'High-impact operational changes require operator approval.',
-    sampleUser: 'We need to restock 50 cold-chain sensor kits from Nordic Sensors.',
-    sampleAgent:
-      'Drafted PO #2091 for 50× Sensor Kits ($1,450.00) with approved vendor Nordic Sensors. Because it exceeds $500, I routed it to Operations Leadership for sign-off.',
-    sampleCitation: 'Cited: Procurement SOP v2.1 · Approved Vendor List',
-  },
-  {
-    id: 'finance',
-    label: 'Finance & Payments',
-    badge: 'Governed Spend',
-    headline: 'Handle billing inquiries, payment links, and spend proposals with strict caps.',
-    problemSolved:
-      'Let AI assist with invoices and payments without ever giving it a blank cheque.',
-    outcomes: [
-      'Creates hosted payment links and quotes inside customer conversations',
-      'Enforces per-workspace spending limits and idempotency keys',
-      'Separates proposer from approver—an agent can never approve its own transfer',
-    ],
-    knowledgeUsed: ['Billing & Invoice FAQ', 'Approval Thresholds', 'Settlement Policy'],
-    guardrail: 'Dual-control human approval enforced before any funds move.',
-    sampleUser: 'Can you send me a secure link to pay the $240 deposit for our workshop?',
-    sampleAgent:
-      'I have prepared a hosted payment link for $240.00 (Workshop Deposit). Once your team approves the payment intent, you can complete checkout securely without sharing card details in chat.',
-    sampleCitation: 'Cited: Deposit Policy · Spend Cap Enforced',
+      'Expenses under $100 are pre-approved! Just upload the receipt in the Finance portal under "Team Tools" by the end of the month.',
+    sampleCitation: 'From your Employee Handbook',
   },
 ];
 
@@ -141,8 +84,7 @@ export default function UseCaseExplorer() {
 
   return (
     <div className="t-explorer">
-      {/* Left Selector List */}
-      <div className="t-explorer-nav" role="tablist" aria-label="Business use cases">
+      <div className="t-explorer-nav" role="tablist" aria-label="Business examples">
         {USE_CASES.map((item) => {
           const active = item.id === current.id;
           return (
@@ -164,22 +106,20 @@ export default function UseCaseExplorer() {
         })}
       </div>
 
-      {/* Right Rich Detail Panel */}
       <div className="t-explorer-panel" role="tabpanel">
         <div className="t-explorer-panel-head">
           <div>
             <span className="t-eyebrow t-eyebrow-dark">{current.badge}</span>
             <h3>{current.headline}</h3>
-            <p className="t-explorer-problem">{current.problemSolved}</p>
           </div>
           <Link className="t-btn t-btn-lime t-btn-sm" href="/start">
-            Deploy {current.label} <ArrowIcon size={14} />
+            Set this up <ArrowIcon size={14} />
           </Link>
         </div>
 
         <div className="t-explorer-body">
           <div className="t-explorer-outcomes">
-            <div className="t-explorer-label">WHAT THE AGENT DOES FOR YOU</div>
+            <div className="t-explorer-label">HOW IT HELPS YOUR BUSINESS</div>
             <ul>
               {current.outcomes.map((o) => (
                 <li key={o}>
@@ -190,27 +130,10 @@ export default function UseCaseExplorer() {
                 </li>
               ))}
             </ul>
-
-            <div className="t-explorer-meta-row">
-              <div>
-                <div className="t-explorer-label">KNOWLEDGE IT USES</div>
-                <div className="t-explorer-chips">
-                  {current.knowledgeUsed.map((k) => (
-                    <span key={k} className="t-explorer-chip">
-                      {k}
-                    </span>
-                  ))}
-                </div>
-              </div>
-              <div>
-                <div className="t-explorer-label">HUMAN CONTROL</div>
-                <div className="t-explorer-guardrail">{current.guardrail}</div>
-              </div>
-            </div>
           </div>
 
           <div className="t-explorer-chat">
-            <div className="t-explorer-label">LIVE EXAMPLE INTERACTION</div>
+            <div className="t-explorer-label">EXAMPLE CHAT</div>
             <div className="t-explorer-bubble-user">{current.sampleUser}</div>
             <div className="t-explorer-bubble-agent">{current.sampleAgent}</div>
             <div className="t-explorer-citation">{current.sampleCitation}</div>
@@ -220,4 +143,3 @@ export default function UseCaseExplorer() {
     </div>
   );
 }
-

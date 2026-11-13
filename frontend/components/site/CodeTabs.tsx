@@ -14,27 +14,42 @@ type Tab = {
 const tabs: Tab[] = [
   {
     id: 'widget',
-    name: 'Website widget',
+    name: '1. Copy & Paste (Any Website)',
     fileName: 'index.html',
-    blurb: 'One script tag. Any site.',
-    code: `<!-- Embed any Tanat agent on your website -->
+    blurb: 'Easiest · No code needed',
+    code: `<!-- Paste once before </body> on Shopify, WordPress, Wix, Webflow, or HTML -->
 <script
-  src="https://tanat.space/embed/tanat-widget.js"
-  data-key="pk_live_7f3a9c2e"
-  data-agent="inst_support_agent"
+  src="https://www.tanat.space/embed/tanat-widget.js"
+  data-key="pk_live_your_key"
+  data-agent="inst_your_agent"
   data-api="https://api.tanat.space"
   data-theme="light"
-  data-position="bottom-right"
-  data-welcome="Hi! Ask me anything about our services, policies, or bookings."
   defer
 ></script>`,
-    foot: 'Zero dependencies · Shadow DOM isolated · Origin-locked publishable key',
+    foot: 'Takes 30 seconds · Works on every website builder · Safe for browsers',
   },
   {
-    id: 'react',
-    name: 'React / Next.js',
+    id: 'vibecode',
+    name: '2. AI Builders (Cursor / Lovable / v0)',
+    fileName: 'prompt.txt',
+    blurb: '1-click AI setup',
+    code: `# Paste this prompt into Cursor, Lovable, Bolt, or v0:
+
+Read https://api.tanat.space/llms.txt and add our Tanat AI assistant to this app:
+<script
+  src="https://www.tanat.space/embed/tanat-widget.js"
+  data-key="pk_live_your_key"
+  data-agent="inst_your_agent"
+  data-api="https://api.tanat.space"
+  defer
+></script>`,
+    foot: 'We give you this exact prompt pre-filled with your keys after setup',
+  },
+  {
+    id: 'api',
+    name: '3. React / Next.js & API',
     fileName: 'app/layout.tsx',
-    blurb: 'For modern web apps.',
+    blurb: 'For developers',
     code: `import Script from 'next/script';
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -43,68 +58,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         {children}
         <Script
-          src="https://tanat.space/embed/tanat-widget.js"
+          src="https://www.tanat.space/embed/tanat-widget.js"
           data-key={process.env.NEXT_PUBLIC_TANAT_PUBLISHABLE_KEY}
           data-agent={process.env.NEXT_PUBLIC_TANAT_INSTALLATION_ID}
           data-api="https://api.tanat.space"
-          data-user-id="usr_4821"
-          data-user-signature="hmac_sha256_verified_token"
           strategy="afterInteractive"
         />
       </body>
     </html>
   );
 }`,
-    foot: 'Verified customer identity via HMAC · Works in Next.js App Router, Remix & Vite',
-  },
-  {
-    id: 'api',
-    name: 'REST & Headless API',
-    fileName: 'agent-workflow.ts',
-    blurb: 'Full programmatic control.',
-    code: `// Open a tenant-isolated conversation & run an agent with knowledge + memory
-const sessionRes = await fetch('https://api.tanat.space/api/v1/sessions', {
-  method: 'POST',
-  headers: {
-    Authorization: \`Bearer \${process.env.TANAT_SECRET_KEY}\`,
-    'Content-Type': 'application/json',
-  },
-  body: JSON.stringify({
-    installation_id: 'inst_ops_agent',
-    user_id: 'employee_94',
-  }),
-});
-const { data: session } = await sessionRes.json();
-
-const replyRes = await fetch(\`https://api.tanat.space/api/v1/sessions/\${session.id}/messages\`, {
-  method: 'POST',
-  headers: {
-    Authorization: \`Bearer \${process.env.TANAT_SECRET_KEY}\`,
-    'Content-Type': 'application/json',
-  },
-  body: JSON.stringify({
-    content: 'Summarize our Q3 vendor onboarding policy and flag any required approvals.',
-  }),
-});
-const { data: reply } = await replyRes.json();
-// reply.sources_used -> cited knowledge docs
-// reply.proposed_action -> human-in-the-loop approval record`,
-    foot: 'Tenant-scoped API keys · Knowledge citations · Human-in-the-loop approvals',
-  },
-  {
-    id: 'vibecode',
-    name: 'Cursor / Lovable / v0',
-    fileName: 'llms.txt & MCP',
-    blurb: 'AI-native integration.',
-    code: `# Drop this prompt into Cursor, Lovable, Bolt, v0, or Claude Code:
-
-Read https://api.tanat.space/llms.txt and https://api.tanat.space/api/mcp
-Integrate our Tanat AI agent into this app:
-1. Embed https://tanat.space/embed/tanat-widget.js with data-key="pk_live_..." and data-agent="inst_..."
-2. Or call POST https://api.tanat.space/api/public/v1/sessions and /messages
-   with header X-Tanat-Publishable-Key.
-3. Render knowledge citations and approval cards when proposed_action is returned.`,
-    foot: 'Machine-readable /llms.txt · /api/mcp tool discovery · One-click prompt copy in dashboard',
+    foot: 'Full REST API & verified customer identity also available at api.tanat.space',
   },
 ];
 
@@ -162,16 +126,15 @@ export default function CodeTabs() {
         </div>
         <p
           style={{
-            marginTop: 22,
-            fontSize: 13.5,
+            marginTop: 20,
+            fontSize: 14,
             color: 'var(--muted)',
             lineHeight: 1.6,
             maxWidth: 360,
           }}
         >
-          Every agent you configure in Tanat is immediately available as a no-code
-          website widget, a verified customer chat session, or a programmable REST
-          and MCP endpoint.
+          When you finish the 3-minute setup, Tanat generates your live snippet
+          automatically — just copy, paste, and your assistant is live.
         </p>
       </div>
 

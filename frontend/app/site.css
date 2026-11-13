@@ -22,12 +22,13 @@
   --radius: 16px;
   --radius-lg: 24px;
   --radius-xl: 32px;
-  --font-sans: var(--font-sans), -apple-system, BlinkMacSystemFont, "Segoe UI",
-    Inter, Roboto, "Helvetica Neue", Arial, sans-serif;
-  --font-serif: var(--font-serif), "Iowan Old Style", "Palatino Linotype",
-    Georgia, "Times New Roman", serif;
-  --font-mono: var(--font-mono), ui-monospace, "SF Mono", "Cascadia Code",
-    Menlo, Consolas, monospace;
+  --font-display: var(--font-display), "Bricolage Grotesque", -apple-system,
+    BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-sans: var(--font-sans), "DM Sans", -apple-system, BlinkMacSystemFont,
+    "Segoe UI", sans-serif;
+  --font-serif: Georgia, "Times New Roman", serif;
+  --font-mono: var(--font-mono), "JetBrains Mono", ui-monospace, "SF Mono",
+    monospace;
   --shadow-sm: 0 1px 2px rgba(12, 13, 11, 0.05);
   --shadow-md: 0 18px 48px -24px rgba(12, 13, 11, 0.28);
   --shadow-lg: 0 40px 100px -40px rgba(12, 13, 11, 0.45);
@@ -78,9 +79,10 @@
 .start h2,
 .start h3 {
   margin: 0;
-  font-weight: 560;
-  letter-spacing: -0.035em;
-  line-height: 1.05;
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1.06;
 }
 
 .site button,

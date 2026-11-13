@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -7,12 +5,12 @@ import Link from 'next/link';
 import { Logo } from '@/components/brand/Logo';
 
 const links = [
-  { href: '/#capabilities', label: 'Capabilities' },
   { href: '/#how-it-works', label: 'How it works' },
-  { href: '/#channels', label: 'Channels' },
-  { href: '/#developers', label: 'Developers' },
+  { href: '/#examples', label: 'Examples' },
+  { href: '/#integrate', label: 'Integrate' },
   { href: '/docs', label: 'Docs' },
 ];
+
 export default function SiteNav() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
@@ -21,28 +19,6 @@ export default function SiteNav() {
     const onScroll = () => setScrolled(window.scrollY > 8);
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
-
-    const items = Array.from(document.querySelectorAll<HTMLElement>('.t-reveal'));
-    if ('IntersectionObserver' in window) {
-      const observer = new IntersectionObserver(
-        (entries) => {
-          for (const entry of entries) {
-            if (entry.isIntersecting) {
-              entry.target.classList.add('in');
-              observer.unobserve(entry.target);
-            }
-          }
-        },
-        { rootMargin: '0px 0px -8% 0px', threshold: 0.08 },
-      );
-      items.forEach((item) => observer.observe(item));
-      return () => {
-        observer.disconnect();
-        window.removeEventListener('scroll', onScroll);
-      };
-    }
-
-    items.forEach((item) => item.classList.add('in'));
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
