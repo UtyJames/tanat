@@ -19,9 +19,10 @@ const tabs: Tab[] = [
     blurb: 'One script tag. Any site.',
     code: `<!-- Embed any Tanat agent on your website -->
 <script
-  src="https://your-tanat-host/embed/tanat-widget.js"
+  src="https://tanat.space/embed/tanat-widget.js"
   data-key="pk_live_7f3a9c2e"
   data-agent="inst_support_agent"
+  data-api="https://api.tanat.space"
   data-theme="light"
   data-position="bottom-right"
   data-welcome="Hi! Ask me anything about our services, policies, or bookings."
@@ -42,9 +43,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         {children}
         <Script
-          src="https://your-tanat-host/embed/tanat-widget.js"
+          src="https://tanat.space/embed/tanat-widget.js"
           data-key={process.env.NEXT_PUBLIC_TANAT_PUBLISHABLE_KEY}
           data-agent={process.env.NEXT_PUBLIC_TANAT_INSTALLATION_ID}
+          data-api="https://api.tanat.space"
           data-user-id="usr_4821"
           data-user-signature="hmac_sha256_verified_token"
           strategy="afterInteractive"
@@ -61,7 +63,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     fileName: 'agent-workflow.ts',
     blurb: 'Full programmatic control.',
     code: `// Open a tenant-isolated conversation & run an agent with knowledge + memory
-const sessionRes = await fetch('https://your-tanat-host/api/v1/sessions', {
+const sessionRes = await fetch('https://api.tanat.space/api/v1/sessions', {
   method: 'POST',
   headers: {
     Authorization: \`Bearer \${process.env.TANAT_SECRET_KEY}\`,
@@ -74,7 +76,7 @@ const sessionRes = await fetch('https://your-tanat-host/api/v1/sessions', {
 });
 const { data: session } = await sessionRes.json();
 
-const replyRes = await fetch(\`https://your-tanat-host/api/v1/sessions/\${session.id}/messages\`, {
+const replyRes = await fetch(\`https://api.tanat.space/api/v1/sessions/\${session.id}/messages\`, {
   method: 'POST',
   headers: {
     Authorization: \`Bearer \${process.env.TANAT_SECRET_KEY}\`,
@@ -96,10 +98,10 @@ const { data: reply } = await replyRes.json();
     blurb: 'AI-native integration.',
     code: `# Drop this prompt into Cursor, Lovable, Bolt, v0, or Claude Code:
 
-Read https://your-tanat-host/llms.txt and https://your-tanat-host/api/mcp
+Read https://api.tanat.space/llms.txt and https://api.tanat.space/api/mcp
 Integrate our Tanat AI agent into this app:
-1. Embed /embed/tanat-widget.js with data-key="pk_live_..." and data-agent="inst_..."
-2. Or call POST /api/public/v1/sessions and /api/public/v1/sessions/:id/messages
+1. Embed https://tanat.space/embed/tanat-widget.js with data-key="pk_live_..." and data-agent="inst_..."
+2. Or call POST https://api.tanat.space/api/public/v1/sessions and /messages
    with header X-Tanat-Publishable-Key.
 3. Render knowledge citations and approval cards when proposed_action is returned.`,
     foot: 'Machine-readable /llms.txt · /api/mcp tool discovery · One-click prompt copy in dashboard',

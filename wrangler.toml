@@ -3,6 +3,10 @@ main = "src/index.ts"
 compatibility_date = "2024-11-01"
 compatibility_flags = ["nodejs_compat"]
 
+routes = [
+  { pattern = "api.tanat.space", custom_domain = true }
+]
+
 # M-12: expire stale approvals every 15 minutes.
 [triggers]
 crons = ["*/15 * * * *"]
@@ -12,7 +16,7 @@ crons = ["*/15 * * * *"]
 # CORS_ORIGINS allowlist. Set them with `wrangler secret put` before deploying.
 ENVIRONMENT = "production"
 API_VERSION = "v1"
-CORS_ORIGINS = "https://tanat-web.pages.dev"
+CORS_ORIGINS = "https://tanat-web.pages.dev,https://tanat.space,https://www.tanat.space"
 AUTH_APP_URL = "https://tanat-web.pages.dev"
 AUTH_EMAIL_FROM = "Tanat <hello@tanat.space>"
 

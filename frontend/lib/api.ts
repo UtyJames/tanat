@@ -33,9 +33,17 @@ import type {
   WorkspaceMember,
 } from './types';
 
-const API_URL = (
-  process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8787/api/v1'
-).replace(/\/$/, '');
+const DEFAULT_API_URL =
+  typeof window !== 'undefined' &&
+  (window.location.hostname === 'localhost' ||
+    window.location.hostname === '127.0.0.1')
+    ? 'http://localhost:8787/api/v1'
+    : 'https://api.tanat.space/api/v1';
+
+const API_URL = (process.env.NEXT_PUBLIC_API_URL ?? DEFAULT_API_URL).replace(
+  /\/$/,
+  '',
+);
 
 const STORAGE_KEY = 'tanat_dashboard_session';
 const AUTH_URL = API_URL.replace(/\/api\/v1$/, '/api/auth');

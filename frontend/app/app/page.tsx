@@ -139,7 +139,9 @@ export default function Dashboard() {
   const [widgetWelcome, setWidgetWelcome] = useState(
     'Hi! How can I help you today?',
   );
-  const [widgetOrigins, setWidgetOrigins] = useState('http://localhost:3000');
+  const [widgetOrigins, setWidgetOrigins] = useState(() =>
+    typeof window !== 'undefined' ? window.location.origin : 'https://tanat.space',
+  );
 
   // Activity sub-tab
   const [activityTab, setActivityTab] = useState<'approvals' | 'runs'>('approvals');
@@ -380,7 +382,9 @@ export default function Dashboard() {
       await createPublishableKey({
         installation_id: instId,
         name: 'Website Widget Key',
-        allowed_origins: origins.length ? origins : ['http://localhost:3000'],
+        allowed_origins: origins.length
+          ? origins
+          : [typeof window !== 'undefined' ? window.location.origin : 'https://tanat.space'],
       });
       await updateInstallation(instId, {
         config: {

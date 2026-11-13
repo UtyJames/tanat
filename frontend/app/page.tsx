@@ -2,50 +2,8 @@ import Link from 'next/link';
 import SiteNav from '@/components/site/SiteNav';
 import HeroDemo from '@/components/site/HeroDemo';
 import CodeTabs from '@/components/site/CodeTabs';
+import UseCaseExplorer from '@/components/site/UseCaseExplorer';
 import { ArrowIcon, CheckIcon, Logo } from '@/components/brand/Logo';
-
-const businessFunctions = [
-  {
-    tag: '01 / SUPPORT',
-    title: 'Customer support',
-    body: 'Answer customer questions accurately using your policies, FAQs, and service guides, resolve routine requests, and escalate complex cases with full context.',
-  },
-  {
-    tag: '02 / REVENUE',
-    title: 'Sales & lead generation',
-    body: 'Qualify inbound leads, explain pricing and packages, recommend the right offering, capture contact details, and route high-intent buyers to your team.',
-  },
-  {
-    tag: '03 / PEOPLE OPS',
-    title: 'HR & employee support',
-    body: 'Help employees find handbook policies, leave rules, onboarding checklists, and benefits information without waiting on repetitive internal tickets.',
-  },
-  {
-    tag: '04 / SCHEDULING',
-    title: 'Booking & appointments',
-    body: 'Collect intake requirements, check service eligibility, coordinate scheduling requests, and prepare confirmations for clinics, agencies, and service teams.',
-  },
-  {
-    tag: '05 / OPERATIONS',
-    title: 'Operations & administration',
-    body: 'Standardize SOP checklists, vendor coordination, incident triage, and recurring operational workflows with clear human approval checkpoints.',
-  },
-  {
-    tag: '06 / FINANCE',
-    title: 'Finance & procurement',
-    body: 'Review invoice inquiries, purchase requests, refund proposals, and payment links under strict spend limits and dual-control human sign-off.',
-  },
-  {
-    tag: '07 / INTELLIGENCE',
-    title: 'Knowledge & research',
-    body: 'Turn scattered documentation, contracts, SOPs, and product catalogs into an instant, source-cited intelligence assistant for your team.',
-  },
-  {
-    tag: '08 / BESPOKE',
-    title: 'Custom business workflows',
-    body: 'Design purpose-built agents with custom instructions, memory rules, tool permissions, and API webhooks tailored to how your organization runs.',
-  },
-];
 
 const workspaceAgents = [
   {
@@ -117,18 +75,47 @@ export default function Home() {
                   Tanat provides the <span className="t-serif">infrastructure.</span>
                 </h1>
                 <p className="t-hero-lede">
-                  Tanat helps businesses create, configure, and deploy AI agents
-                  across customer support, sales, internal operations, and
-                  everyday workflows — without building AI infrastructure from
-                  scratch.
+                  Create, govern, and deploy specialized AI agents for customer
+                  support, sales, bookings, HR, and operations — grounded in your
+                  real business knowledge and ready in minutes.
                 </p>
+
+                <div className="t-hero-points">
+                  <div className="t-hero-point">
+                    <i>
+                      <CheckIcon size={11} />
+                    </i>
+                    <span>
+                      <strong>Trained on your business:</strong> upload policies,
+                      FAQs, websites, and catalogs with source citations.
+                    </span>
+                  </div>
+                  <div className="t-hero-point">
+                    <i>
+                      <CheckIcon size={11} />
+                    </i>
+                    <span>
+                      <strong>Remembers your customers:</strong> persistent
+                      per-customer memory across sessions and channels.
+                    </span>
+                  </div>
+                  <div className="t-hero-point">
+                    <i>
+                      <CheckIcon size={11} />
+                    </i>
+                    <span>
+                      <strong>Stays under your control:</strong> human-in-the-loop
+                      approvals, spend caps, and 1-line website embedding.
+                    </span>
+                  </div>
+                </div>
 
                 <div className="t-hero-ctas">
                   <Link className="t-btn t-btn-lime t-btn-lg" href="/start">
-                    Get started <ArrowIcon />
+                    Get started free <ArrowIcon />
                   </Link>
-                  <Link className="t-btn t-btn-ghost t-btn-lg" href="#how-it-works">
-                    Explore how it works
+                  <Link className="t-btn t-btn-ghost t-btn-lg" href="#capabilities">
+                    See what it does
                   </Link>
                   <Link
                     href="/docs"
@@ -137,19 +124,19 @@ export default function Home() {
                       alignItems: 'center',
                       gap: 6,
                       fontSize: 13.5,
-                      fontWeight: 500,
+                      fontWeight: 600,
                       color: 'var(--ink)',
                       padding: '0 8px',
                     }}
                   >
-                    Build with Tanat →
+                    Developer docs →
                   </Link>
                 </div>
 
                 <div className="t-hero-micro">
                   <span>Multi-agent workspaces</span>
-                  <span>Business knowledge & memory</span>
-                  <span>No-code widget + full REST & MCP API</span>
+                  <span>No-code widget + REST & MCP API</span>
+                  <span>TEE-attested inference</span>
                 </div>
               </div>
 
@@ -181,12 +168,37 @@ export default function Home() {
           </div>
         </section>
 
-        {/* ── Section 2: The Problem ──────────────────────────────────── */}
-        <section className="t-section" id="problem">
+        {/* ── Section 2: Interactive Use-Case Explorer ────────────────── */}
+        <section className="t-section" id="capabilities">
           <div className="t-wrap">
             <div className="t-section-head t-reveal">
               <div>
-                <span className="t-eyebrow">Why Tanat exists</span>
+                <span className="t-eyebrow">What Tanat does for your business</span>
+                <h2 style={{ marginTop: 18 }}>
+                  One infrastructure.
+                  <br />
+                  AI for every business function.
+                </h2>
+              </div>
+              <p>
+                Explore how businesses use Tanat across customer-facing and
+                internal departments. Click any role below to see what the agent
+                handles, what it reads, and how you stay in control.
+              </p>
+            </div>
+
+            <div className="t-reveal">
+              <UseCaseExplorer />
+            </div>
+          </div>
+        </section>
+
+        {/* ── Section 3: The Problem (Before vs After) ────────────────── */}
+        <section className="t-section-tight" id="problem">
+          <div className="t-wrap">
+            <div className="t-section-head t-reveal">
+              <div>
+                <span className="t-eyebrow">Why businesses choose Tanat</span>
                 <h2 style={{ marginTop: 18 }}>
                   Businesses need AI.
                   <br />
@@ -201,19 +213,18 @@ export default function Home() {
               </p>
             </div>
 
-            <div
-              className="t-problem-grid t-reveal"
-              style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))' }}
-            >
-              <article className="t-problem" style={{ background: 'rgba(12,13,11,0.02)' }}>
+            <div className="t-compare t-reveal">
+              <article className="t-compare-card">
                 <span className="t-problem-num">WITHOUT TANAT · FRAGMENTED STACK</span>
-                <h3>Months of plumbing before the first useful answer</h3>
-                <p style={{ marginBottom: 16 }}>
+                <h3 style={{ fontSize: 22, marginTop: 8 }}>
+                  Months of plumbing before the first useful answer
+                </h3>
+                <p style={{ marginTop: 10, color: 'var(--muted)' }}>
                   Teams end up managing separate model keys, custom prompt
                   wrappers, brittle knowledge scrapers, per-channel webhook
                   servers, and ad-hoc permission checks with no unified audit log.
                 </p>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, fontSize: 13, color: 'var(--muted)' }}>
+                <div className="t-compare-list" style={{ color: 'var(--muted)' }}>
                   <div>✕ Raw LLM APIs with no business context or memory</div>
                   <div>✕ Separate bots rebuilt for Website, WhatsApp, and Slack</div>
                   <div>✕ No human approval gates or spend/action governance</div>
@@ -221,68 +232,25 @@ export default function Home() {
                 </div>
               </article>
 
-              <article
-                className="t-problem"
-                style={{
-                  background: '#0C0D0B',
-                  color: '#F6F3EA',
-                  borderColor: '#0C0D0B',
-                }}
-              >
+              <article className="t-compare-card dark">
                 <span className="t-problem-num" style={{ color: '#C9F26B' }}>
                   WITH TANAT · UNIFIED AI INFRASTRUCTURE
                 </span>
-                <h3 style={{ color: '#F6F3EA' }}>
+                <h3 style={{ fontSize: 22, marginTop: 8, color: '#F6F3EA' }}>
                   One infrastructure layer behind every business agent
                 </h3>
-                <p style={{ color: 'rgba(246,243,234,0.76)', marginBottom: 16 }}>
+                <p style={{ marginTop: 10, color: 'rgba(246,243,234,0.74)' }}>
                   Configure specialized agents in minutes, ground them in your
                   verified business knowledge, enforce role and approval boundaries,
                   and deploy across customer and internal channels from one workspace.
                 </p>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, fontSize: 13, color: '#C9F26B' }}>
+                <div className="t-compare-list" style={{ color: '#C9F26B' }}>
                   <div>✓ Guided setup for any business or industry in minutes</div>
                   <div>✓ Shared knowledge sources + persistent customer memory</div>
                   <div>✓ Built-in permissions, human approvals, and audit trails</div>
                   <div>✓ Embed via 1-line widget, React, REST API, or MCP</div>
                 </div>
               </article>
-            </div>
-          </div>
-        </section>
-
-        {/* ── Section 3: What You Can Do With Tanat ───────────────────── */}
-        <section className="t-section-tight" id="capabilities">
-          <div className="t-wrap">
-            <div className="t-section-head t-reveal">
-              <div>
-                <span className="t-eyebrow">What you can do with Tanat</span>
-                <h2 style={{ marginTop: 18 }}>
-                  One infrastructure.
-                  <br />
-                  AI for every business function.
-                </h2>
-              </div>
-              <p>
-                Whether you run a clinic, a software company, a logistics
-                network, an agency, or a retail brand, Tanat adapts to the roles
-                your business actually needs.
-              </p>
-            </div>
-
-            <div
-              className="t-problem-grid t-reveal"
-              style={{
-                gridTemplateColumns: 'repeat(auto-fill, minmax(265px, 1fr))',
-              }}
-            >
-              {businessFunctions.map((item) => (
-                <article className="t-problem" key={item.title}>
-                  <span className="t-problem-num">{item.tag}</span>
-                  <h3>{item.title}</h3>
-                  <p>{item.body}</p>
-                </article>
-              ))}
             </div>
           </div>
         </section>

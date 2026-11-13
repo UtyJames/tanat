@@ -48,13 +48,7 @@
     if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
       return 'http://localhost:8787';
     }
-    try {
-      var src = scriptEl && scriptEl.getAttribute('src');
-      if (src && /^https?:\/\//i.test(src)) {
-        return new URL(src).origin;
-      }
-    } catch (_e) {}
-    return window.location.origin;
+    return 'https://api.tanat.space';
   }
 
   function mountWidget(options) {
@@ -64,7 +58,12 @@
       return;
     }
 
-    var apiBase = (options.apiBase || 'http://localhost:8787').replace(/\/$/, '');
+    var apiBase = (
+      options.apiBase ||
+      (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+        ? 'http://localhost:8787'
+        : 'https://api.tanat.space')
+    ).replace(/\/$/, '');
     var publicUrl = apiBase + '/api/public/v1';
     var theme = options.theme === 'light' ? 'light' : 'dark';
     var accent = options.accent || '#C9F26B';

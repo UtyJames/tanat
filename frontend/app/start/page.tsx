@@ -361,7 +361,9 @@ export default function StartPage() {
   const [selectedChannels, setSelectedChannels] = useState<
     Array<'website' | 'whatsapp' | 'telegram' | 'slack' | 'shopify' | 'email' | 'api' | 'custom'>
   >(['website', 'api']);
-  const [allowedDomainsText, setAllowedDomainsText] = useState('http://localhost:3000');
+  const [allowedDomainsText, setAllowedDomainsText] = useState(() =>
+    typeof window !== 'undefined' ? window.location.origin : 'https://tanat.space',
+  );
 
   // Step 8: Permissions & Governance
   const [readOnlyPerms, setReadOnlyPerms] = useState<string[]>([
@@ -583,7 +585,9 @@ export default function StartPage() {
         .filter(Boolean),
       escalation_rules: escalationRules.trim(),
       welcome_message: welcomeMessage.trim() || 'Hi! How can I help you today?',
-      allowed_domains: allowedDomains.length ? allowedDomains : ['http://localhost:3000'],
+      allowed_domains: allowedDomains.length
+        ? allowedDomains
+        : [typeof window !== 'undefined' ? window.location.origin : 'https://tanat.space'],
       knowledge_title: knowledgeTitle.trim() || 'Business Knowledge',
       knowledge_text: knowledgeText.trim() || undefined,
       faqs: faqs.filter((f) => f.question.trim() && f.answer.trim()),

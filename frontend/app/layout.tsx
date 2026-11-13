@@ -1,30 +1,56 @@
 import type { Metadata, Viewport } from 'next';
+import {
+  Bricolage_Grotesque,
+  DM_Sans,
+  JetBrains_Mono,
+} from 'next/font/google';
 import './globals.css';
 import './site.css';
 
+const display = Bricolage_Grotesque({
+  subsets: ['latin'],
+  weight: ['500', '600', '700'],
+  variable: '--font-display',
+  display: 'swap',
+});
+
+const sans = DM_Sans({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-sans',
+  display: 'swap',
+});
+
+const mono = JetBrains_Mono({
+  subsets: ['latin'],
+  weight: ['400', '500', '600'],
+  variable: '--font-mono',
+  display: 'swap',
+});
+
 export const metadata: Metadata = {
   title: {
-    default: 'Tanat — AI agents that can pay',
+    default: 'Tanat — Put an AI Assistant on Your Business in 3 Minutes',
     template: '%s · Tanat',
   },
   description:
-    'Give your business a payment-ready AI agent on your website, WhatsApp, or Telegram. It proposes, you approve, money moves. Non-custodial, approval-gated, auditable.',
+    'Give your business an AI assistant that knows your services, remembers your customers, and works on your website, WhatsApp, or Telegram — with human approval when it matters.',
   applicationName: 'Tanat',
   icons: {
     icon: [{ url: '/favicon.svg', type: 'image/svg+xml' }],
   },
   openGraph: {
-    title: 'Tanat — AI agents that can pay',
+    title: 'Tanat — Put an AI Assistant on Your Business in 3 Minutes',
     description:
-      'Payment-ready AI agents for real businesses. Website widget, WhatsApp, Telegram, and API. Human approval on every payment.',
+      'Answer customers 24/7, qualify leads, take bookings, and send payment links — trained on your business info.',
     type: 'website',
     siteName: 'Tanat',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Tanat — AI agents that can pay',
+    title: 'Tanat — AI Assistants for Real Businesses',
     description:
-      'Payment-ready AI agents for real businesses. Approval-gated. Non-custodial.',
+      'Answer customers 24/7, take bookings, and stay in control with human approvals. Live on your website in 1 line.',
   },
 };
 
@@ -38,7 +64,10 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en">
+    <html
+      lang="en"
+      className={`${display.variable} ${sans.variable} ${mono.variable}`}
+    >
       <body>{children}</body>
     </html>
   );

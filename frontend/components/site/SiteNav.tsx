@@ -13,7 +13,6 @@ const links = [
   { href: '/#developers', label: 'Developers' },
   { href: '/docs', label: 'Docs' },
 ];
-
 export default function SiteNav() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);

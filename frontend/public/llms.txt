@@ -12,10 +12,10 @@
 ## 2. Website Widget (1-Line Embed)
 ```html
 <script
-  src="http://localhost:3000/embed/tanat-widget.js"
+  src="https://tanat.space/embed/tanat-widget.js"
   data-key="pk_live_YOUR_PUBLISHABLE_KEY"
   data-agent="inst_YOUR_INSTALLATION_ID"
-  data-api="http://localhost:8787"
+  data-api="https://api.tanat.space"
   data-theme="dark"
   defer
 ></script>
