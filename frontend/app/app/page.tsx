@@ -60,9 +60,41 @@ import type {
   WorkspaceMember,
 } from '@/lib/types';
 import { Logo } from '@/components/brand/Logo';
+import {
+  CursorLogo,
+  FramerLogo,
+  LovableLogo,
+  NearLogo,
+  NextJsLogo,
+  ShopifyLogo,
+  SlackLogo,
+  TanatMascotIcon,
+  TelegramLogo,
+  WebflowLogo,
+  WhatsAppLogo,
+  WidgetLogo,
+  WordPressLogo,
+} from '@/components/brand/PlatformLogos';
+import '../landing.css';
 import Chat from '@/components/Chat';
 import ActionsList from '@/components/ActionsList';
 import Settings from '@/components/Settings';
+
+function getBrandIcon(typeOrName: string, size = 18) {
+  const k = typeOrName.toLowerCase();
+  if (k.includes('telegram')) return <TelegramLogo size={size} />;
+  if (k.includes('whatsapp')) return <WhatsAppLogo size={size} />;
+  if (k.includes('slack')) return <SlackLogo size={size} />;
+  if (k.includes('shopify')) return <ShopifyLogo size={size} />;
+  if (k.includes('wordpress')) return <WordPressLogo size={size} />;
+  if (k.includes('webflow')) return <WebflowLogo size={size} />;
+  if (k.includes('framer')) return <FramerLogo size={size} />;
+  if (k.includes('next')) return <NextJsLogo size={size} />;
+  if (k.includes('lovable')) return <LovableLogo size={size} />;
+  if (k.includes('cursor')) return <CursorLogo size={size} />;
+  if (k.includes('near')) return <NearLogo size={size} />;
+  return <WidgetLogo size={size} />;
+}
 
 type Section =
   | 'overview'
@@ -946,7 +978,7 @@ Option B (Custom Chat UI): Call POST ${PUBLIC_BASE_URL}/api/public/v1/sessions w
   if (!tenant) {
     return (
       <div className="dash-boot">
-        <Logo size={34} />
+        <TanatMascotIcon size={40} />
         <h1>We could not open this workspace.</h1>
         <p>{error ?? 'Your session may have expired.'}</p>
         <div style={{ display: 'flex', gap: 10 }}>
@@ -962,12 +994,13 @@ Option B (Custom Chat UI): Call POST ${PUBLIC_BASE_URL}/api/public/v1/sessions w
   }
 
   return (
-    <div className="app">
+    <div className="app tn-site">
       {/* Top Bar */}
       <header className="topbar">
         <div className="topbar-left">
-          <Link href="/" aria-label="Tanat home">
-            <Logo size={26} />
+          <Link href="/" className="tn-brand" aria-label="Tanat home">
+            <TanatMascotIcon size={28} />
+            <span>Tanat</span>
           </Link>
           <span className="topbar-divider" />
           <span className="topbar-tenant">{tenant.name}</span>
@@ -2458,18 +2491,18 @@ Option B (Custom Chat UI): Call POST ${PUBLIC_BASE_URL}/api/public/v1/sessions w
                   <button
                     className={`btn ${activeChannelTab === 'website' ? 'btn-primary' : ''}`}
                     onClick={() => setActiveChannelTab('website')}
-                    style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}
                   >
-                    <span>🌐</span>
+                    <WidgetLogo size={16} />
                     <span>Website Chat Widget</span>
                     <span className="ws-pill connected" style={{ fontSize: 10 }}>Live</span>
                   </button>
                   <button
                     className={`btn ${activeChannelTab === 'telegram' ? 'btn-primary' : ''}`}
                     onClick={() => setActiveChannelTab('telegram')}
-                    style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}
                   >
-                    <span>✈️</span>
+                    <TelegramLogo size={16} />
                     <span>Telegram Bot</span>
                     {tgChannel?.status === 'connected' ? (
                       <span className="ws-pill connected" style={{ fontSize: 10 }}>Connected</span>
@@ -2480,9 +2513,9 @@ Option B (Custom Chat UI): Call POST ${PUBLIC_BASE_URL}/api/public/v1/sessions w
                   <button
                     className={`btn ${activeChannelTab === 'whatsapp' ? 'btn-primary' : ''}`}
                     onClick={() => setActiveChannelTab('whatsapp')}
-                    style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}
                   >
-                    <span>💬</span>
+                    <WhatsAppLogo size={16} />
                     <span>WhatsApp Business</span>
                     {waChannel?.status === 'connected' ? (
                       <span className="ws-pill connected" style={{ fontSize: 10 }}>Connected</span>
@@ -2493,9 +2526,9 @@ Option B (Custom Chat UI): Call POST ${PUBLIC_BASE_URL}/api/public/v1/sessions w
                   <button
                     className={`btn ${activeChannelTab === 'slack' ? 'btn-primary' : ''}`}
                     onClick={() => setActiveChannelTab('slack')}
-                    style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}
                   >
-                    <span>⚡</span>
+                    <SlackLogo size={16} />
                     <span>Slack Workspace</span>
                     {slackChannel?.status === 'connected' ? (
                       <span className="ws-pill connected" style={{ fontSize: 10 }}>Connected</span>
@@ -2767,7 +2800,7 @@ Option B (Custom Chat UI): Call POST ${PUBLIC_BASE_URL}/api/public/v1/sessions w
                       {tgChannel?.status === 'connected' ? (
                         <div>
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-                            <h3>🧪 How to Test Your Bot</h3>
+                            <h3>How to Test Your Bot</h3>
                             <span className="ws-pill connected">Ready to Chat</span>
                           </div>
 
@@ -2815,13 +2848,13 @@ Option B (Custom Chat UI): Call POST ${PUBLIC_BASE_URL}/api/public/v1/sessions w
                             </p>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                               <div style={{ padding: '6px 10px', background: 'var(--card-bg)', borderRadius: 6, fontSize: 12, border: '1px solid var(--border)' }}>
-                                💬 <em>&quot;What products or services do you offer?&quot;</em>
+                                <em>&quot;What products or services do you offer?&quot;</em>
                               </div>
                               <div style={{ padding: '6px 10px', background: 'var(--card-bg)', borderRadius: 6, fontSize: 12, border: '1px solid var(--border)' }}>
-                                💬 <em>&quot;What are your business hours or pricing?&quot;</em>
+                                <em>&quot;What are your business hours or pricing?&quot;</em>
                               </div>
                               <div style={{ padding: '6px 10px', background: 'var(--card-bg)', borderRadius: 6, fontSize: 12, border: '1px solid var(--border)' }}>
-                                💬 <em>&quot;Can you help me with a return or refund?&quot;</em>
+                                <em>&quot;Can you help me with a return or refund?&quot;</em>
                               </div>
                             </div>
                           </div>
@@ -2857,7 +2890,7 @@ Option B (Custom Chat UI): Call POST ${PUBLIC_BASE_URL}/api/public/v1/sessions w
                           </ol>
 
                           <div style={{ marginTop: 20, padding: 12, borderRadius: 8, background: 'var(--card-bg)', border: '1px solid var(--border)' }}>
-                            <div style={{ fontWeight: 600, fontSize: 12, marginBottom: 4 }}>💡 Shared Brain</div>
+                            <div style={{ fontWeight: 600, fontSize: 12, marginBottom: 4 }}>Shared Brain</div>
                             <p className="muted" style={{ fontSize: 11.5, margin: 0 }}>
                               Your Telegram bot automatically answers using the knowledge base, policies, and FAQs you upload in Tanat. No separate training or prompt duplication required.
                             </p>
@@ -3033,7 +3066,7 @@ Option B (Custom Chat UI): Call POST ${PUBLIC_BASE_URL}/api/public/v1/sessions w
                         </div>
 
                         <div style={{ padding: 10, borderRadius: 8, background: 'var(--bg)', border: '1px solid var(--border)', marginBottom: 14, fontSize: 12.5, lineHeight: 1.5 }}>
-                          📍 <strong>Where to configure:</strong> Slack apps are managed in your web browser at{' '}
+                          <strong>Where to configure:</strong> Slack apps are managed in your web browser at{' '}
                           <a href="https://api.slack.com/apps" target="_blank" rel="noreferrer" style={{ textDecoration: 'underline', fontWeight: 600 }}>
                             api.slack.com/apps ↗
                           </a>{' '}
@@ -3133,7 +3166,7 @@ Option B (Custom Chat UI): Call POST ${PUBLIC_BASE_URL}/api/public/v1/sessions w
                         {slackChannel?.status === 'connected' ? (
                           <div>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-                              <h3>🧪 How to Test Your Slack Bot</h3>
+                              <h3>How to Test Your Slack Bot</h3>
                               <span className="ws-pill connected">Ready to Test</span>
                             </div>
 
@@ -3187,7 +3220,7 @@ Option B (Custom Chat UI): Call POST ${PUBLIC_BASE_URL}/api/public/v1/sessions w
                         ) : (
                           <div>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-                              <h3>⚡ Recommended: 1-Click App Manifest</h3>
+                              <h3>Recommended: 1-Click App Manifest</h3>
                               <span className="ws-pill connected" style={{ fontSize: 10 }}>Fastest</span>
                             </div>
                             <p style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 12, lineHeight: 1.5 }}>
@@ -3258,14 +3291,6 @@ Option B (Custom Chat UI): Call POST ${PUBLIC_BASE_URL}/api/public/v1/sessions w
                   <div className="ws-grid-3">
                     {channels.map((ch) => {
                       const type = ch.channel || ch.channel_type || 'channel';
-                      const icon =
-                        type === 'telegram'
-                          ? '✈️'
-                          : type === 'whatsapp'
-                            ? '💬'
-                            : type === 'slack'
-                              ? '⚡'
-                              : '🌐';
 
                       return (
                         <div
@@ -3285,8 +3310,8 @@ Option B (Custom Chat UI): Call POST ${PUBLIC_BASE_URL}/api/public/v1/sessions w
                               marginBottom: 8,
                             }}
                           >
-                            <span style={{ fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                              <span>{icon}</span>
+                            <span style={{ fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                              {getBrandIcon(type, 16)}
                               <span style={{ textTransform: 'capitalize' }}>{type}</span>
                             </span>
                             <span className={`ws-pill ${ch.status}`}>{ch.status}</span>
@@ -3356,11 +3381,27 @@ Option B (Custom Chat UI): Call POST ${PUBLIC_BASE_URL}/api/public/v1/sessions w
                         display: 'flex',
                         justifyContent: 'space-between',
                         alignItems: 'center',
-                        marginBottom: 8,
+                        marginBottom: 10,
                       }}
                     >
-                      <span className="mono" style={{ fontSize: 10.5 }}>
-                        {int.category.toUpperCase()}
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                        <span
+                          style={{
+                            width: 30,
+                            height: 30,
+                            borderRadius: 8,
+                            border: '1px solid var(--border)',
+                            background: '#faf8f6',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}
+                        >
+                          {getBrandIcon(`${int.type} ${int.name}`, 17)}
+                        </span>
+                        <span className="mono" style={{ fontSize: 10.5 }}>
+                          {int.category.toUpperCase()}
+                        </span>
                       </span>
                       <span className={`ws-pill ${int.status}`}>
                         {int.status.replace('_', ' ')}

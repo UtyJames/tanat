@@ -6,24 +6,27 @@
 /* ── CSS Custom Properties ──────────────────────────────────────────── */
 
 :root {
-  --bg: #0b1411;
-  --surface: #111c18;
-  --surface-elevated: #172620;
-  --border: #24362f;
-  --text-primary: #f2f4f3;
-  --text-secondary: #8ea39a;
+  --bg: #f7f5f3;
+  --surface: #ffffff;
+  --surface-elevated: #faf8f6;
+  --card-bg: #ffffff;
+  --border: #d6d0c8;
+  --text-primary: #1e1e1e;
+  --text-secondary: #525252;
+  --muted: #6e6e6e;
   --accent: #00ec97;
   --accent-hover: #2bf5ab;
-  --near-green: #00ec97;
-  --success: #22c55e;
-  --warning: #f59e0b;
-  --error: #ef4444;
-  --critical: #dc2626;
-  --radius: 8px;
-  --radius-lg: 12px;
-  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --font-mono: "SF Mono", "Fira Code", "Cascadia Code", Consolas, monospace;
-  --transition: 180ms ease;
+  --near-green: #008f5b;
+  --success: #008f5b;
+  --warning: #d97706;
+  --error: #dc2626;
+  --critical: #b91c1c;
+  --radius: 10px;
+  --radius-lg: 16px;
+  --font: var(--font-inter), 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-display: 'Switzer', var(--font-inter), -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: var(--font-dm-mono), 'DM Mono', ui-monospace, monospace;
+  --transition: 160ms ease;
 }
 
 /* ── Reset & Base ───────────────────────────────────────────────────── */
@@ -124,10 +127,11 @@ h3 {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 56px;
-  padding: 0 20px;
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
+  height: 60px;
+  padding: 0 22px;
+  background: rgba(247, 245, 243, 0.92);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px dashed var(--border);
   flex-shrink: 0;
   gap: 16px;
   z-index: 100;
@@ -276,27 +280,30 @@ h3 {
   gap: 6px;
   font-family: var(--font);
   font-size: 13px;
-  font-weight: 500;
-  padding: 8px 16px;
+  font-weight: 600;
+  padding: 8px 15px;
   border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: var(--surface-elevated);
-  color: var(--text-primary);
+  border-radius: 999px;
+  background: #ffffff;
+  color: #1e1e1e;
   cursor: pointer;
   transition: all var(--transition);
   white-space: nowrap;
+  text-decoration: none;
 }
 
 .btn:hover {
-  background: var(--border);
+  background: #f2efec;
+  border-color: #141414;
+  text-decoration: none;
 }
 
 .btn:active {
-  transform: scale(0.97);
+  transform: scale(0.98);
 }
 
 .btn:disabled {
-  opacity: 0.4;
+  opacity: 0.42;
   pointer-events: none;
 }
 
@@ -306,21 +313,21 @@ h3 {
 }
 
 .btn-sm {
-  padding: 5px 12px;
+  padding: 6px 12px;
   font-size: 12px;
 }
 
 .btn-primary {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: #052e1e;
+  background: #141414;
+  border-color: #141414;
+  color: #ffffff;
   font-weight: 600;
 }
 
 .btn-primary:hover {
-  background: var(--accent-hover);
-  border-color: var(--accent-hover);
-  color: #052e1e;
+  background: #00ec97;
+  border-color: #00ec97;
+  color: #063324;
 }
 
 .btn-success {
@@ -1274,15 +1281,15 @@ h3 {
 }
 
 .error-banner {
-  background: rgba(239, 68, 68, 0.1);
-  border: 1px solid rgba(239, 68, 68, 0.45);
-  color: #fca5a5;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
 }
 
 .success-banner {
-  background: rgba(0, 236, 151, 0.08);
-  border: 1px solid rgba(0, 236, 151, 0.4);
-  color: var(--near-green);
+  background: rgba(0, 236, 151, 0.14);
+  border: 1px dashed rgba(6, 51, 36, 0.35);
+  color: #063324;
 }
 
 .topbar-key {
@@ -1508,5 +1515,344 @@ h3 {
 .chat-suggestion-chip:disabled {
   opacity: 0.45;
   cursor: not-allowed;
+}
+
+/* ==========================================================================
+   Unified /app Workspace Dashboard (NEAR AI Cloud Architectural System)
+   ========================================================================== */
+
+.dash-boot {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 24px;
+  text-align: center;
+  background: var(--bg);
+  color: var(--text-primary);
+}
+
+.dash-boot h1 {
+  font-family: var(--font-display);
+  font-size: 26px;
+  letter-spacing: -0.03em;
+}
+
+.topbar-divider {
+  width: 1px;
+  height: 20px;
+  background: var(--border);
+}
+
+.topbar-tenant {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 14.5px;
+  color: #1e1e1e;
+  letter-spacing: -0.02em;
+}
+
+.mode-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 11px;
+  border-radius: 999px;
+  background: rgba(0, 236, 151, 0.18);
+  border: 1px solid rgba(0, 143, 91, 0.22);
+  color: #063324;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.mode-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #008f5b;
+}
+
+.ws-shell {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 244px minmax(0, 1fr);
+  min-height: 0;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+.ws-sidebar {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 18px 14px;
+  background: #ffffff;
+  border-right: 1px dashed var(--border);
+  overflow-y: auto;
+}
+
+.ws-nav-group {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.ws-nav-label {
+  padding: 6px 10px 4px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #6e6e6e;
+}
+
+.ws-nav-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 11px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: transparent;
+  color: #525252;
+  font-family: var(--font);
+  font-size: 13.5px;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  transition: background 140ms ease, color 140ms ease, border-color 140ms ease;
+}
+
+.ws-nav-btn:hover {
+  background: #f7f5f3;
+  color: #1e1e1e;
+}
+
+.ws-nav-btn.active {
+  background: #141414;
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.ws-nav-btn.active .badge-count {
+  background: #00ec97;
+  color: #063324;
+}
+
+.ws-main {
+  overflow-y: auto;
+  padding: 24px 28px 48px;
+  min-width: 0;
+}
+
+.ws-page {
+  max-width: 1120px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.ws-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px;
+  padding-bottom: 16px;
+  border-bottom: 1px dashed var(--border);
+}
+
+.ws-head h1 {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  color: #1e1e1e;
+  margin: 0 0 4px;
+}
+
+.ws-head p {
+  margin: 0;
+  font-size: 14px;
+  color: #525252;
+  max-width: 640px;
+}
+
+.ws-card {
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 20px;
+  min-width: 0;
+}
+
+.ws-card h2,
+.ws-card h3 {
+  font-family: var(--font-display);
+  color: #1e1e1e;
+  letter-spacing: -0.02em;
+}
+
+.ws-card p {
+  color: #525252;
+  font-size: 13.5px;
+  line-height: 1.55;
+}
+
+.ws-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.ws-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.ws-grid-4 {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.ws-subtabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding-bottom: 14px;
+  border-bottom: 1px dashed var(--border);
+}
+
+.ws-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: #f2efec;
+  border: 1px solid #e5e1dc;
+  color: #525252;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.ws-pill.connected,
+.ws-pill.active,
+.ws-pill.published {
+  background: rgba(0, 236, 151, 0.2);
+  border-color: rgba(0, 143, 91, 0.28);
+  color: #063324;
+}
+
+.ws-pill.pending,
+.ws-pill.paused {
+  background: rgba(217, 119, 6, 0.12);
+  border-color: rgba(217, 119, 6, 0.28);
+  color: #92400e;
+}
+
+.ws-pill.disabled,
+.ws-pill.coming_soon {
+  background: #f2efec;
+  color: #6e6e6e;
+}
+
+.ws-CodeBox {
+  background: #141414;
+  color: #e5e7eb;
+  border: 1px solid #262626;
+  border-radius: 12px;
+  padding: 14px 16px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.65;
+  overflow-x: auto;
+  word-break: break-all;
+}
+
+@media (max-width: 1024px) {
+  .ws-grid-4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .ws-grid-3 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .app {
+    height: auto;
+    min-height: 100vh;
+    overflow: visible;
+  }
+  .topbar {
+    flex-wrap: wrap;
+    height: auto;
+    padding: 10px 14px;
+    gap: 10px;
+  }
+  .topbar-right {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .topbar-key,
+  .mode-pill {
+    display: none;
+  }
+  .ws-shell {
+    grid-template-columns: 1fr;
+    overflow: visible;
+  }
+  .ws-sidebar {
+    flex-direction: row;
+    overflow-x: auto;
+    border-right: none;
+    border-bottom: 1px dashed var(--border);
+    padding: 10px 12px;
+    gap: 12px;
+  }
+  .ws-nav-group {
+    flex-direction: row;
+    align-items: center;
+    margin-top: 0 !important;
+  }
+  .ws-nav-label {
+    display: none;
+  }
+  .ws-nav-btn {
+    width: auto;
+    white-space: nowrap;
+    padding: 7px 12px;
+    font-size: 12.5px;
+  }
+  .ws-main {
+    padding: 16px 14px 36px;
+  }
+  .ws-head h1 {
+    font-size: 22px;
+  }
+}
+
+@media (max-width: 640px) {
+  .ws-grid-4,
+  .ws-grid-3,
+  .ws-grid-2 {
+    grid-template-columns: 1fr;
+  }
+  .ws-card {
+    padding: 15px;
+  }
 }
 
