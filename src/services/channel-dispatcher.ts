@@ -7,6 +7,7 @@
  * + NEAR AI Cloud inference), logs telemetry, and returns the response.
  */
 
+import type { Env } from '../types';
 import { generateId } from '../utils/crypto';
 import { recordUsage } from './metering.service';
 import {
@@ -29,6 +30,7 @@ export interface DispatchChannelMessageParams {
   externalUserId: string;
   messageText: string;
   metadata?: Record<string, unknown>;
+  env?: Env;
 }
 
 export interface DispatchResult {
@@ -64,6 +66,7 @@ export async function dispatchChannelMessage(
     externalUserId,
     messageText,
     metadata,
+    env,
   } = params;
 
   const startMs = Date.now();
@@ -152,12 +155,13 @@ export async function dispatchChannelMessage(
 
   // 4. Retrieve knowledge and persistent memory
   const tenantSettings = parseJson(row.tenant_settings);
-  const knowledge = await readyKnowledge(db, tenantId, row.agent_id);
+  const knowledge = await readyKnowledge(db, tenantId, row.agent_id, 24_000, env, messageText);
   const memory = await retrieveMemoryContext(
     db,
     tenantId,
     externalUserId,
     row.agent_id,
+    env,
   );
 
   // Background memory extraction
@@ -168,6 +172,7 @@ export async function dispatchChannelMessage(
     agentId: row.agent_id,
     sessionId,
     userMessage: messageText,
+    env,
   });
 
   // 5. Build prompt with history

@@ -629,7 +629,14 @@ export function createSessionsRouter(
     const requireTee = tenantSettings.allowNonTee !== true;
     const startMs = Date.now();
 
-    const knowledge = await readyKnowledge(c.env.DB, tenantId, session.agent_id, 12_000, c.env);
+    const knowledge = await readyKnowledge(
+      c.env.DB,
+      tenantId,
+      session.agent_id,
+      24_000,
+      c.env,
+      body.content,
+    );
     const memory = await retrieveMemoryContext(
       c.env.DB,
       tenantId,

@@ -33,7 +33,7 @@ export async function readyKnowledge(
   db: D1Database,
   tenantId: string,
   agentId: string | null,
-  maxChars = 12_000,
+  maxChars = 24_000,
   env?: Env,
   userQuery = '',
 ): Promise<{ sources: KnowledgeSource[]; context: string }> {
@@ -44,8 +44,8 @@ export async function readyKnowledge(
         WHERE tenant_id = ? AND status = 'ready'
           AND (agent_id IS NULL OR agent_id = ?)
           AND content IS NOT NULL AND length(trim(content)) > 0
-        ORDER BY created_at ASC
-        LIMIT 25`,
+        ORDER BY created_at DESC
+        LIMIT 50`,
     )
     .bind(tenantId, agentId)
     .all<KnowledgeSource>();
@@ -66,7 +66,7 @@ export async function readyKnowledge(
     }),
   );
   if (userQuery.trim()) {
-    const minimized = minimizeKnowledgeContext(sources, userQuery, 6, maxChars);
+    const minimized = minimizeKnowledgeContext(sources, userQuery, 10, maxChars);
     return { sources: minimized.selected, context: minimized.context };
   }
 
@@ -76,10 +76,20 @@ export async function readyKnowledge(
   for (const source of sources) {
     const content = redactSecrets((source.content ?? '').trim());
     if (!content) continue;
-    const block = `<source label="${source.label.replace(/"/g, '')}" kind="${source.kind}">\n${content}\n</source>`;
-    if (used + block.length > maxChars) break;
+    const safeLabel = source.label.replace(/"/g, '');
+    const openTag = `<source label="${safeLabel}" kind="${source.kind}">\n`;
+    const closeTag = `\n</source>`;
+    const overhead = openTag.length + closeTag.length + 2;
+    const remaining = maxChars - used - overhead;
+    if (remaining < 120) break;
+
+    const body =
+      content.length <= remaining
+        ? content
+        : `${content.slice(0, remaining - 16).trimEnd()}\n[...truncated]`;
+    const block = `${openTag}${body}${closeTag}`;
     blocks.push(block);
-    used += block.length;
+    used += block.length + 2;
   }
 
   return {

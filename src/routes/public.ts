@@ -409,8 +409,9 @@ export function createPublicRouter(
         c.env.DB,
         key.tenant_id,
         installation.agent_id,
-        12_000,
+        24_000,
         c.env,
+        body.content,
       );
       const memory = await retrieveMemoryContext(
         c.env.DB,

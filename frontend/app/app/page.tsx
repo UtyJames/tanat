@@ -188,6 +188,15 @@ export default function Dashboard() {
   const [widgetOrigins, setWidgetOrigins] = useState(() =>
     typeof window !== 'undefined' ? window.location.origin : 'https://tanat.space',
   );
+  const [issuedPubKeys, setIssuedPubKeys] = useState<Record<string, string>>(() => {
+    if (typeof window === 'undefined') return {};
+    try {
+      const raw = window.sessionStorage.getItem('tanat_issued_pubkeys');
+      return raw ? (JSON.parse(raw) as Record<string, string>) : {};
+    } catch {
+      return {};
+    }
+  });
 
   // Messaging Channel form state
   const [activeChannelTab, setActiveChannelTab] = useState<'website' | 'telegram' | 'whatsapp' | 'slack'>('website');
@@ -738,13 +747,24 @@ export default function Dashboard() {
         .split(/[\n,]/)
         .map((s) => s.trim())
         .filter(Boolean);
-      await createPublishableKey({
+      const createdPk = await createPublishableKey({
         installation_id: instId,
         name: 'Website Widget Key',
         allowed_origins: origins.length
           ? origins
           : [typeof window !== 'undefined' ? window.location.origin : 'https://tanat.space'],
       });
+      if (createdPk?.id && createdPk?.key) {
+        setIssuedPubKeys((prev) => {
+          const next = { ...prev, [createdPk.id]: createdPk.key };
+          try {
+            window.sessionStorage.setItem('tanat_issued_pubkeys', JSON.stringify(next));
+          } catch {
+            // Ignore storage errors
+          }
+          return next;
+        });
+      }
       await updateInstallation(instId, {
         config: {
           theme: widgetTheme,
@@ -764,18 +784,24 @@ export default function Dashboard() {
     const activePk =
       pubKeys.find((k) => k.installation_id === selectedInstId && k.is_active) ??
       pubKeys.find((k) => k.is_active);
+    const resolvedKey =
+      activePk?.key_value ||
+      (activePk ? issuedPubKeys[activePk.id] : undefined) ||
+      Object.values(issuedPubKeys)[0];
     const instId = selectedInstId || installations[0]?.id;
-    if (!activePk || !instId) {
+    if (!resolvedKey || !instId) {
       setError('Generate a publishable key first to launch the live widget preview.');
       return;
     }
 
     const existing = document.getElementById('tanat-widget-root');
     if (existing) existing.remove();
+    document.querySelectorAll('script[data-preview="true"]').forEach((el) => el.remove());
 
     const script = document.createElement('script');
     script.src = `/embed/tanat-widget.js?t=${Date.now()}`;
-    script.setAttribute('data-key', activePk.key_value);
+    script.setAttribute('data-preview', 'true');
+    script.setAttribute('data-key', resolvedKey);
     script.setAttribute('data-agent', instId);
     script.setAttribute('data-api', PUBLIC_BASE_URL);
     script.setAttribute('data-theme', widgetTheme);
@@ -928,7 +954,11 @@ export default function Dashboard() {
   );
 
   const activeInstId = selectedInstId || installations[0]?.id || 'inst_your_agent';
-  const activePkValue = activePubKey?.key_value || 'pk_live_your_key';
+  const activePkValue =
+    activePubKey?.key_value ||
+    (activePubKey ? issuedPubKeys[activePubKey.id] : undefined) ||
+    Object.values(issuedPubKeys)[0] ||
+    'pk_live_your_key';
 
   const htmlWidgetSnippet = `<script
   src="https://www.tanat.space/embed/tanat-widget.js"
@@ -2691,9 +2721,12 @@ Option B (Custom Chat UI): Call POST ${PUBLIC_BASE_URL}/api/public/v1/sessions w
                             }}
                           >
                             <div>
-                              <code>{pk.key_value}</code>
+                              <code>{pk.key_value || issuedPubKeys[pk.id] || pk.key_prefix}</code>
                               <div className="muted" style={{ fontSize: 10.5 }}>
-                                Origins: {pk.allowed_origins}
+                                Origins:{' '}
+                                {Array.isArray(pk.allowed_origins)
+                                  ? pk.allowed_origins.join(', ')
+                                  : String(pk.allowed_origins ?? '')}
                               </div>
                             </div>
                             {pk.is_active ? (

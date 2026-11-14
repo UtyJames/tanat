@@ -578,7 +578,7 @@ function normalizeOrigin(value: string): string {
 onboardingRouter.get('/keys', async (c) => {
   const tenantId = c.get('tenantId');
   const { results } = await c.env.DB.prepare(
-    `SELECT id, installation_id, key_prefix, name, allowed_origins, last_used_at, created_at
+    `SELECT id, installation_id, key_prefix, name, allowed_origins, is_active, last_used_at, created_at
        FROM publishable_keys WHERE tenant_id = ? AND is_active = 1
       ORDER BY created_at DESC`,
   )
@@ -590,6 +590,7 @@ onboardingRouter.get('/keys', async (c) => {
       const record = row as Record<string, unknown>;
       return {
         ...record,
+        is_active: Boolean(record.is_active ?? 1),
         allowed_origins: parseJson(String(record.allowed_origins ?? '[]')),
       };
     }),

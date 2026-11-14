@@ -15,10 +15,15 @@
  *   ></script>
  */
 (function () {
-  if (typeof window === 'undefined' || window.__tanatWidgetLoaded) return;
+  if (typeof window === 'undefined') return;
+  if (window.__tanatWidgetLoaded && document.getElementById('tanat-widget-root')) return;
   window.__tanatWidgetLoaded = true;
 
   function findScript() {
+    var previewScripts = document.querySelectorAll('script[data-preview="true"][data-key]');
+    if (previewScripts.length > 0) {
+      return previewScripts[previewScripts.length - 1];
+    }
     return (
       document.currentScript ||
       document.querySelector('script[data-key][src*="tanat-widget"]') ||

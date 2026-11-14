@@ -119,6 +119,7 @@ export function createWebhooksRouter(
 
     const nearAi = nearAiFactory(c.env);
     const result = await dispatchChannelMessage(c.env.DB, nearAi, {
+      env: c.env,
       tenantId: channel.tenant_id,
       installationId: channel.installation_id,
       channelType: 'telegram',
@@ -245,6 +246,7 @@ export function createWebhooksRouter(
 
             const nearAi = nearAiFactory(c.env);
             const result = await dispatchChannelMessage(c.env.DB, nearAi, {
+              env: c.env,
               tenantId: channel.tenant_id,
               installationId: channel.installation_id,
               channelType: 'whatsapp',
@@ -364,6 +366,7 @@ export function createWebhooksRouter(
           const processSlackEvent = async () => {
             const nearAi = nearAiFactory(c.env);
             const result = await dispatchChannelMessage(c.env.DB, nearAi, {
+              env: c.env,
               tenantId: channel.tenant_id,
               installationId: channel.installation_id,
               channelType: 'slack',
