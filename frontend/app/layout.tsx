@@ -1,7 +1,10 @@
 import type { Metadata, Viewport } from 'next';
 import {
   Bricolage_Grotesque,
+  Caveat,
+  DM_Mono,
   DM_Sans,
+  Inter,
   JetBrains_Mono,
 } from 'next/font/google';
 import './globals.css';
@@ -25,6 +28,27 @@ const mono = JetBrains_Mono({
   subsets: ['latin'],
   weight: ['400', '500', '600'],
   variable: '--font-mono',
+  display: 'swap',
+});
+
+const inter = Inter({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-inter',
+  display: 'swap',
+});
+
+const dmMono = DM_Mono({
+  subsets: ['latin'],
+  weight: ['400', '500'],
+  variable: '--font-dm-mono',
+  display: 'swap',
+});
+
+const caveat = Caveat({
+  subsets: ['latin'],
+  weight: ['400', '600', '700'],
+  variable: '--font-caveat',
   display: 'swap',
 });
 
@@ -55,7 +79,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: '#f6f3ea',
+  themeColor: '#f7f5f3',
   width: 'device-width',
   initialScale: 1,
 };
@@ -66,7 +90,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${display.variable} ${sans.variable} ${mono.variable}`}
+      className={`${display.variable} ${sans.variable} ${mono.variable} ${inter.variable} ${dmMono.variable} ${caveat.variable}`}
     >
       <body>{children}</body>
     </html>
