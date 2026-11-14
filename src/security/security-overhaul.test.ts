@@ -591,4 +591,100 @@ describe('Comprehensive Security & Privacy Overhaul', () => {
     const body = (await signupReq.json()) as { error: { code: string } };
     expect(body.error.code).toBe('ACCOUNT_EXISTS');
   });
+
+  it('enforces Zero-Operator BYOK key custody so platform KMS cannot unwrap or read tenant data without X-Tenant-KEK', async () => {
+    const { d1 } = createTestDatabase();
+    const env = createEnv(d1);
+    const app = createApp();
+    const biz = await seedTenantWithOwner(d1, 'byokbiz', 'owner@byok.example');
+    const tenantKek = 'tenant-held-secret-kek-32-bytes-min-!!';
+
+    // Create encrypted knowledge under platform KMS first
+    const createRes = await app.request(
+      '/api/v1/platform/knowledge',
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${biz.sessionToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          kind: 'policy',
+          label: 'Zero-Operator Secret SOP',
+          content: 'Confidential patient & payroll data.',
+        }),
+      },
+      env,
+    );
+    expect(createRes.status).toBe(201);
+
+    // Enable Zero-Operator BYOK
+    const enableRes = await app.request(
+      '/api/v1/privacy/byok/enable',
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${biz.sessionToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ byok_kek: tenantKek }),
+      },
+      env,
+    );
+    expect(enableRes.status).toBe(200);
+
+    // Without X-Tenant-KEK, platform KMS alone CANNOT read/decrypt knowledge
+    const noKekRes = await app.request(
+      '/api/v1/platform/knowledge',
+      { headers: { Authorization: `Bearer ${biz.sessionToken}` } },
+      env,
+    );
+    expect(noKekRes.status).toBe(403);
+    const noKekBody = (await noKekRes.json()) as { error: { code: string } };
+    expect(noKekBody.error.code).toBe('BYOK_KEY_REQUIRED');
+
+    // Wrong X-Tenant-KEK is rejected
+    const badKekRes = await app.request(
+      '/api/v1/platform/knowledge',
+      {
+        headers: {
+          Authorization: `Bearer ${biz.sessionToken}`,
+          'X-Tenant-KEK': 'wrong-tenant-kek-value-123456',
+        },
+      },
+      env,
+    );
+    expect(badKekRes.status).toBe(403);
+    const badKekBody = (await badKekRes.json()) as { error: { code: string } };
+    expect(badKekBody.error.code).toBe('BYOK_KEY_MISMATCH');
+
+    // Correct X-Tenant-KEK decrypts cleanly
+    const okRes = await app.request(
+      '/api/v1/platform/knowledge',
+      {
+        headers: {
+          Authorization: `Bearer ${biz.sessionToken}`,
+          'X-Tenant-KEK': tenantKek,
+        },
+      },
+      env,
+    );
+    expect(okRes.status).toBe(200);
+    const okBody = (await okRes.json()) as { data: Array<{ content: string }> };
+    expect(okBody.data[0].content).toBe('Confidential patient & payroll data.');
+
+    // Disable BYOK cleanly with valid X-Tenant-KEK
+    const disableRes = await app.request(
+      '/api/v1/privacy/byok/disable',
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${biz.sessionToken}`,
+          'X-Tenant-KEK': tenantKek,
+        },
+      },
+      env,
+    );
+    expect(disableRes.status).toBe(200);
+  });
 });

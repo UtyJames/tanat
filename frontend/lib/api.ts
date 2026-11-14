@@ -156,6 +156,23 @@ export async function revokeDashboardSession(): Promise<void> {
   }
 }
 
+const BYOK_STORAGE_KEY = 'tanat_byok_kek';
+
+export function getStoredByokKek(): string {
+  if (typeof window === 'undefined') return '';
+  return window.sessionStorage.getItem(BYOK_STORAGE_KEY) ?? '';
+}
+
+export function setStoredByokKek(kek: string): void {
+  if (typeof window === 'undefined') return;
+  const trimmed = kek.trim();
+  if (trimmed) {
+    window.sessionStorage.setItem(BYOK_STORAGE_KEY, trimmed);
+  } else {
+    window.sessionStorage.removeItem(BYOK_STORAGE_KEY);
+  }
+}
+
 async function requestPayload<T>(
   method: string,
   path: string,
@@ -164,6 +181,8 @@ async function requestPayload<T>(
   const apiKey = getStoredKey();
   const headers: Record<string, string> = {};
   if (apiKey) headers.Authorization = `Bearer ${apiKey}`;
+  const byokKek = getStoredByokKek();
+  if (byokKek) headers['X-Tenant-KEK'] = byokKek;
   if (body !== undefined) headers['Content-Type'] = 'application/json';
 
   let response: Response;
@@ -641,6 +660,8 @@ export interface PrivacyStatus {
     encryption_enabled: boolean;
     algorithm: string;
     envelope_format: string;
+    key_custody_mode?: 'platform_kms' | 'byok_zero_operator';
+    zero_operator_byok_active?: boolean;
     encrypted_fields: string[];
     unencrypted_metadata: string[];
     kms: {
@@ -783,6 +804,21 @@ export function verifyLiveTeeAttestation(model?: string): Promise<{
   };
 }> {
   return request('POST', '/privacy/tee-verify', model ? { model } : {});
+}
+
+export function enableZeroOperatorByok(byok_kek: string): Promise<{
+  key_id: string;
+  key_custody_mode: 'byok_zero_operator';
+  fingerprint: string;
+}> {
+  return request('POST', '/privacy/byok/enable', { byok_kek });
+}
+
+export function disableZeroOperatorByok(byok_kek: string): Promise<{
+  key_id: string;
+  key_custody_mode: 'platform_kms';
+}> {
+  return request('POST', '/privacy/byok/disable', { byok_kek });
 }
 
 export { API_URL, PUBLIC_BASE_URL };

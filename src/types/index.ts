@@ -42,6 +42,7 @@ export interface Env {
   /** TEE / Conclave Enclave Runtime Configuration */
   TEE_RUNTIME_MODE?: 'cloudflare_worker' | 'tdx_enclave' | 'dstack_cvm';
   TEE_ALLOWED_MRTD?: string;
+  TEE_MEASUREMENT_MRTD?: string;
   TEE_SOCKET_PATH?: string;
   TEE_STRICT_VERIFICATION?: string;
 }

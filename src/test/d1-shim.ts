@@ -110,6 +110,7 @@ export function createTestDatabase(): {
     readFileSync(new URL('../db/migrations/0008_knowledge_metadata.sql', import.meta.url), 'utf8'),
     readFileSync(new URL('../db/migrations/0009_security_privacy_overhaul.sql', import.meta.url), 'utf8'),
     readFileSync(new URL('../db/migrations/0010_tee_attestations.sql', import.meta.url), 'utf8'),
+    readFileSync(new URL('../db/migrations/0011_byok_zero_operator_access.sql', import.meta.url), 'utf8'),
   ];
 
   for (const migration of migrations) {

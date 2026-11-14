@@ -13,6 +13,7 @@
 
 import type { Env } from '../types';
 import { AppError } from '../utils/errors';
+import { assertEnclavePolicy } from './enclave-runtime.service';
 
 const LOCAL_ENVIRONMENTS = new Set(['local', 'test', 'development']);
 const DEV_PLACEHOLDER_KMS_KEY = 'dev-kms-master-key-do-not-use-in-prod';
@@ -101,7 +102,26 @@ export class EnvWrapKmsProvider implements KmsProvider {
   }
 }
 
+export function createByokKmsProvider(byokKek: string): KmsProvider {
+  const trimmed = byokKek.trim();
+  if (trimmed.length < 16) {
+    throw new AppError(
+      'BYOK KEK must be at least 16 characters (32-byte random base64/hex recommended)',
+      400,
+      'INVALID_BYOK_KEK',
+    );
+  }
+  return new EnvWrapKmsProvider(
+    trimmed,
+    'byok-external-kek',
+    'tenant-byok-zero-operator',
+    false,
+  );
+}
+
 export function resolveKmsProvider(env: Env): KmsProvider {
+  assertEnclavePolicy(env, env.TEE_MEASUREMENT_MRTD);
+
   const environment = (env.ENVIRONMENT ?? '').trim().toLowerCase();
   const isLocal = LOCAL_ENVIRONMENTS.has(environment);
   const masterKey = (env.KMS_MASTER_KEY ?? '').trim();

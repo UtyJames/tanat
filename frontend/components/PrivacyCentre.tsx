@@ -3,8 +3,11 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
   ApiError,
+  disableZeroOperatorByok,
+  enableZeroOperatorByok,
   exportWorkspaceData,
   getPrivacyStatus,
+  getStoredByokKek,
   listDashboardSessions,
   listPrivacyAuditLogs,
   listSecurityAlerts,
@@ -13,6 +16,7 @@ import {
   resolveSecurityAlert,
   revokePrivacySession,
   rotateTenantEncryptionKey,
+  setStoredByokKek,
   updatePrivacySettings,
   verifyLiveTeeAttestation,
   type PrivacyStatus,
@@ -43,6 +47,7 @@ export function PrivacyCentre() {
   } | null>(null);
   const [retentionDays, setRetentionDays] = useState(90);
   const [requireTee, setRequireTee] = useState(false);
+  const [byokInput, setByokInput] = useState(() => getStoredByokKek());
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -228,6 +233,96 @@ export function PrivacyCentre() {
             <p className="ws-sub" style={{ marginTop: 10 }}>
               Encrypted fields: {status.data_protection.encrypted_fields.join(', ')}
             </p>
+          </div>
+
+          <div className="ws-card">
+            <h3>Zero-Operator BYOK Custody</h3>
+            <p className="ws-sub">
+              Mode:{' '}
+              <strong>
+                {status.data_protection.zero_operator_byok_active
+                  ? 'Zero-Operator BYOK (X-Tenant-KEK)'
+                  : 'Platform KMS'}
+              </strong>
+            </p>
+            <p className="ws-sub" style={{ marginTop: 6 }}>
+              When enabled, your DEK is wrapped with your own external KEK (never stored by Tanat). Even platform operators cannot unwrap or read workspace data without your key.
+            </p>
+            <input
+              type="password"
+              className="input"
+              style={{ width: '100%', marginTop: 10 }}
+              placeholder="Enter or generate 32+ char customer KEK"
+              value={byokInput}
+              onChange={(e) => setByokInput(e.target.value)}
+            />
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 10 }}>
+              <button
+                type="button"
+                className="btn-secondary"
+                disabled={busy}
+                onClick={() => {
+                  const bytes = new Uint8Array(24);
+                  crypto.getRandomValues(bytes);
+                  const gen = Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
+                  setByokInput(gen);
+                }}
+              >
+                Generate KEK
+              </button>
+              {!status.data_protection.zero_operator_byok_active ? (
+                <button
+                  type="button"
+                  className="btn-primary"
+                  disabled={busy || byokInput.trim().length < 16}
+                  onClick={() =>
+                    void (async () => {
+                      setBusy(true);
+                      setError(null);
+                      try {
+                        const kek = byokInput.trim();
+                        await enableZeroOperatorByok(kek);
+                        setStoredByokKek(kek);
+                        setNotice('Zero-Operator BYOK enabled. Keep your KEK safe — Tanat does not store it.');
+                        await load();
+                      } catch (err) {
+                        setError(err instanceof ApiError ? err.message : 'Failed to enable BYOK.');
+                      } finally {
+                        setBusy(false);
+                      }
+                    })()
+                  }
+                >
+                  Enable Zero-Operator BYOK
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  disabled={busy || byokInput.trim().length < 16}
+                  onClick={() =>
+                    void (async () => {
+                      setBusy(true);
+                      setError(null);
+                      try {
+                        const kek = byokInput.trim();
+                        setStoredByokKek(kek);
+                        await disableZeroOperatorByok(kek);
+                        setStoredByokKek('');
+                        setNotice('Returned key custody to Platform KMS.');
+                        await load();
+                      } catch (err) {
+                        setError(err instanceof ApiError ? err.message : 'Failed to disable BYOK.');
+                      } finally {
+                        setBusy(false);
+                      }
+                    })()
+                  }
+                >
+                  Return to Platform KMS
+                </button>
+              )}
+            </div>
           </div>
         </div>
       )}

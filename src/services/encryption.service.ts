@@ -12,11 +12,23 @@
  * so ciphertext cannot be moved across tenants, tables, records, or columns.
  */
 
+import { AsyncLocalStorage } from 'node:async_hooks';
 import type { Env } from '../types';
 import { AppError, ForbiddenError } from '../utils/errors';
 import { generateId } from '../utils/crypto';
 import { logAudit } from '../utils/audit';
-import { resolveKmsProvider } from './kms.service';
+import { createByokKmsProvider, resolveKmsProvider } from './kms.service';
+import { sha256Hex } from './near-ai-tee.service';
+
+const byokContext = new AsyncLocalStorage<string>();
+
+export function runWithByokKek<T>(kek: string, fn: () => Promise<T>): Promise<T> {
+  return byokContext.run(kek.trim(), fn);
+}
+
+export function getRequestByokKek(): string | undefined {
+  return byokContext.getStore();
+}
 
 export const ENCRYPTED_PREFIX = 'ENC:v1:';
 
@@ -27,6 +39,7 @@ export interface TenantKeyRow {
   kek_id: string;
   algorithm: string;
   wrapped_dek: string;
+  byok_key_fingerprint?: string | null;
   status: 'active' | 'rotated' | 'revoked';
   created_by: string | null;
   created_at: string;
@@ -72,14 +85,36 @@ async function importAesGcmKey(rawDek: Uint8Array, usages: ('encrypt' | 'decrypt
   return crypto.subtle.importKey('raw', rawDek, { name: 'AES-GCM' }, false, usages);
 }
 
+async function unwrapDekForRow(env: Env, row: TenantKeyRow): Promise<Uint8Array> {
+  if (row.byok_key_fingerprint) {
+    const byokKek = getRequestByokKek();
+    if (!byokKek) {
+      throw new AppError(
+        'Zero-Operator BYOK custody is enabled for this workspace; provide X-Tenant-KEK header',
+        403,
+        'BYOK_KEY_REQUIRED',
+      );
+    }
+    const fp = await sha256Hex(byokKek);
+    if (fp !== row.byok_key_fingerprint) {
+      throw new AppError(
+        'Invalid X-Tenant-KEK for this workspace',
+        403,
+        'BYOK_KEY_MISMATCH',
+      );
+    }
+    return createByokKmsProvider(byokKek).unwrapKey(row.wrapped_dek, row.kek_id);
+  }
+  const kms = resolveKmsProvider(env);
+  return kms.unwrapKey(row.wrapped_dek, row.kek_id);
+}
+
 export async function getOrCreateActiveTenantKey(
   env: Env,
   db: D1Database,
   tenantId: string,
   actorId?: string,
 ): Promise<{ row: TenantKeyRow; dek: Uint8Array }> {
-  const kms = resolveKmsProvider(env);
-
   const existing = await db
     .prepare(
       `SELECT * FROM tenant_keys
@@ -91,9 +126,11 @@ export async function getOrCreateActiveTenantKey(
     .first<TenantKeyRow>();
 
   if (existing) {
-    const dek = await kms.unwrapKey(existing.wrapped_dek, existing.kek_id);
+    const dek = await unwrapDekForRow(env, existing);
     return { row: existing, dek };
   }
+
+  const kms = resolveKmsProvider(env);
 
   const maxRow = await db
     .prepare('SELECT COALESCE(MAX(version), 0) AS max_ver FROM tenant_keys WHERE tenant_id = ?')
@@ -191,8 +228,7 @@ export async function decryptField(
     throw new ForbiddenError('Encryption key for this record has been revoked');
   }
 
-  const kms = resolveKmsProvider(env);
-  const rawDek = await kms.unwrapKey(keyRow.wrapped_dek, keyRow.kek_id);
+  const rawDek = await unwrapDekForRow(env, keyRow);
   const key = await importAesGcmKey(rawDek, ['decrypt']);
 
   try {
@@ -302,7 +338,7 @@ export async function listTenantKeys(
 ): Promise<Array<Omit<TenantKeyRow, 'wrapped_dek'>>> {
   const { results } = await db
     .prepare(
-      `SELECT id, tenant_id, version, kek_id, algorithm, status, created_by, created_at, rotated_at, revoked_at
+      `SELECT id, tenant_id, version, kek_id, algorithm, byok_key_fingerprint, status, created_by, created_at, rotated_at, revoked_at
          FROM tenant_keys
         WHERE tenant_id = ?
         ORDER BY version DESC`,
@@ -310,5 +346,104 @@ export async function listTenantKeys(
     .bind(tenantId)
     .all<Omit<TenantKeyRow, 'wrapped_dek'>>();
   return results ?? [];
+}
+
+/**
+ * Transitions a workspace to Zero-Operator BYOK key custody by re-wrapping its
+ * active DEK with the tenant's external KEK (never stored by Tanat).
+ */
+export async function enableTenantByok(
+  env: Env,
+  db: D1Database,
+  tenantId: string,
+  byokKek: string,
+  actorId: string,
+): Promise<{ key_id: string; key_custody_mode: 'byok_zero_operator'; fingerprint: string }> {
+  const { row, dek } = await getOrCreateActiveTenantKey(env, db, tenantId, actorId);
+  const byokKms = createByokKmsProvider(byokKek);
+  const rewrapped = await byokKms.wrapKey(dek);
+  const fingerprint = await sha256Hex(byokKek.trim());
+
+  await db
+    .prepare(
+      `UPDATE tenant_keys
+          SET kek_id = ?, wrapped_dek = ?, byok_key_fingerprint = ?
+        WHERE id = ? AND tenant_id = ?`,
+    )
+    .bind(byokKms.keyId, rewrapped, fingerprint, row.id, tenantId)
+    .run();
+
+  await db
+    .prepare(
+      `INSERT INTO tenant_privacy_settings (tenant_id, key_custody_mode, updated_at)
+       VALUES (?, 'byok_zero_operator', datetime('now'))
+       ON CONFLICT(tenant_id) DO UPDATE SET
+         key_custody_mode = 'byok_zero_operator',
+         updated_at = datetime('now')`,
+    )
+    .bind(tenantId)
+    .run();
+
+  await logAudit(db, {
+    tenantId,
+    action: 'kms.byok_enabled',
+    resourceType: 'tenant_key',
+    resourceId: row.id,
+    actorId,
+    details: { fingerprint },
+  });
+
+  return {
+    key_id: row.id,
+    key_custody_mode: 'byok_zero_operator',
+    fingerprint,
+  };
+}
+
+/**
+ * Returns a workspace from BYOK to platform KMS custody (requires valid X-Tenant-KEK).
+ */
+export async function disableTenantByok(
+  env: Env,
+  db: D1Database,
+  tenantId: string,
+  byokKek: string,
+  actorId: string,
+): Promise<{ key_id: string; key_custody_mode: 'platform_kms' }> {
+  const { row, dek } = await runWithByokKek(byokKek, () =>
+    getOrCreateActiveTenantKey(env, db, tenantId, actorId),
+  );
+  const kms = resolveKmsProvider(env);
+  const rewrapped = await kms.wrapKey(dek);
+
+  await db
+    .prepare(
+      `UPDATE tenant_keys
+          SET kek_id = ?, wrapped_dek = ?, byok_key_fingerprint = NULL
+        WHERE id = ? AND tenant_id = ?`,
+    )
+    .bind(kms.keyId, rewrapped, row.id, tenantId)
+    .run();
+
+  await db
+    .prepare(
+      `INSERT INTO tenant_privacy_settings (tenant_id, key_custody_mode, updated_at)
+       VALUES (?, 'platform_kms', datetime('now'))
+       ON CONFLICT(tenant_id) DO UPDATE SET
+         key_custody_mode = 'platform_kms',
+         updated_at = datetime('now')`,
+    )
+    .bind(tenantId)
+    .run();
+
+  await logAudit(db, {
+    tenantId,
+    action: 'kms.byok_disabled',
+    resourceType: 'tenant_key',
+    resourceId: row.id,
+    actorId,
+  });
+
+  return { key_id: row.id, key_custody_mode: 'platform_kms' };
 }
 

@@ -13,6 +13,7 @@ import { assertConfig } from './config';
 import { securityHeaders } from './middleware/security';
 import { corsMiddleware } from './middleware/cors';
 import { bodyLimit } from './middleware/body-limit';
+import { runWithByokKek } from './services/encryption.service';
 import { authMiddleware } from './middleware/auth';
 import { requireTenant } from './middleware/tenant-isolation';
 import {
@@ -68,6 +69,14 @@ app.use('*', securityHeaders);
 app.use('*', configGuard);
 app.use('*', corsMiddleware);
 app.use('*', bodyLimit(1_000_000));
+app.use('*', async (c, next) => {
+  const byokKek = c.req.header('X-Tenant-KEK')?.trim();
+  if (byokKek) {
+    await runWithByokKek(byokKek, () => next());
+    return;
+  }
+  await next();
+});
 
 // ── Health checks (no auth required) ──────────────────────────────────
 app.get('/', (c) =>

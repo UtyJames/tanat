@@ -32,12 +32,12 @@ Run any of the checks below to verify every claim directly against the codebase 
 
 | Check | Do X (Command / Action) | See Y (Expected Result) |
 |-------|-------------------------|-------------------------|
-| **1. Full Test Suite (142 tests)** | `npm test` | Exits `0` with **10 test files, 142 tests passing** (tenant isolation, RBAC, AES-256-GCM rotation/revocation, TEE `secp256k1` ECDSA verification, WhatsApp/Telegram/Slack webhooks, auth, NEAR Intents). |
+| **1. Full Test Suite (143 tests)** | `npm test` | Exits `0` with **10 test files, 143 tests passing** (tenant isolation, Zero-Operator BYOK, RBAC, AES-256-GCM rotation/revocation, TEE `secp256k1` ECDSA verification, WhatsApp/Telegram/Slack webhooks, auth, NEAR Intents). |
 | **2. Strict TypeScript Check** | `npm run typecheck` | Exits `0` with **0 TypeScript errors**. |
 | **3. Live Production API** | `curl -s https://api.tanat.space/health` | Returns `200 OK` JSON (`{"status":"ok",...}`). |
 | **4. Unregistered Login Guard** | `curl -s -X POST https://api.tanat.space/api/auth/otp/request -H "Content-Type: application/json" -d "{\"email\":\"nobody@example.com\",\"mode\":\"login\"}"` | Returns HTTP `404` with `"code":"ACCOUNT_NOT_FOUND"` (never provisions or leaks access to unregistered emails; `/login` UI routes user to `/start`). |
 | **5. TEE `secp256k1` Verification** | `npx vitest run src/services/near-ai-tee.service.test.ts` | **3/3 tests pass**: verifies `/v1/attestation/report` + `/v1/signature/{chat_id}` via real `secp256k1` ECDSA recovery, fails closed on tampered hashes (`NEAR_AI_TEE_VERIFICATION_FAILED`), and blocks mismatched enclave `MRTD`. |
-| **6. Cross-Tenant Isolation & Revocation** | `npx vitest run src/security/security-overhaul.test.ts` | **7/7 tests pass**: Business B gets `404` on Business A's sessions/knowledge/installations, DB triggers reject cross-tenant inserts, revoked DEKs immediately block decryption, wildcard `*` production CORS origins are rejected. |
+| **6. Cross-Tenant, Revocation & Zero-Operator BYOK** | `npx vitest run src/security/security-overhaul.test.ts` | **8/8 tests pass**: Business B gets `404` on Business A's data, DB triggers block cross-tenant inserts, revoked DEKs fail closed, and enabling Zero-Operator BYOK blocks reads (`403 BYOK_KEY_REQUIRED`) without `X-Tenant-KEK` even when platform KMS is present. |
 | **7. Frontend Build** | `cd frontend && npx tsc --noEmit && npm run build` | Exits `0` and exports static Next.js 16 bundle to `frontend/out`. |
 
 ---
@@ -65,6 +65,8 @@ Run any of the checks below to verify every claim directly against the codebase 
 │  • Independent `AES-256-GCM` DEK per business (random 96-bit nonce)  │
 │  • AAD-bound to `tenant_id|table|record_id|field` (anti-tamper/swap) │
 │  • Wrapped by external KMS KEK (`KMS_MASTER_KEY`, fail-closed prod)  │
+│  • Optional Zero-Operator BYOK: wrap DEK with customer `X-Tenant-KEK` │
+│    (never stored by Tanat — platform operators cannot decrypt data)  │
 │  • 1-click DEK Rotation & Immediate Revocation in Privacy Centre     │
 │  • Raw DB dumps cannot read messages, knowledge docs, or memories    │
 └───────────────────────────────┬──────────────────────────────────────┘
@@ -81,8 +83,9 @@ Run any of the checks below to verify every claim directly against the codebase 
 ```
 
 ### Honest Trust-Boundary Guarantee
-- **Standard Edge Mode (`TEE_RUNTIME_MODE=cloudflare_worker`):** Payloads are encrypted at rest per business, unwrapped in Worker RAM only for authenticated requests, minimized/redacted, and cryptographically verified against NEAR AI Cloud's Intel TDX + NVIDIA GPU TEE (`GET /v1/attestation/report` + `GET /v1/signature/{chat_id}`).
-- **Full Conclave Enclave Mode (`tee/` with `TEE_RUNTIME_MODE=dstack_cvm`):** Deploying `tee/docker-compose.tee.yml` onto a Phala `dstack` / Intel TDX Confidential VM moves Tanat's own Hono runtime inside hardware-isolated enclave memory with `/var/run/tappd.sock` mounted and `TEE_ALLOWED_MRTD` enforced before DEK unwrapping (`assertEnclavePolicy`).
+- **Platform-Encrypted Mode (`platform_kms`):** Payloads are encrypted at rest per business, unwrapped in Worker RAM only for authenticated requests, minimized/redacted, and cryptographically verified against NEAR AI Cloud's Intel TDX + NVIDIA GPU TEE (`GET /v1/attestation/report` + `GET /v1/signature/{chat_id}`).
+- **Zero-Operator BYOK Mode (`byok_zero_operator`):** Businesses can enable BYOK in the Privacy Centre (`POST /api/v1/privacy/byok/enable`), re-wrapping their DEK under their own external KEK (`X-Tenant-KEK`, never stored in Tanat DB or Cloudflare secrets). Without the business's key, even platform operators with full DB + `KMS_MASTER_KEY` access cannot unwrap or decrypt workspace data (`403 BYOK_KEY_REQUIRED`).
+- **Full Conclave Enclave Mode (`tee/` with `TEE_RUNTIME_MODE=dstack_cvm`):** Deploying `tee/docker-compose.tee.yml` onto a Phala `dstack` / Intel TDX Confidential VM hardware-isolates Tanat's own Hono RAM with `/var/run/tappd.sock` mounted and `TEE_ALLOWED_MRTD` enforced before DEK unwrapping (`assertEnclavePolicy`).
 
 ---
 

@@ -15,6 +15,8 @@ import { ForbiddenError, NotFoundError } from '../utils/errors';
 import { logAudit, requestIp } from '../utils/audit';
 import {
   decryptField,
+  disableTenantByok,
+  enableTenantByok,
   getOrCreateActiveTenantKey,
   listTenantKeys,
   revokeTenantKey,
@@ -66,6 +68,7 @@ privacyRouter.get('/status', async (c) => {
     .first<{
       retention_days: number;
       require_tee: number;
+      key_custody_mode?: string;
       deletion_requested_at: string | null;
       deletion_scheduled_for: string | null;
       updated_at: string | null;
@@ -93,6 +96,10 @@ privacyRouter.get('/status', async (c) => {
   ]);
 
   const requireTee = Boolean(settings?.require_tee);
+  const keyCustodyMode =
+    settings?.key_custody_mode === 'byok_zero_operator'
+      ? 'byok_zero_operator'
+      : 'platform_kms';
 
   return c.json({
     data: {
@@ -100,6 +107,8 @@ privacyRouter.get('/status', async (c) => {
         encryption_enabled: true,
         algorithm: 'AES-256-GCM',
         envelope_format: 'ENC:v1 (AAD-bound)',
+        key_custody_mode: keyCustodyMode,
+        zero_operator_byok_active: keyCustodyMode === 'byok_zero_operator',
         encrypted_fields: [
           'messages.content',
           'knowledge_sources.content',
@@ -113,8 +122,8 @@ privacyRouter.get('/status', async (c) => {
           'knowledge_sources.label',
         ],
         kms: {
-          provider: kms.providerName,
-          key_id: kms.keyId,
+          provider: keyCustodyMode === 'byok_zero_operator' ? 'tenant-byok-zero-operator' : kms.providerName,
+          key_id: keyCustodyMode === 'byok_zero_operator' ? 'byok-external-kek' : kms.keyId,
           local_dev_mode: kms.isLocalDev,
         },
         active_key: activeKey,
@@ -123,7 +132,9 @@ privacyRouter.get('/status', async (c) => {
         deletion_requested_at: settings?.deletion_requested_at ?? null,
         deletion_scheduled_for: settings?.deletion_scheduled_for ?? null,
         operator_trust_boundary:
-          'Application workers unwrap tenant DEKs in memory to serve authenticated requests and AI inference. Database-only dumps cannot read encrypted payloads without KMS access.',
+          keyCustodyMode === 'byok_zero_operator'
+            ? 'Zero-Operator BYOK custody is active: this business wraps its DEK with its own external KEK (X-Tenant-KEK). Platform operators and database dumps cannot unwrap or decrypt workspace payloads.'
+            : 'Application workers unwrap tenant DEKs in memory to serve authenticated requests and AI inference. Database-only dumps cannot read encrypted payloads without KMS access. Enable Zero-Operator BYOK or deploy tee/ on dstack/TDX for zero operator access.',
       },
       access_control: {
         current_role: c.get('workspaceRole') ?? 'api_key',
@@ -527,6 +538,35 @@ privacyRouter.post(
       .first();
 
     return c.json({ data: row });
+  },
+);
+
+// ── POST /byok/enable & /byok/disable — Zero-Operator BYOK key custody ───
+privacyRouter.post(
+  '/byok/enable',
+  requireAnyScope(['privacy:manage', 'admin']),
+  async (c) => {
+    const tenantId = c.get('tenantId');
+    const body = (await c.req.json().catch(() => ({}))) as { byok_kek?: unknown };
+    const kek =
+      (typeof body.byok_kek === 'string' ? body.byok_kek.trim() : '') ||
+      (c.req.header('X-Tenant-KEK')?.trim() ?? '');
+    const result = await enableTenantByok(c.env, c.env.DB, tenantId, kek, c.get('apiKeyId'));
+    return c.json({ data: result });
+  },
+);
+
+privacyRouter.post(
+  '/byok/disable',
+  requireAnyScope(['privacy:manage', 'admin']),
+  async (c) => {
+    const tenantId = c.get('tenantId');
+    const body = (await c.req.json().catch(() => ({}))) as { byok_kek?: unknown };
+    const kek =
+      (typeof body.byok_kek === 'string' ? body.byok_kek.trim() : '') ||
+      (c.req.header('X-Tenant-KEK')?.trim() ?? '');
+    const result = await disableTenantByok(c.env, c.env.DB, tenantId, kek, c.get('apiKeyId'));
+    return c.json({ data: result });
   },
 );
 

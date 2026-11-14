@@ -31,6 +31,7 @@ export const corsMiddleware: MiddlewareHandler<HonoEnv> = async (c, next) => {
       'X-Request-ID',
       'X-Idempotency-Key',
       'Idempotency-Key',
+      'X-Tenant-KEK',
     ],
     exposeHeaders: ['X-Request-ID', 'X-RateLimit-Limit', 'X-RateLimit-Remaining', 'X-RateLimit-Reset'],
     maxAge: 86400,

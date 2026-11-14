@@ -119,6 +119,10 @@ function loadDatabase() {
     if (!teeTable) {
       database.exec(readFileSync('src/db/migrations/0010_tee_attestations.sql', 'utf8'));
     }
+    const privacyCols = database.prepare('PRAGMA table_info(tenant_privacy_settings)').all();
+    if (!privacyCols.some((col) => col.name === 'key_custody_mode')) {
+      database.exec(readFileSync('src/db/migrations/0011_byok_zero_operator_access.sql', 'utf8'));
+    }
   }
 
   return database;
