@@ -340,6 +340,11 @@ export function createWebhooksRouter(
       }
     }
 
+    // Ignore Slack retries (e.g. if a previous delivery exceeded 3s) to prevent duplicate replies
+    if (c.req.header('X-Slack-Retry-Num')) {
+      return c.json({ ok: true, ignored: 'retry' });
+    }
+
     // 3. Handle Events Callback
     if (body?.type === 'event_callback' && body.event) {
       const ev = body.event;
@@ -356,44 +361,57 @@ export function createWebhooksRouter(
         text = text.replace(/<@[A-Z0-9]+>/g, '').trim();
 
         if (text.length > 0) {
-          const nearAi = nearAiFactory(c.env);
-          const result = await dispatchChannelMessage(c.env.DB, nearAi, {
-            tenantId: channel.tenant_id,
-            installationId: channel.installation_id,
-            channelType: 'slack',
-            channelId: channel.id,
-            externalUserId: `slack:${ev.user ?? 'anonymous'}`,
-            messageText: text,
-            metadata: {
-              slack_channel: ev.channel,
-              team: body.team_id,
-              thread_ts: ev.thread_ts ?? ev.ts,
-            },
-          });
+          const processSlackEvent = async () => {
+            const nearAi = nearAiFactory(c.env);
+            const result = await dispatchChannelMessage(c.env.DB, nearAi, {
+              tenantId: channel.tenant_id,
+              installationId: channel.installation_id,
+              channelType: 'slack',
+              channelId: channel.id,
+              externalUserId: `slack:${ev.user ?? 'anonymous'}`,
+              messageText: text,
+              metadata: {
+                slack_channel: ev.channel,
+                team: body.team_id,
+                thread_ts: ev.thread_ts ?? ev.ts,
+              },
+            });
 
-          // Send reply via Slack chat.postMessage
-          if (config.bot_token) {
-            try {
-              const slackRes = await fetch('https://slack.com/api/chat.postMessage', {
-                method: 'POST',
-                headers: {
-                  Authorization: `Bearer ${config.bot_token}`,
-                  'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                  channel: ev.channel,
-                  text: formatForMrkdwn(result.content),
-                  mrkdwn: true,
-                  thread_ts: ev.thread_ts ?? ev.ts,
-                }),
-              });
-              if (!slackRes.ok) {
-                const slackErr = await slackRes.text();
-                console.error('[slack.webhook] chat.postMessage failed:', slackErr);
+            // Send reply via Slack chat.postMessage
+            if (config.bot_token) {
+              try {
+                const slackRes = await fetch('https://slack.com/api/chat.postMessage', {
+                  method: 'POST',
+                  headers: {
+                    Authorization: `Bearer ${config.bot_token}`,
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify({
+                    channel: ev.channel,
+                    text: formatForMrkdwn(result.content),
+                    mrkdwn: true,
+                    thread_ts: ev.thread_ts ?? ev.ts,
+                  }),
+                });
+                if (!slackRes.ok) {
+                  const slackErr = await slackRes.text();
+                  console.error('[slack.webhook] chat.postMessage failed:', slackErr);
+                }
+              } catch (err) {
+                console.error('[slack.webhook] Network error delivering reply:', err);
               }
-            } catch (err) {
-              console.error('[slack.webhook] Network error delivering reply:', err);
             }
+          };
+
+          let scheduled = false;
+          try {
+            c.executionCtx.waitUntil(processSlackEvent());
+            scheduled = true;
+          } catch {
+            // In unit tests without Cloudflare ExecutionContext, await inline
+          }
+          if (!scheduled) {
+            await processSlackEvent();
           }
         }
       }

@@ -3024,6 +3024,11 @@ Option B (Custom Chat UI): Call POST ${PUBLIC_BASE_URL}/api/public/v1/sessions w
                         background_color: '#0C0D0B',
                       },
                       features: {
+                        app_home: {
+                          home_tab_enabled: false,
+                          messages_tab_enabled: true,
+                          messages_tab_read_only_enabled: false,
+                        },
                         bot_user: {
                           display_name: botName,
                           always_online: true,
@@ -3236,7 +3241,7 @@ Option B (Custom Chat UI): Call POST ${PUBLIC_BASE_URL}/api/public/v1/sessions w
                                 in your browser.
                               </li>
                               <li>
-                                Click <strong>Create New App</strong> → select <strong>From an app manifest</strong>.
+                                Click <strong>Create an App</strong> → select <strong>Paste a manifest</strong>.
                               </li>
                               <li>Select your workspace, choose <strong>JSON</strong> tab, and paste the snippet below:</li>
                             </ol>
