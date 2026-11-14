@@ -83,6 +83,7 @@ export function storeKey(key: string): void {
 export async function requestOtp(input: {
   email: string;
   tenant_name?: string;
+  mode?: 'login' | 'signup';
 }): Promise<void> {
   let response: Response;
   try {
@@ -106,13 +107,17 @@ export async function requestOtp(input: {
   }
 }
 
-export async function verifyOtp(email: string, code: string): Promise<void> {
+export async function verifyOtp(
+  email: string,
+  code: string,
+  mode?: 'login' | 'signup',
+): Promise<void> {
   let response: Response;
   try {
     response = await fetch(`${AUTH_URL}/otp/verify`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, code }),
+      body: JSON.stringify(mode ? { email, code, mode } : { email, code }),
       cache: 'no-store',
     });
   } catch {

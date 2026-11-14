@@ -542,4 +542,29 @@ describe('Comprehensive Security & Privacy Overhaul', () => {
     expect(stateData.data.onboarding.step).toBe(2);
     expect(stateData.data.onboarding.draft.industry).toBe('saas');
   });
+
+  it('rejects login OTP requests for unregistered users without creating a tenant', async () => {
+    const { d1 } = createTestDatabase();
+    const env = createEnv(d1);
+    const app = createApp();
+
+    const loginReq = await app.request(
+      '/api/auth/otp/request',
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: 'nobody@unregistered.example',
+          mode: 'login',
+        }),
+      },
+      env,
+    );
+    expect(loginReq.status).toBe(404);
+    const body = (await loginReq.json()) as { error: { code: string } };
+    expect(body.error.code).toBe('ACCOUNT_NOT_FOUND');
+
+    const userCount = await d1.prepare('SELECT COUNT(*) AS c FROM dashboard_users').first<{ c: number }>();
+    expect(userCount?.c ?? 0).toBe(0);
+  });
 });

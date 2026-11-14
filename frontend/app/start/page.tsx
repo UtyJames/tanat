@@ -16,7 +16,14 @@ import {
   verifyOtp,
 } from '@/lib/api';
 import { FormattedPreview } from '@/components/FormattedPreview';
-import { TanatMascotIcon } from '@/components/brand/PlatformLogos';
+import {
+  CursorLogo,
+  LovableLogo,
+  SlackLogo,
+  TanatMascotIcon,
+  TelegramLogo,
+  WebflowLogo,
+} from '@/components/brand/PlatformLogos';
 
 const INDUSTRIES = [
   { id: 'ecommerce', label: 'E-commerce & Retail' },
@@ -92,6 +99,27 @@ const ONBOARDING_TEMPLATES: OnboardingTemplate[] = [
 
 type ChannelChoice = 'website' | 'telegram' | 'slack' | 'api' | 'skip';
 
+const fieldLabelStyle: React.CSSProperties = {
+  display: 'block',
+  fontFamily: 'var(--tn-font-mono)',
+  fontSize: 11.5,
+  letterSpacing: '0.08em',
+  color: 'var(--tn-muted)',
+  marginBottom: 6,
+};
+
+const fieldInputStyle: React.CSSProperties = {
+  width: '100%',
+  height: 46,
+  padding: '0 14px',
+  borderRadius: 12,
+  border: '1px solid var(--tn-border-strong)',
+  background: 'var(--tn-bg)',
+  color: 'var(--tn-ink)',
+  fontSize: 15,
+  outline: 'none',
+};
+
 export default function StartOnboardingPage() {
   const router = useRouter();
   const [step, setStep] = useState<1 | 2 | 3>(1);
@@ -123,8 +151,19 @@ export default function StartOnboardingPage() {
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
-  // Restore resumable onboarding state on load
+  // Pre-fill email when redirected from /login & restore resumable onboarding state
   useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const prefillEmail = params.get('email')?.trim();
+      if (prefillEmail) {
+        setWorkEmail(prefillEmail);
+        setNotice(
+          `No account was found for ${prefillEmail}. Complete this 3-step setup to create your workspace.`,
+        );
+      }
+    }
+
     const key = getStoredKey();
     if (!key) return;
     setAuthed(true);
@@ -172,7 +211,8 @@ export default function StartOnboardingPage() {
     }
   }
 
-  async function handleStep1Continue() {
+  async function handleStep1Continue(event?: React.FormEvent) {
+    event?.preventDefault();
     setError(null);
     setNotice(null);
     if (businessName.trim().length < 2) {
@@ -188,11 +228,15 @@ export default function StartOnboardingPage() {
       setBusy(true);
       try {
         if (!otpSent) {
-          await requestOtp({ email: workEmail.trim(), tenant_name: businessName.trim() });
+          await requestOtp({
+            email: workEmail.trim(),
+            tenant_name: businessName.trim(),
+            mode: 'signup',
+          });
           setOtpSent(true);
-          setNotice(`Verification code sent to ${workEmail.trim()}.`);
+          setNotice(`We sent a six-digit verification code to ${workEmail.trim()}. It expires in 10 minutes.`);
         } else {
-          await verifyOtp(workEmail.trim(), otpCode.trim());
+          await verifyOtp(workEmail.trim(), otpCode.trim(), 'signup');
           setAuthed(true);
           await persistProgress(2);
           setStep(2);
@@ -301,288 +345,634 @@ export default function StartOnboardingPage() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg-page)', padding: '32px 20px' }}>
-      <div style={{ maxWidth: 860, margin: '0 auto' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-          <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none', color: 'inherit' }}>
-            <TanatMascotIcon size={28} />
-            <strong style={{ fontSize: 18 }}>Tanat</strong>
-          </Link>
-          <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
-            Step {step} of 3 · Resumable Setup
-          </span>
+    <div className="tn-site tn-split-layout">
+      {/* Left Hero-Matched Grainy Emerald Panel with Floating Logos */}
+      <aside
+        className="tn-near-grain"
+        style={{
+          padding: '36px 40px',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'space-between',
+          borderRight: '1px solid var(--tn-border)',
+          position: 'relative',
+        }}
+      >
+        <div className="tn-hero-wireframe" />
+        <span className="tn-pushpin tn-pushpin-left" aria-hidden="true" />
+        <span className="tn-pushpin tn-pushpin-right" aria-hidden="true" />
+        <div className="tn-pixel-corner" style={{ top: 18, left: 64 }} aria-hidden="true" />
+        <div className="tn-pixel-corner" style={{ bottom: 18, right: 64 }} aria-hidden="true" />
+
+        {/* Floating Animated Platform Logos */}
+        <div
+          className="tn-float-badge"
+          style={{ right: 44, top: 86, animation: 'tn-float-b 5.6s ease-in-out infinite' }}
+          aria-hidden="true"
+        >
+          <LovableLogo size={24} />
+        </div>
+        <div
+          className="tn-float-badge"
+          style={{ right: 112, top: 162, animation: 'tn-float-a 6.2s ease-in-out infinite' }}
+          aria-hidden="true"
+        >
+          <SlackLogo size={24} />
+        </div>
+        <div
+          className="tn-float-badge"
+          style={{ right: 48, bottom: 130, animation: 'tn-float-a 5.8s ease-in-out infinite' }}
+          aria-hidden="true"
+        >
+          <TelegramLogo size={24} />
+        </div>
+        <div
+          className="tn-float-badge"
+          style={{ right: 124, bottom: 72, animation: 'tn-float-b 6.5s ease-in-out infinite' }}
+          aria-hidden="true"
+        >
+          <WebflowLogo size={22} />
+        </div>
+        <div
+          className="tn-float-badge"
+          style={{ left: 42, bottom: 120, animation: 'tn-float-b 6.1s ease-in-out infinite' }}
+          aria-hidden="true"
+        >
+          <CursorLogo size={22} />
         </div>
 
-        {/* Progress Bar */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginBottom: 24 }}>
-          {[
-            { num: 1 as const, label: '1. Create workspace' },
-            { num: 2 as const, label: '2. Choose AI agent' },
-            { num: 3 as const, label: '3. Deploy & test' },
-          ].map((item) => (
-            <button
-              key={item.num}
-              type="button"
-              onClick={() => {
-                if (item.num <= step || authed) setStep(item.num);
-              }}
+        <Link
+          href="/"
+          className="tn-brand"
+          style={{ color: '#ffffff', position: 'relative', zIndex: 2 }}
+        >
+          <TanatMascotIcon size={36} />
+          <span>Tanat</span>
+        </Link>
+
+        <div style={{ maxWidth: 440, position: 'relative', zIndex: 2, margin: '48px 0' }}>
+          <span className="tn-eyebrow" style={{ color: '#00ec97' }}>
+            3-STEP WORKSPACE SETUP
+          </span>
+          <h2
+            className="tn-h2"
+            style={{ color: '#ffffff', marginTop: 12, fontSize: 'clamp(28px, 3vw, 38px)' }}
+          >
+            Launch your private AI workspace in minutes.
+          </h2>
+          <p style={{ marginTop: 14, color: 'rgba(255,255,255,0.82)', fontSize: 15 }}>
+            Each business receives an isolated tenant boundary, tenant-scoped
+            AES-256-GCM encryption, and human-in-the-loop approvals out of the
+            box.
+          </p>
+        </div>
+
+        <div
+          style={{
+            display: 'flex',
+            gap: 18,
+            flexWrap: 'wrap',
+            fontFamily: 'var(--tn-font-mono)',
+            fontSize: 11.5,
+            color: '#00ec97',
+            borderTop: '1px dashed rgba(255,255,255,0.2)',
+            paddingTop: 18,
+            position: 'relative',
+            zIndex: 2,
+          }}
+        >
+          <span>✓ Tenant-isolated data</span>
+          <span>✓ Resumable setup</span>
+          <span>✓ NEAR AI Cloud</span>
+        </div>
+      </aside>
+
+      {/* Right Architectural Form Panel */}
+      <main
+        style={{
+          display: 'grid',
+          placeItems: 'center',
+          padding: '40px 28px',
+          background: 'var(--tn-bg)',
+        }}
+      >
+        <div
+          style={{
+            width: '100%',
+            maxWidth: step === 2 ? 720 : 520,
+            background: '#ffffff',
+            borderRadius: 22,
+            border: '1px solid var(--tn-border)',
+            padding: 36,
+            boxShadow: '0 20px 50px -28px rgba(0,0,0,0.18)',
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
+            <span className="tn-eyebrow">STEP {step} OF 3 · RESUMABLE SETUP</span>
+            <span
               style={{
-                padding: '10px 14px',
-                borderRadius: 10,
-                border: step === item.num ? '2px solid var(--accent)' : '1px solid var(--border)',
-                background: step === item.num ? 'rgba(13,122,95,0.08)' : '#fff',
-                textAlign: 'left',
-                fontWeight: step === item.num ? 600 : 500,
-                cursor: 'pointer',
+                fontFamily: 'var(--tn-font-mono)',
+                fontSize: 11,
+                letterSpacing: '0.06em',
+                color: 'var(--tn-muted)',
               }}
             >
-              {item.label}
-            </button>
-          ))}
-        </div>
-
-        {error && (
-          <div style={{ padding: 12, borderRadius: 10, background: '#fef2f2', color: '#b91c1c', marginBottom: 16 }}>
-            {error}
+              {authed ? 'WORKSPACE VERIFIED' : 'NEW ACCOUNT'}
+            </span>
           </div>
-        )}
-        {notice && (
-          <div style={{ padding: 12, borderRadius: 10, background: '#ecfdf5', color: '#065f46', marginBottom: 16 }}>
-            {notice}
+
+          {/* Step Switcher Grid */}
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(3, 1fr)',
+              gap: 8,
+              marginTop: 16,
+              marginBottom: 20,
+            }}
+          >
+            {[
+              { num: 1 as const, label: '1. Workspace' },
+              { num: 2 as const, label: '2. AI Agent' },
+              { num: 3 as const, label: '3. Deploy' },
+            ].map((item) => {
+              const active = step === item.num;
+              const unlocked = item.num <= step || authed;
+              return (
+                <button
+                  key={item.num}
+                  type="button"
+                  disabled={!unlocked}
+                  onClick={() => {
+                    if (unlocked) setStep(item.num);
+                  }}
+                  style={{
+                    padding: '9px 10px',
+                    borderRadius: 10,
+                    border: active
+                      ? '1.5px solid var(--tn-emerald)'
+                      : '1px solid var(--tn-border-strong)',
+                    background: active ? 'rgba(0, 201, 128, 0.1)' : 'var(--tn-bg)',
+                    color: active ? 'var(--tn-ink)' : 'var(--tn-muted)',
+                    fontFamily: 'var(--tn-font-mono)',
+                    fontSize: 11.5,
+                    fontWeight: active ? 700 : 500,
+                    letterSpacing: '0.04em',
+                    cursor: unlocked ? 'pointer' : 'not-allowed',
+                    opacity: unlocked ? 1 : 0.6,
+                    textAlign: 'center',
+                  }}
+                >
+                  {item.label}
+                </button>
+              );
+            })}
           </div>
-        )}
 
-        {/* STEP 1: CREATE WORKSPACE */}
-        {step === 1 && (
-          <div style={{ background: '#fff', border: '1px solid var(--border)', borderRadius: 16, padding: 28 }}>
-            <h1 style={{ fontSize: 24, marginBottom: 6 }}>Create your workspace</h1>
-            <p style={{ color: 'var(--text-secondary)', marginBottom: 20 }}>
-              Launch your isolated AI workspace in under 3 minutes. Advanced knowledge, team, and privacy settings live in your dashboard.
-            </p>
+          <div style={{ borderTop: '1px dashed var(--tn-border-strong)', margin: '0 0 22px' }} />
 
-            <div style={{ display: 'grid', gap: 14 }}>
+          {/* STEP 1: CREATE WORKSPACE */}
+          {step === 1 && (
+            <form
+              onSubmit={(event) => void handleStep1Continue(event)}
+              style={{ display: 'flex', flexDirection: 'column', gap: 14 }}
+            >
               <div>
-                <label style={{ display: 'block', fontSize: 12, fontWeight: 600, marginBottom: 6 }}>BUSINESS NAME</label>
+                <h1 className="tn-h2" style={{ fontSize: 30 }}>
+                  Create your workspace
+                </h1>
+                <p className="tn-sec-desc" style={{ marginTop: 8, fontSize: 14.5 }}>
+                  Enter your business details and verify your work email to launch your
+                  isolated workspace.
+                </p>
+              </div>
+
+              <div>
+                <label htmlFor="start-business" style={fieldLabelStyle}>
+                  BUSINESS NAME
+                </label>
                 <input
-                  className="input"
-                  style={{ width: '100%' }}
+                  id="start-business"
+                  type="text"
                   placeholder="e.g. Acme Logistics"
                   value={businessName}
                   onChange={(e) => setBusinessName(e.target.value)}
+                  required
+                  style={fieldInputStyle}
                 />
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: 12, fontWeight: 600, marginBottom: 6 }}>INDUSTRY</label>
+                <label htmlFor="start-industry" style={fieldLabelStyle}>
+                  INDUSTRY
+                </label>
                 <select
-                  className="input"
-                  style={{ width: '100%' }}
+                  id="start-industry"
                   value={industry}
                   onChange={(e) => setIndustry(e.target.value)}
+                  style={fieldInputStyle}
                 >
                   {INDUSTRIES.map((ind) => (
-                    <option key={ind.id} value={ind.id}>{ind.label}</option>
+                    <option key={ind.id} value={ind.id}>
+                      {ind.label}
+                    </option>
                   ))}
                 </select>
               </div>
 
               {!authed && (
                 <div>
-                  <label style={{ display: 'block', fontSize: 12, fontWeight: 600, marginBottom: 6 }}>WORK EMAIL</label>
+                  <label htmlFor="start-email" style={fieldLabelStyle}>
+                    WORK EMAIL
+                  </label>
                   <input
+                    id="start-email"
                     type="email"
-                    className="input"
-                    style={{ width: '100%' }}
+                    autoComplete="email"
                     placeholder="you@company.com"
                     value={workEmail}
                     onChange={(e) => setWorkEmail(e.target.value)}
+                    required
+                    style={fieldInputStyle}
                   />
                 </div>
               )}
 
               {!authed && otpSent && (
                 <div>
-                  <label style={{ display: 'block', fontSize: 12, fontWeight: 600, marginBottom: 6 }}>6-DIGIT VERIFICATION CODE</label>
+                  <label htmlFor="start-otp" style={fieldLabelStyle}>
+                    SIX-DIGIT VERIFICATION CODE
+                  </label>
                   <input
-                    className="input"
-                    style={{ width: '100%' }}
+                    id="start-otp"
+                    type="text"
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
                     placeholder="123456"
                     value={otpCode}
                     onChange={(e) => setOtpCode(e.target.value)}
+                    required
+                    autoFocus
+                    style={{
+                      ...fieldInputStyle,
+                      fontSize: 18,
+                      letterSpacing: '0.2em',
+                      fontFamily: 'var(--tn-font-mono)',
+                    }}
                   />
                 </div>
               )}
-            </div>
 
-            <div style={{ marginTop: 22, display: 'flex', justifyContent: 'flex-end' }}>
-              <button className="btn-primary" onClick={() => void handleStep1Continue()} disabled={busy}>
-                {!authed ? (otpSent ? 'Verify & Continue' : 'Send Verification Code') : 'Continue to Agent Selection'}
+              <button
+                className="tn-btn tn-btn-white"
+                type="submit"
+                disabled={busy}
+                style={{ width: '100%', height: 46, marginTop: 4 }}
+              >
+                {busy
+                  ? 'Working…'
+                  : !authed
+                    ? otpSent
+                      ? 'Verify & continue →'
+                      : 'Send verification code →'
+                    : 'Continue to AI agent →'}
               </button>
+
+              {!authed && otpSent && (
+                <button
+                  type="button"
+                  className="tn-btn tn-btn-beige"
+                  onClick={() => {
+                    setOtpSent(false);
+                    setOtpCode('');
+                    setError(null);
+                    setNotice(null);
+                  }}
+                  style={{ width: '100%', height: 42 }}
+                >
+                  Use a different email
+                </button>
+              )}
+            </form>
+          )}
+
+          {/* STEP 2: CHOOSE AN AI AGENT */}
+          {step === 2 && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div>
+                <h1 className="tn-h2" style={{ fontSize: 30 }}>
+                  Choose your primary AI agent
+                </h1>
+                <p className="tn-sec-desc" style={{ marginTop: 8, fontSize: 14.5 }}>
+                  Every template starts with least-privilege permissions and
+                  human-in-the-loop safety. You can customize instructions later.
+                </p>
+              </div>
+
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+                  gap: 12,
+                }}
+              >
+                {ONBOARDING_TEMPLATES.map((tpl) => {
+                  const active = selectedTemplateId === tpl.id;
+                  return (
+                    <button
+                      key={tpl.id}
+                      type="button"
+                      onClick={() => setSelectedTemplateId(tpl.id)}
+                      style={{
+                        textAlign: 'left',
+                        padding: 16,
+                        borderRadius: 14,
+                        border: active
+                          ? '1.5px solid var(--tn-emerald)'
+                          : '1px solid var(--tn-border-strong)',
+                        background: active ? 'rgba(0, 201, 128, 0.08)' : 'var(--tn-bg)',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      <div
+                        style={{
+                          fontFamily: 'var(--tn-font-mono)',
+                          fontSize: 10.5,
+                          fontWeight: 700,
+                          letterSpacing: '0.08em',
+                          color: 'var(--tn-emerald)',
+                          textTransform: 'uppercase',
+                        }}
+                      >
+                        {tpl.role}
+                      </div>
+                      <div style={{ fontSize: 15.5, fontWeight: 700, margin: '4px 0', color: 'var(--tn-ink)' }}>
+                        {tpl.name}
+                      </div>
+                      <p style={{ fontSize: 12.5, color: 'var(--tn-muted)', marginBottom: 8, lineHeight: 1.45 }}>
+                        {tpl.description}
+                      </p>
+                      <ul style={{ fontSize: 12, paddingLeft: 16, margin: '0 0 8px', color: 'var(--tn-ink)' }}>
+                        {tpl.responsibilities.map((r) => (
+                          <li key={r}>{r}</li>
+                        ))}
+                      </ul>
+                      <div style={{ fontSize: 11, color: 'var(--tn-muted)', lineHeight: 1.4 }}>
+                        <strong>Guardrails:</strong> {tpl.restrictions}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div style={{ display: 'flex', gap: 10, justifyContent: 'space-between', marginTop: 4 }}>
+                <button
+                  type="button"
+                  className="tn-btn tn-btn-beige"
+                  onClick={() => setStep(1)}
+                  style={{ height: 44 }}
+                >
+                  ← Back
+                </button>
+                <button
+                  type="button"
+                  className="tn-btn tn-btn-white"
+                  onClick={() => void handleStep2Continue()}
+                  disabled={busy}
+                  style={{ height: 44, flex: 1 }}
+                >
+                  Continue to deploy & test →
+                </button>
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* STEP 2: CHOOSE AN AI AGENT */}
-        {step === 2 && (
-          <div style={{ background: '#fff', border: '1px solid var(--border)', borderRadius: 16, padding: 28 }}>
-            <h1 style={{ fontSize: 24, marginBottom: 6 }}>Choose your primary AI agent</h1>
-            <p style={{ color: 'var(--text-secondary)', marginBottom: 20 }}>
-              Every template starts with least-privilege permissions and human-in-the-loop safety. You can customize instructions later.
-            </p>
+          {/* STEP 3: DEPLOY & TEST */}
+          {step === 3 && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div>
+                <h1 className="tn-h2" style={{ fontSize: 30 }}>
+                  Deploy & test your agent
+                </h1>
+                <p className="tn-sec-desc" style={{ marginTop: 8, fontSize: 14.5 }}>
+                  Pick an initial channel (or skip for now), test your agent in the
+                  live sandbox, and publish when ready.
+                </p>
+              </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 14 }}>
-              {ONBOARDING_TEMPLATES.map((tpl) => {
-                const active = selectedTemplateId === tpl.id;
-                return (
-                  <button
-                    key={tpl.id}
-                    type="button"
-                    onClick={() => setSelectedTemplateId(tpl.id)}
-                    style={{
-                      textAlign: 'left',
-                      padding: 16,
-                      borderRadius: 12,
-                      border: active ? '2px solid var(--accent)' : '1px solid var(--border)',
-                      background: active ? 'rgba(13,122,95,0.06)' : '#fff',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--accent)', textTransform: 'uppercase' }}>{tpl.role}</div>
-                    <div style={{ fontSize: 16, fontWeight: 700, margin: '4px 0' }}>{tpl.name}</div>
-                    <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 8 }}>{tpl.description}</p>
-                    <ul style={{ fontSize: 12, paddingLeft: 16, margin: '0 0 8px' }}>
-                      {tpl.responsibilities.map((r) => (
-                        <li key={r}>{r}</li>
-                      ))}
-                    </ul>
-                    <div style={{ fontSize: 11, color: '#475569' }}>
-                      <strong>Default guardrails:</strong> {tpl.restrictions}
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-
-            <div style={{ marginTop: 22, display: 'flex', justifyContent: 'space-between' }}>
-              <button className="btn-secondary" onClick={() => setStep(1)}>Back</button>
-              <button className="btn-primary" onClick={() => void handleStep2Continue()} disabled={busy}>
-                Continue to Deploy & Test
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* STEP 3: DEPLOY & TEST */}
-        {step === 3 && (
-          <div style={{ display: 'grid', gap: 18 }}>
-            <div style={{ background: '#fff', border: '1px solid var(--border)', borderRadius: 16, padding: 28 }}>
-              <h1 style={{ fontSize: 24, marginBottom: 6 }}>Deploy & test your agent</h1>
-              <p style={{ color: 'var(--text-secondary)', marginBottom: 16 }}>
-                Select an initial channel (or skip for now), test your agent in the sandbox, and publish when ready.
-              </p>
-
-              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 14 }}>
-                {(
-                  [
-                    ['website', 'Website Widget'],
-                    ['telegram', 'Telegram'],
-                    ['slack', 'Slack'],
-                    ['api', 'Developer API / MCP'],
-                    ['skip', 'Skip integration for now'],
-                  ] as Array<[ChannelChoice, string]>
-                ).map(([id, label]) => (
-                  <button
-                    key={id}
-                    type="button"
-                    className={channel === id ? 'btn-primary' : 'btn-secondary'}
-                    onClick={() => setChannel(id)}
-                  >
-                    {label}
-                  </button>
-                ))}
+              <div>
+                <span style={fieldLabelStyle}>INITIAL CHANNEL</span>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                  {(
+                    [
+                      ['website', 'Website Widget'],
+                      ['telegram', 'Telegram'],
+                      ['slack', 'Slack'],
+                      ['api', 'Developer API / MCP'],
+                      ['skip', 'Skip for now'],
+                    ] as Array<[ChannelChoice, string]>
+                  ).map(([id, label]) => (
+                    <button
+                      key={id}
+                      type="button"
+                      className={`tn-btn ${channel === id ? 'tn-btn-white' : 'tn-btn-beige'}`}
+                      style={{ height: 38, padding: '0 14px', fontSize: 13 }}
+                      onClick={() => setChannel(id)}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               {channel === 'website' && (
-                <div style={{ marginBottom: 14 }}>
-                  <label style={{ display: 'block', fontSize: 12, fontWeight: 600, marginBottom: 6 }}>
-                    ALLOWED WEBSITE ORIGIN (REQUIRED IN PRODUCTION — NO WILDCARDS)
+                <div>
+                  <label htmlFor="start-origin" style={fieldLabelStyle}>
+                    ALLOWED WEBSITE ORIGIN (NO WILDCARDS)
                   </label>
                   <input
-                    className="input"
-                    style={{ width: '100%' }}
+                    id="start-origin"
+                    type="url"
                     placeholder="https://www.yourcompany.com"
                     value={websiteOrigin}
                     onChange={(e) => setWebsiteOrigin(e.target.value)}
+                    style={fieldInputStyle}
                   />
                 </div>
               )}
 
               <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-                <button className="btn-secondary" onClick={() => void handleProvisionAndPublish(false)} disabled={busy}>
-                  Save Draft & Test in Sandbox
+                <button
+                  type="button"
+                  className="tn-btn tn-btn-beige"
+                  onClick={() => void handleProvisionAndPublish(false)}
+                  disabled={busy}
+                  style={{ height: 44, flex: 1 }}
+                >
+                  Save Draft & Test
                 </button>
-                <button className="btn-primary" onClick={() => void handleProvisionAndPublish(true)} disabled={busy}>
-                  Publish Agent
+                <button
+                  type="button"
+                  className="tn-btn tn-btn-white"
+                  onClick={() => void handleProvisionAndPublish(true)}
+                  disabled={busy}
+                  style={{ height: 44, flex: 1 }}
+                >
+                  Publish Agent →
                 </button>
               </div>
-            </div>
 
-            {/* Sandbox */}
-            <div style={{ background: '#fff', border: '1px solid var(--border)', borderRadius: 16, padding: 24 }}>
-              <h3 style={{ marginBottom: 8 }}>Live Agent Sandbox</h3>
-              <div style={{ display: 'grid', gap: 10, maxHeight: 260, overflowY: 'auto', marginBottom: 12 }}>
-                {messages.map((m, idx) => (
-                  <div
-                    key={idx}
-                    style={{
-                      padding: 12,
-                      borderRadius: 10,
-                      background: m.role === 'user' ? '#f1f5f9' : 'rgba(13,122,95,0.08)',
-                    }}
-                  >
-                    <div style={{ fontSize: 11, fontWeight: 700, marginBottom: 4 }}>
-                      {m.role === 'user' ? 'You' : provisioned?.agentName ?? 'AI Agent'}
-                    </div>
-                    <FormattedPreview content={m.content} />
+              {/* Live Agent Sandbox */}
+              <div
+                style={{
+                  border: '1px solid var(--tn-border-strong)',
+                  borderRadius: 14,
+                  background: 'var(--tn-bg)',
+                  padding: 16,
+                }}
+              >
+                <span style={fieldLabelStyle}>LIVE AGENT SANDBOX</span>
+                {messages.length > 0 && (
+                  <div style={{ display: 'grid', gap: 8, maxHeight: 220, overflowY: 'auto', marginBottom: 12 }}>
+                    {messages.map((m, idx) => (
+                      <div
+                        key={idx}
+                        style={{
+                          padding: '10px 12px',
+                          borderRadius: 10,
+                          border: '1px solid var(--tn-border)',
+                          background: m.role === 'user' ? '#ffffff' : 'rgba(0, 201, 128, 0.08)',
+                          fontSize: 13.5,
+                        }}
+                      >
+                        <div
+                          style={{
+                            fontFamily: 'var(--tn-font-mono)',
+                            fontSize: 10.5,
+                            fontWeight: 700,
+                            marginBottom: 4,
+                            color: 'var(--tn-muted)',
+                          }}
+                        >
+                          {m.role === 'user' ? 'YOU' : (provisioned?.agentName ?? 'AI AGENT').toUpperCase()}
+                        </div>
+                        <FormattedPreview content={m.content} />
+                      </div>
+                    ))}
                   </div>
-                ))}
+                )}
+
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <input
+                    style={{ ...fieldInputStyle, background: '#ffffff', flex: 1, height: 42 }}
+                    value={chatInput}
+                    onChange={(e) => setChatInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') void handleSandboxSend();
+                    }}
+                  />
+                  <button
+                    type="button"
+                    className="tn-btn tn-btn-white"
+                    onClick={() => void handleSandboxSend()}
+                    disabled={busy}
+                    style={{ height: 42, padding: '0 18px' }}
+                  >
+                    Send
+                  </button>
+                </div>
               </div>
-              <div style={{ display: 'flex', gap: 8 }}>
-                <input
-                  className="input"
-                  style={{ flex: 1 }}
-                  value={chatInput}
-                  onChange={(e) => setChatInput(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') void handleSandboxSend();
+
+              {provisioned && (
+                <div
+                  style={{
+                    border: '1.5px solid var(--tn-emerald)',
+                    borderRadius: 14,
+                    background: '#ecfdf5',
+                    padding: 16,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 10,
                   }}
-                />
-                <button className="btn-primary" onClick={() => void handleSandboxSend()} disabled={busy}>
-                  Send
+                >
+                  <div style={{ fontWeight: 700, fontSize: 15, color: '#065f46' }}>
+                    ✓ {provisioned.agentName} is ready
+                  </div>
+                  <button
+                    type="button"
+                    className="tn-btn tn-btn-white"
+                    onClick={() => router.push('/app')}
+                    style={{ width: '100%', height: 44 }}
+                  >
+                    Open Workspace Dashboard →
+                  </button>
+                </div>
+              )}
+
+              <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
+                <button
+                  type="button"
+                  className="tn-btn tn-btn-beige"
+                  onClick={() => setStep(2)}
+                  style={{ height: 38, padding: '0 14px', fontSize: 13 }}
+                >
+                  ← Back to agent templates
                 </button>
               </div>
             </div>
+          )}
 
-            {provisioned && (
-              <div style={{ background: '#fff', border: '2px solid var(--accent)', borderRadius: 16, padding: 24 }}>
-                <h2 style={{ fontSize: 20, marginBottom: 6 }}>Your AI agent is ready</h2>
-                <p style={{ color: 'var(--text-secondary)', marginBottom: 14 }}>
-                  Next steps in your workspace dashboard:
-                </p>
-                <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 16 }}>
-                  <span className="ws-pill">Add business knowledge</span>
-                  <span className="ws-pill">Connect WhatsApp / Telegram / Slack</span>
-                  <span className="ws-pill">Add team members & RBAC</span>
-                  <span className="ws-pill">Review Privacy & Security Centre</span>
-                </div>
-                <button className="btn-primary" onClick={() => router.push('/app')}>
-                  Open Workspace Dashboard
-                </button>
-              </div>
-            )}
+          {notice && (
+            <div
+              style={{
+                marginTop: 16,
+                padding: '10px 14px',
+                borderRadius: 12,
+                background: '#ecfdf5',
+                border: '1px solid #00c980',
+                fontSize: 13,
+                color: '#065f46',
+              }}
+            >
+              {notice}
+            </div>
+          )}
+
+          {error && (
+            <div
+              style={{
+                marginTop: 16,
+                padding: '10px 14px',
+                borderRadius: 12,
+                background: '#fef2f2',
+                border: '1px solid #fca5a5',
+                fontSize: 13,
+                color: '#991b1b',
+              }}
+            >
+              {error}
+            </div>
+          )}
+
+          <div
+            style={{
+              borderTop: '1px dashed var(--tn-border-strong)',
+              marginTop: 24,
+              paddingTop: 18,
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              fontSize: 13,
+              color: 'var(--tn-muted)',
+            }}
+          >
+            <span>Already have a workspace?</span>
+            <Link href="/login" style={{ fontWeight: 600, color: 'var(--tn-emerald)' }}>
+              Sign in →
+            </Link>
           </div>
-        )}
-      </div>
+        </div>
+      </main>
     </div>
   );
 }

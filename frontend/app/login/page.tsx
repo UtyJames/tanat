@@ -29,10 +29,14 @@ export default function LoginPage() {
     setError(null);
     setNotice(null);
     try {
-      await requestOtp({ email: email.trim() });
+      await requestOtp({ email: email.trim(), mode: 'login' });
       setStep('code');
       setNotice(`We sent a six-digit verification code to ${email.trim()}. It expires in 10 minutes.`);
     } catch (err) {
+      if (err instanceof ApiError && (err.status === 404 || err.code === 'ACCOUNT_NOT_FOUND')) {
+        router.push(`/start?email=${encodeURIComponent(email.trim())}`);
+        return;
+      }
       setError(
         err instanceof ApiError
           ? err.message
@@ -48,9 +52,13 @@ export default function LoginPage() {
     setBusy(true);
     setError(null);
     try {
-      await verifyOtp(email.trim(), code.trim());
+      await verifyOtp(email.trim(), code.trim(), 'login');
       router.replace('/app');
     } catch (err) {
+      if (err instanceof ApiError && (err.status === 404 || err.code === 'ACCOUNT_NOT_FOUND')) {
+        router.push(`/start?email=${encodeURIComponent(email.trim())}`);
+        return;
+      }
       setError(err instanceof ApiError ? err.message : 'That code did not work.');
     } finally {
       setBusy(false);

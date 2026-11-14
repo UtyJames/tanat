@@ -111,6 +111,10 @@ function loadDatabase() {
     if (!cols.some((col) => col.name === 'metadata')) {
       database.exec(readFileSync('src/db/migrations/0008_knowledge_metadata.sql', 'utf8'));
     }
+    const memberCols = database.prepare('PRAGMA table_info(workspace_members)').all();
+    if (!memberCols.some((col) => col.name === 'workspace_role')) {
+      database.exec(readFileSync('src/db/migrations/0009_security_privacy_overhaul.sql', 'utf8'));
+    }
   }
 
   return database;
