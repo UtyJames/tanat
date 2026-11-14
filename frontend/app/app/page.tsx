@@ -3033,7 +3033,7 @@ Option B (Custom Chat UI): Call POST ${PUBLIC_BASE_URL}/api/public/v1/sessions w
                         scopes: {
                           bot: [
                             'chat:write',
-                            'app_mention',
+                            'app_mentions:read',
                             'im:history',
                             'im:read',
                             'im:write',
@@ -3262,8 +3262,36 @@ Option B (Custom Chat UI): Call POST ${PUBLIC_BASE_URL}/api/public/v1/sessions w
                                 rel="noreferrer"
                                 className="btn btn-sm"
                               >
-                                Open api.slack.com/apps ↗
+                                Open Slack Apps ↗
                               </a>
+                            </div>
+
+                            <div style={{ marginTop: 14, paddingTop: 12, borderTop: '1px dashed #d6d0c8' }}>
+                              <div style={{ fontSize: 11.5, fontWeight: 600, color: '#1e1e1e', marginBottom: 8 }}>
+                                Visual Guide (Slack API Portal)
+                              </div>
+                              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                                <div style={{ border: '1px solid #d6d0c8', borderRadius: 10, overflow: 'hidden', background: '#faf8f6' }}>
+                                  <img
+                                    src="/images/slack-step-1.png"
+                                    alt="Step 1: Click Create an App on api.slack.com/apps"
+                                    style={{ width: '100%', height: 110, objectFit: 'cover', display: 'block', borderBottom: '1px dashed #d6d0c8' }}
+                                  />
+                                  <div style={{ padding: '6px 8px', fontSize: 11, color: '#525252' }}>
+                                    1. Click <strong>Create an App</strong>
+                                  </div>
+                                </div>
+                                <div style={{ border: '1px solid #d6d0c8', borderRadius: 10, overflow: 'hidden', background: '#faf8f6' }}>
+                                  <img
+                                    src="/images/slack-step-2.png"
+                                    alt="Step 2: Choose Paste a manifest"
+                                    style={{ width: '100%', height: 110, objectFit: 'cover', display: 'block', borderBottom: '1px dashed #d6d0c8' }}
+                                  />
+                                  <div style={{ padding: '6px 8px', fontSize: 11, color: '#525252' }}>
+                                    2. Select <strong>Paste a manifest</strong>
+                                  </div>
+                                </div>
+                              </div>
                             </div>
 
                             <ol start={4} style={{ paddingLeft: 18, lineHeight: 1.75, fontSize: 12.5, color: 'var(--muted)' }}>

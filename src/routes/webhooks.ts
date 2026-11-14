@@ -61,9 +61,9 @@ export function createWebhooksRouter(
     expectedType: string,
   ): Promise<ChannelRow> {
     const row = await c.env.DB.prepare(
-      'SELECT * FROM agent_channels WHERE id = ? AND channel = ?',
+      'SELECT * FROM agent_channels WHERE (id = ? OR installation_id = ?) AND channel = ? ORDER BY updated_at DESC LIMIT 1',
     )
-      .bind(channelId, expectedType)
+      .bind(channelId, channelId, expectedType)
       .first<ChannelRow>();
 
     if (!row) {
@@ -298,14 +298,6 @@ export function createWebhooksRouter(
   // ══════════════════════════════════════════════════════════════════════
 
   router.post('/slack/:channelId', async (c) => {
-    const channelId = c.req.param('channelId');
-    const channel = await loadChannel(c, channelId, 'slack');
-
-    const config = parseJsonConfig<{
-      bot_token?: string;
-      signing_secret?: string;
-    }>(channel.config);
-
     const rawBody = await c.req.text();
     let body: any;
     try {
@@ -314,10 +306,18 @@ export function createWebhooksRouter(
       return c.json({ error: 'Invalid JSON' }, 400);
     }
 
-    // 1. URL Verification Challenge
+    // 1. URL Verification Challenge (must run before channel lookup so manifest creation works)
     if (body?.type === 'url_verification') {
       return c.json({ challenge: body.challenge });
     }
+
+    const channelId = c.req.param('channelId');
+    const channel = await loadChannel(c, channelId, 'slack');
+
+    const config = parseJsonConfig<{
+      bot_token?: string;
+      signing_secret?: string;
+    }>(channel.config);
 
     // 2. Signature verification
     if (config.signing_secret) {
