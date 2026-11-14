@@ -17,9 +17,11 @@ import { Hono } from 'hono';
 import { z } from 'zod';
 import type { HonoEnv } from '../types';
 import { validateBody, getValidatedBody } from '../middleware/validation';
+import { requireAnyScope, requireScopeForMethod } from '../middleware/scopes';
 import { generateId, hashApiKey } from '../utils/crypto';
 import { logAudit } from '../utils/audit';
 import { NotFoundError, ValidationError } from '../utils/errors';
+import { encryptField, decryptField } from '../services/encryption.service';
 import {
   AGENT_TEMPLATES,
   SUPPORTED_INDUSTRIES,
@@ -27,6 +29,15 @@ import {
 } from '../services/agent-templates';
 
 export const platformRouter = new Hono<HonoEnv>();
+
+platformRouter.use('*', requireScopeForMethod('read', 'write'));
+platformRouter.use('/members', async (c, next) => {
+  if (c.req.method.toUpperCase() !== 'GET') {
+    return requireAnyScope(['members:manage', 'admin'])(c, next);
+  }
+  await next();
+});
+platformRouter.use('/members/*', requireAnyScope(['members:manage', 'admin']));
 
 function parseJson<T = Record<string, unknown>>(
   raw: string | null | undefined,
@@ -131,7 +142,21 @@ platformRouter.get('/knowledge', async (c) => {
     : c.env.DB.prepare(query).bind(tenantId);
 
   const { results } = await stmt.all<Record<string, unknown>>();
-  const normalized = (results ?? []).map(normalizeKnowledgeRow);
+  const decrypted = await Promise.all(
+    (results ?? []).map(async (row) => {
+      if (typeof row.content === 'string' && row.content.length > 0 && typeof row.id === 'string') {
+        const plain = await decryptField(
+          c.env,
+          c.env.DB,
+          { tenantId, table: 'knowledge_sources', recordId: row.id, field: 'content' },
+          row.content,
+        );
+        return { ...row, content: plain };
+      }
+      return row;
+    }),
+  );
+  const normalized = decrypted.map(normalizeKnowledgeRow);
   return c.json({ data: normalized });
 });
 
@@ -192,6 +217,15 @@ platformRouter.post('/knowledge', validateBody(createKnowledgeSchema), async (c)
   // URL-only sources without pasted text are marked pending crawl.
   const status = hasContent ? 'ready' : 'pending';
 
+  const storedContent = content
+    ? await encryptField(
+        c.env,
+        c.env.DB,
+        { tenantId, table: 'knowledge_sources', recordId: id, field: 'content' },
+        content,
+      )
+    : null;
+
   await c.env.DB.prepare(
     `INSERT INTO knowledge_sources
        (id, tenant_id, agent_id, kind, label, uri, content, metadata, status, created_at, updated_at)
@@ -204,7 +238,7 @@ platformRouter.post('/knowledge', validateBody(createKnowledgeSchema), async (c)
       dbKind,
       label,
       uri,
-      content,
+      storedContent,
       JSON.stringify(metaObj),
       status,
     )
@@ -215,6 +249,9 @@ platformRouter.post('/knowledge', validateBody(createKnowledgeSchema), async (c)
   )
     .bind(id, tenantId)
     .first<Record<string, unknown>>();
+  if (created && content) {
+    created.content = content;
+  }
 
   await logAudit(c.env.DB, {
     tenantId,
@@ -281,14 +318,35 @@ platformRouter.get('/memories', async (c) => {
   }
   sql += ' ORDER BY created_at DESC LIMIT 100';
 
-  const { results } = await c.env.DB.prepare(sql).bind(...params).all();
-  return c.json({ data: results ?? [] });
+  const { results } = await c.env.DB.prepare(sql).bind(...params).all<Record<string, unknown>>();
+  const decrypted = await Promise.all(
+    (results ?? []).map(async (row) => {
+      if (typeof row.fact === 'string' && typeof row.id === 'string') {
+        const plain = await decryptField(
+          c.env,
+          c.env.DB,
+          { tenantId, table: 'customer_memories', recordId: row.id, field: 'fact' },
+          row.fact,
+        );
+        return { ...row, fact: plain };
+      }
+      return row;
+    }),
+  );
+  return c.json({ data: decrypted });
 });
 
 platformRouter.post('/memories', validateBody(createMemorySchema), async (c) => {
   const tenantId = c.get('tenantId');
   const body = getValidatedBody<z.infer<typeof createMemorySchema>>(c);
   const id = generateId('mem');
+
+  const storedFact = await encryptField(
+    c.env,
+    c.env.DB,
+    { tenantId, table: 'customer_memories', recordId: id, field: 'fact' },
+    body.fact,
+  );
 
   await c.env.DB.prepare(
     `INSERT INTO customer_memories
@@ -301,7 +359,7 @@ platformRouter.post('/memories', validateBody(createMemorySchema), async (c) => 
       body.external_user_id ?? null,
       body.agent_id ?? null,
       body.memory_type,
-      body.fact,
+      storedFact,
     )
     .run();
 
@@ -309,7 +367,8 @@ platformRouter.post('/memories', validateBody(createMemorySchema), async (c) => 
     'SELECT * FROM customer_memories WHERE id = ? AND tenant_id = ?',
   )
     .bind(id, tenantId)
-    .first();
+    .first<Record<string, unknown>>();
+  if (row) row.fact = body.fact;
 
   return c.json({ data: row }, 201);
 });

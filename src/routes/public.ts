@@ -25,6 +25,7 @@ import {
   retrieveMemoryContext,
   extractAndStoreMemories,
 } from '../services/knowledge.service';
+import { encryptField, decryptField } from '../services/encryption.service';
 import { NearAiService, NEAR_AI_DEFAULT_MODEL, type ChatMessage } from '../services/near-ai.service';
 
 export type NearAiFactory = (env: Env) => NearAiService;
@@ -390,11 +391,17 @@ export function createPublicRouter(
 
       const startMs = Date.now();
       const userMessageId = generateId('msg');
+      const encryptedVisitorMsg = await encryptField(
+        c.env,
+        c.env.DB,
+        { tenantId: key.tenant_id, table: 'messages', recordId: userMessageId, field: 'content' },
+        body.content,
+      );
       await c.env.DB.prepare(
         `INSERT INTO messages (id, session_id, tenant_id, role, content)
          VALUES (?, ?, ?, 'user', ?)`,
       )
-        .bind(userMessageId, sessionId, key.tenant_id, body.content)
+        .bind(userMessageId, sessionId, key.tenant_id, encryptedVisitorMsg)
         .run();
 
       const tenantSettings = parseJson(installation.tenant_settings);
@@ -402,12 +409,15 @@ export function createPublicRouter(
         c.env.DB,
         key.tenant_id,
         installation.agent_id,
+        12_000,
+        c.env,
       );
       const memory = await retrieveMemoryContext(
         c.env.DB,
         key.tenant_id,
         session.user_id,
         installation.agent_id,
+        c.env,
       );
 
       await extractAndStoreMemories(c.env.DB, {
@@ -417,15 +427,35 @@ export function createPublicRouter(
         agentId: installation.agent_id,
         sessionId,
         userMessage: body.content,
+        env: c.env,
       });
 
       const history = await c.env.DB.prepare(
-        `SELECT role, content FROM messages
+        `SELECT id, role, content FROM messages
           WHERE session_id = ? AND tenant_id = ?
           ORDER BY created_at DESC LIMIT 16`,
       )
         .bind(sessionId, key.tenant_id)
-        .all<{ role: string; content: string }>();
+        .all<{ id: string; role: string; content: string }>();
+
+      const decryptedHistory = await Promise.all(
+        (history.results ?? [])
+          .reverse()
+          .filter(
+            (row) =>
+              (row.role === 'user' || row.role === 'assistant') &&
+              typeof row.content === 'string',
+          )
+          .map(async (row) => ({
+            role: row.role as 'user' | 'assistant',
+            content: await decryptField(
+              c.env,
+              c.env.DB,
+              { tenantId: key.tenant_id, table: 'messages', recordId: row.id, field: 'content' },
+              row.content,
+            ),
+          })),
+      );
 
       const systemPrompt = [
         `You are ${installation.agent_name}, an AI agent for ${installation.tenant_name}, talking to a website visitor.`,
@@ -439,17 +469,7 @@ export function createPublicRouter(
 
       const messages: ChatMessage[] = [
         { role: 'system', content: systemPrompt },
-        ...(history.results ?? [])
-          .reverse()
-          .filter(
-            (row) =>
-              (row.role === 'user' || row.role === 'assistant') &&
-              typeof row.content === 'string',
-          )
-          .map((row) => ({
-            role: row.role as 'user' | 'assistant',
-            content: row.content,
-          })),
+        ...decryptedHistory,
       ];
 
       let content: string;
@@ -484,11 +504,17 @@ export function createPublicRouter(
       }
 
       const assistantMessageId = generateId('msg');
+      const encryptedAssistantMsg = await encryptField(
+        c.env,
+        c.env.DB,
+        { tenantId: key.tenant_id, table: 'messages', recordId: assistantMessageId, field: 'content' },
+        content,
+      );
       await c.env.DB.prepare(
         `INSERT INTO messages (id, session_id, tenant_id, role, content)
          VALUES (?, ?, ?, 'assistant', ?)`,
       )
-        .bind(assistantMessageId, sessionId, key.tenant_id, content)
+        .bind(assistantMessageId, sessionId, key.tenant_id, encryptedAssistantMsg)
         .run();
 
       await markWebsiteConnected(c, key);

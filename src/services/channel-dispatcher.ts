@@ -275,9 +275,9 @@ export async function dispatchChannelMessage(
         .prepare(
           `UPDATE agent_channels
               SET status = 'connected', last_seen_at = datetime('now'), updated_at = datetime('now')
-            WHERE id = ?`,
+            WHERE id = ? AND tenant_id = ?`,
         )
-        .bind(channelId)
+        .bind(channelId, tenantId)
         .run();
     } catch {
       // Non-blocking

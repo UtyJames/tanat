@@ -31,6 +31,7 @@ import {
   retrieveMemoryContext,
   extractAndStoreMemories,
 } from '../services/knowledge.service';
+import { encryptField, decryptField } from '../services/encryption.service';
 import { isValidNearAccount } from '../services/near.service';
 import {
   NearAiService,
@@ -434,13 +435,28 @@ export function createSessionsRouter(
 
     if (!session) throw new NotFoundError('Session');
 
-    const { results: messages } = await c.env.DB.prepare(
+    const { results: rawMessages } = await c.env.DB.prepare(
       'SELECT * FROM messages WHERE session_id = ? AND tenant_id = ? ORDER BY created_at ASC',
     )
       .bind(sessionId, tenantId)
-      .all();
+      .all<Record<string, unknown>>();
 
-    return c.json({ data: { ...session, messages: messages ?? [] } });
+    const messages = await Promise.all(
+      (rawMessages ?? []).map(async (m) => {
+        if (typeof m.id === 'string' && typeof m.content === 'string') {
+          const content = await decryptField(
+            c.env,
+            c.env.DB,
+            { tenantId, table: 'messages', recordId: m.id, field: 'content' },
+            m.content,
+          );
+          return { ...m, content };
+        }
+        return m;
+      }),
+    );
+
+    return c.json({ data: { ...session, messages } });
   });
 
   // ── POST / — create session ──────────────────────────────────────────
@@ -471,8 +487,10 @@ export function createSessionsRouter(
       )
       .run();
 
-    const session = await c.env.DB.prepare('SELECT * FROM sessions WHERE id = ?')
-      .bind(id)
+    const session = await c.env.DB.prepare(
+      'SELECT * FROM sessions WHERE id = ? AND tenant_id = ?',
+    )
+      .bind(id, tenantId)
       .first();
 
     await recordUsage(c.env.DB, tenantId, 'api_call', 1, { endpoint: 'session.create' });
@@ -577,13 +595,19 @@ export function createSessionsRouter(
       throw new ForbiddenError('This agent model is not allowed for the tenant');
     }
 
-    // Save user message
+    // Save user message (encrypted at application layer)
     const userMsgId = generateId('msg');
+    const encryptedUserContent = await encryptField(
+      c.env,
+      c.env.DB,
+      { tenantId, table: 'messages', recordId: userMsgId, field: 'content' },
+      body.content,
+    );
     await c.env.DB.prepare(
       `INSERT INTO messages (id, session_id, tenant_id, role, content, created_at)
        VALUES (?, ?, ?, 'user', ?, datetime('now'))`,
     )
-      .bind(userMsgId, sessionId, tenantId, body.content)
+      .bind(userMsgId, sessionId, tenantId, encryptedUserContent)
       .run();
 
     await recordUsage(c.env.DB, tenantId, 'api_call', 1, { endpoint: 'session.message' });
@@ -603,12 +627,13 @@ export function createSessionsRouter(
     const requireTee = tenantSettings.allowNonTee !== true;
     const startMs = Date.now();
 
-    const knowledge = await readyKnowledge(c.env.DB, tenantId, session.agent_id);
+    const knowledge = await readyKnowledge(c.env.DB, tenantId, session.agent_id, 12_000, c.env);
     const memory = await retrieveMemoryContext(
       c.env.DB,
       tenantId,
       (session as unknown as { user_id?: string | null }).user_id ?? null,
       session.agent_id,
+      c.env,
     );
 
     await extractAndStoreMemories(c.env.DB, {
@@ -618,17 +643,37 @@ export function createSessionsRouter(
       agentId: session.agent_id,
       sessionId,
       userMessage: body.content,
+      env: c.env,
     });
 
     if (ai.configured) {
       try {
         const history = await c.env.DB.prepare(
-          `SELECT role, content FROM messages
+          `SELECT id, role, content FROM messages
             WHERE session_id = ? AND tenant_id = ?
             ORDER BY created_at DESC LIMIT 20`,
         )
           .bind(sessionId, tenantId)
-          .all<{ role: string; content: string }>();
+          .all<{ id: string; role: string; content: string }>();
+
+        const decryptedHistory = await Promise.all(
+          (history.results ?? [])
+            .reverse()
+            .filter(
+              (row) =>
+                (row.role === 'user' || row.role === 'assistant') &&
+                typeof row.content === 'string',
+            )
+            .map(async (row) => ({
+              role: row.role as 'user' | 'assistant',
+              content: await decryptField(
+                c.env,
+                c.env.DB,
+                { tenantId, table: 'messages', recordId: row.id, field: 'content' },
+                row.content,
+              ),
+            })),
+        );
 
         const messages: ChatMessage[] = [
           {
@@ -642,17 +687,7 @@ export function createSessionsRouter(
               memoryContext: memory.context,
             }),
           },
-          ...(history.results ?? [])
-            .reverse()
-            .filter(
-              (row) =>
-                (row.role === 'user' || row.role === 'assistant') &&
-                typeof row.content === 'string',
-            )
-            .map((row) => ({
-              role: row.role as 'user' | 'assistant',
-              content: row.content,
-            })),
+          ...decryptedHistory,
         ];
 
         const result = await ai.chat({
@@ -802,8 +837,14 @@ export function createSessionsRouter(
       }
     }
 
-    // Save assistant message
+    // Save assistant message (encrypted at application layer)
     const assistantMsgId = generateId('msg');
+    const encryptedAssistantContent = await encryptField(
+      c.env,
+      c.env.DB,
+      { tenantId, table: 'messages', recordId: assistantMsgId, field: 'content' },
+      assistantContent,
+    );
     await c.env.DB.prepare(
       `INSERT INTO messages (id, session_id, tenant_id, role, content, tool_calls, created_at)
        VALUES (?, ?, ?, 'assistant', ?, ?, datetime('now'))`,
@@ -812,7 +853,7 @@ export function createSessionsRouter(
         assistantMsgId,
         sessionId,
         tenantId,
-        assistantContent,
+        encryptedAssistantContent,
         proposedAction ? JSON.stringify(proposedAction) : null,
       )
       .run();

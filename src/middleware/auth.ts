@@ -10,6 +10,7 @@ import type { HonoEnv } from '../types';
 import { hashApiKey } from '../utils/crypto';
 import { AppError, ForbiddenError, UnauthorizedError } from '../utils/errors';
 import { logAudit, requestIp } from '../utils/audit';
+import { resolveMemberScopes } from './rbac';
 
 /** Client request ids are useful for tracing but are untrusted input. */
 function sanitizeRequestId(value: string | undefined): string {
@@ -99,10 +100,12 @@ export function authMiddleware(scope?: string): MiddlewareHandler<HonoEnv> {
     let tenantId = row?.tenant_id;
     let apiKeyId = row?.id;
     let scopes = parseScopes(row?.scopes ?? null);
+    let actorType: 'api_key' | 'dashboard_user' = 'api_key';
+    let workspaceRole: string | undefined;
 
     if (!row && apiKey.startsWith('tns_')) {
       const session = await c.env.DB.prepare(
-        `SELECT s.id, u.id AS user_id, u.tenant_id
+        `SELECT s.id, u.id AS user_id, u.email AS user_email, u.tenant_id
          FROM dashboard_sessions s
          JOIN dashboard_users u ON u.id = s.user_id
          JOIN tenants t ON t.id = u.tenant_id
@@ -110,12 +113,32 @@ export function authMiddleware(scope?: string): MiddlewareHandler<HonoEnv> {
            AND s.expires_at > datetime('now') AND t.status = 'active'`,
       )
         .bind(keyHash)
-        .first<{ id: string; user_id: string; tenant_id: string }>();
+        .first<{ id: string; user_id: string; user_email: string; tenant_id: string }>();
 
       if (session) {
+        const member = await c.env.DB.prepare(
+          `SELECT role, workspace_role, permissions, status
+           FROM workspace_members
+           WHERE tenant_id = ? AND (user_id = ? OR lower(email) = lower(?))
+           LIMIT 1`,
+        )
+          .bind(session.tenant_id, session.user_id, session.user_email)
+          .first<{
+            role: string;
+            workspace_role?: string | null;
+            permissions?: string | null;
+            status: string;
+          }>();
+
+        if (member && member.status === 'suspended') {
+          throw new ForbiddenError('Your workspace membership is suspended');
+        }
+
         tenantId = session.tenant_id;
         apiKeyId = session.user_id;
-        scopes = ['*'];
+        actorType = 'dashboard_user';
+        workspaceRole = member?.workspace_role ?? member?.role ?? 'owner';
+        scopes = resolveMemberScopes(workspaceRole, member?.permissions);
         try {
           c.executionCtx.waitUntil(
             c.env.DB.prepare(
@@ -171,6 +194,8 @@ export function authMiddleware(scope?: string): MiddlewareHandler<HonoEnv> {
     c.set('tenantId', tenantId);
     c.set('apiKeyId', apiKeyId);
     c.set('scopes', scopes);
+    c.set('actorType', actorType);
+    if (workspaceRole) c.set('workspaceRole', workspaceRole);
 
     if (row) {
       try {

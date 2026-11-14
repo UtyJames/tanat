@@ -5,6 +5,10 @@
  * persistent customer/business memories scoped strictly by `tenant_id`.
  */
 
+import type { Env } from '../types';
+import { decryptField, encryptField } from './encryption.service';
+import { minimizeKnowledgeContext, redactSecrets } from './ai-privacy.service';
+
 export interface KnowledgeSource {
   id: string;
   kind: string;
@@ -30,6 +34,8 @@ export async function readyKnowledge(
   tenantId: string,
   agentId: string | null,
   maxChars = 12_000,
+  env?: Env,
+  userQuery = '',
 ): Promise<{ sources: KnowledgeSource[]; context: string }> {
   const { results } = await db
     .prepare(
@@ -44,14 +50,33 @@ export async function readyKnowledge(
     .bind(tenantId, agentId)
     .all<KnowledgeSource>();
 
-  const sources = results ?? [];
+  const rawSources = results ?? [];
+  const sources: KnowledgeSource[] = await Promise.all(
+    rawSources.map(async (source) => {
+      if (env && source.content) {
+        const plain = await decryptField(
+          env,
+          db,
+          { tenantId, table: 'knowledge_sources', recordId: source.id, field: 'content' },
+          source.content,
+        );
+        return { ...source, content: plain };
+      }
+      return source;
+    }),
+  );
+  if (userQuery.trim()) {
+    const minimized = minimizeKnowledgeContext(sources, userQuery, 6, maxChars);
+    return { sources: minimized.selected, context: minimized.context };
+  }
+
   const blocks: string[] = [];
   let used = 0;
 
   for (const source of sources) {
-    const content = (source.content ?? '').trim();
+    const content = redactSecrets((source.content ?? '').trim());
     if (!content) continue;
-    const block = `[Source: ${source.label} (${source.kind})]\n${content}`;
+    const block = `<source label="${source.label.replace(/"/g, '')}" kind="${source.kind}">\n${content}\n</source>`;
     if (used + block.length > maxChars) break;
     blocks.push(block);
     used += block.length;
@@ -71,6 +96,7 @@ export async function retrieveMemoryContext(
   tenantId: string,
   externalUserId: string | null | undefined,
   agentId: string | null,
+  env?: Env,
 ): Promise<{ memories: CustomerMemory[]; context: string }> {
   try {
     const { results } = await db
@@ -89,7 +115,21 @@ export async function retrieveMemoryContext(
       .bind(tenantId, externalUserId ?? '__none__', agentId)
       .all<CustomerMemory>();
 
-    const memories = results ?? [];
+    const rawMemories = results ?? [];
+    const memories: CustomerMemory[] = await Promise.all(
+      rawMemories.map(async (mem) => {
+        if (env && mem.fact) {
+          const plain = await decryptField(
+            env,
+            db,
+            { tenantId, table: 'customer_memories', recordId: mem.id, field: 'fact' },
+            mem.fact,
+          );
+          return { ...mem, fact: plain };
+        }
+        return mem;
+      }),
+    );
     if (memories.length === 0) {
       return { memories: [], context: '' };
     }
@@ -120,6 +160,7 @@ export async function extractAndStoreMemories(
     agentId: string;
     sessionId: string;
     userMessage: string;
+    env?: Env;
   },
 ): Promise<void> {
   const text = input.userMessage.trim();
@@ -149,19 +190,28 @@ export async function extractAndStoreMemories(
 
   for (const item of facts) {
     try {
+      const memId = input.idGenerator('mem');
+      const storedFact = input.env
+        ? await encryptField(
+            input.env,
+            db,
+            { tenantId: input.tenantId, table: 'customer_memories', recordId: memId, field: 'fact' },
+            item.fact,
+          )
+        : item.fact;
       await db
         .prepare(
           `INSERT INTO customer_memories (id, tenant_id, external_user_id, agent_id, session_id, memory_type, fact)
            VALUES (?, ?, ?, ?, ?, ?, ?)`,
         )
         .bind(
-          input.idGenerator('mem'),
+          memId,
           input.tenantId,
           input.externalUserId ?? null,
           input.agentId,
           input.sessionId,
           item.type,
-          item.fact,
+          storedFact,
         )
         .run();
     } catch {

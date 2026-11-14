@@ -15,12 +15,15 @@ import { Hono } from 'hono';
 import { z } from 'zod';
 import type { Env, HonoEnv } from '../types';
 import { validateBody, getValidatedBody } from '../middleware/validation';
+import { requireScopeForMethod } from '../middleware/scopes';
 import { generateId, generatePublishableKey, hashApiKey } from '../utils/crypto';
 import { logAudit } from '../utils/audit';
 import { AppError, NotFoundError, ValidationError } from '../utils/errors';
 import { findTemplate, slugify } from '../services/agent-templates';
 
 export const onboardingRouter = new Hono<HonoEnv>();
+
+onboardingRouter.use('*', requireScopeForMethod('read', 'write'));
 
 const CHANNELS = ['website', 'whatsapp', 'telegram', 'slack', 'email', 'api'] as const;
 
@@ -498,9 +501,17 @@ onboardingRouter.post('/', validateBody(onboardingSchema), async (c) => {
     .first<{ id: string; key_prefix: string }>();
 
   if (body.channels.includes('website') && !keyRow) {
-    const origins = body.business.website
-      ? safeOrigins([normalizeOrigin(body.business.website)])
-      : ['*'];
+    const isProd = (c.env.ENVIRONMENT ?? '').toLowerCase() === 'production';
+    const fallbackOrigin = c.env.AUTH_APP_URL
+      ? normalizeOrigin(c.env.AUTH_APP_URL)
+      : 'https://www.tanat.space';
+    const rawCandidate = body.business.website ? normalizeOrigin(body.business.website) : '';
+    const origins =
+      rawCandidate && rawCandidate !== '*'
+        ? safeOrigins([rawCandidate])
+        : isProd
+          ? [fallbackOrigin === '*' ? 'https://www.tanat.space' : fallbackOrigin]
+          : ['*'];
     publishable = await issuePublishableKey(c.env, {
       tenantId,
       installationId,
@@ -603,7 +614,16 @@ onboardingRouter.post('/keys', validateBody(publishableKeySchema), async (c) => 
 
   if (!installation) throw new NotFoundError('Agent installation');
 
-  const resolvedOrigins = safeOrigins(body.origins ?? body.allowed_origins ?? ['*']);
+  const rawOrigins = body.origins ?? body.allowed_origins ?? [];
+  const resolvedOrigins = safeOrigins(rawOrigins);
+  if (resolvedOrigins.length === 0) {
+    throw new ValidationError('At least one explicit origin is required');
+  }
+  if ((c.env.ENVIRONMENT ?? '').toLowerCase() === 'production' && resolvedOrigins.includes('*')) {
+    throw new ValidationError(
+      'Wildcard (*) origins are not allowed for production publishable keys. Specify explicit https:// origins.',
+    );
+  }
   const created = await issuePublishableKey(c.env, {
     tenantId,
     installationId: installation.id,

@@ -39,6 +39,7 @@ import { authRouter } from './routes/auth';
 import { onboardingRouter } from './routes/onboarding';
 import { createPublicRouter } from './routes/public';
 import { platformRouter } from './routes/platform';
+import { privacyRouter } from './routes/privacy';
 import { createWebhooksRouter } from './routes/webhooks';
 
 export type IntentsFactory = (env: Env) => NearIntentsService;
@@ -196,6 +197,7 @@ api.route('/tenants', tenantsRouter);
 api.route('/agents', agentsRouter);
 api.route('/onboarding', onboardingRouter);
 api.route('/platform', platformRouter);
+api.route('/privacy', privacyRouter);
 api.route('/installations', installationsRouter);
 api.route('/sessions', createSessionsRouter(nearAiFactory));
 api.route('/actions', createActionsRouter(nearServiceFactory));

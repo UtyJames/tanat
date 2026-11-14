@@ -35,16 +35,23 @@ export interface Env {
   AUTH_APP_URL?: string;
   API_KEY_SALT?: string;
   CORS_ORIGINS?: string;
+  /** Master Key Encryption Key (KEK) for tenant DEK wrapping (32-byte base64/hex or secret) */
+  KMS_MASTER_KEY?: string;
+  KMS_KEY_ID?: string;
 }
 
 /** Variables set by middleware and available on the Hono context */
 export interface HonoVariables {
   /** Authenticated tenant ID (set by auth middleware) */
   tenantId: string;
-  /** Authenticated API key ID (set by auth middleware) */
+  /** Authenticated API key ID or dashboard user ID (set by auth middleware) */
   apiKeyId: string;
-  /** Scopes granted to the authenticated API key */
+  /** Scopes granted to the authenticated API key or dashboard member */
   scopes: string[];
+  /** Workspace role when authenticated via dashboard session */
+  workspaceRole?: string;
+  /** Actor type: api_key or dashboard_user */
+  actorType?: 'api_key' | 'dashboard_user';
   /** Request ID for tracing */
   requestId: string;
 }

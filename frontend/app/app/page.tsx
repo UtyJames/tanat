@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { extractTextFromFile } from '@/lib/file-extractor';
 import { FormattedPreview } from '@/components/FormattedPreview';
+import { PrivacyCentre } from '@/components/PrivacyCentre';
 import {
   ApiError,
   API_URL,
@@ -106,6 +107,7 @@ type Section =
   | 'activity'
   | 'analytics'
   | 'team'
+  | 'privacy'
   | 'developers'
   | 'settings';
 
@@ -1119,6 +1121,12 @@ Option B (Custom Chat UI): Call POST ${PUBLIC_BASE_URL}/api/public/v1/sessions w
                 onClick={() => setSection('team')}
               >
                 <span>Team & Members</span>
+              </button>
+              <button
+                className={`ws-nav-btn ${section === 'privacy' ? 'active' : ''}`}
+                onClick={() => setSection('privacy')}
+              >
+                <span>Privacy & Security</span>
               </button>
               <button
                 className={`ws-nav-btn ${section === 'developers' ? 'active' : ''}`}
@@ -3871,6 +3879,8 @@ Option B (Custom Chat UI): Call POST ${PUBLIC_BASE_URL}/api/public/v1/sessions w
           )}
 
           {/* ── 11. SETTINGS ─────────────────────────────────────────── */}
+          {section === 'privacy' && <PrivacyCentre />}
+
           {section === 'settings' && <Settings />}
         </main>
       </div>

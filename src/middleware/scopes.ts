@@ -15,6 +15,7 @@ import type { Context, MiddlewareHandler } from 'hono';
 import type { HonoEnv } from '../types';
 import { ForbiddenError } from '../utils/errors';
 import { logAudit, requestIp } from '../utils/audit';
+import { checkDeniedSpikeAndAlert } from '../services/security-monitor.service';
 
 const LEGACY_ACTION_SCOPE = 'actions';
 
@@ -42,6 +43,12 @@ async function assertScope(c: Context<HonoEnv>, required: string[]): Promise<voi
     details: { required_scopes: required, path: c.req.path },
     ipAddress: requestIp(c),
   });
+  await checkDeniedSpikeAndAlert(
+    c.env.DB,
+    c.get('tenantId') ?? 'unknown',
+    c.get('apiKeyId') ?? 'unknown',
+    'authz.denied',
+  );
 
   throw new ForbiddenError(
     `API key missing required scope: ${required.join(' or ')}`,

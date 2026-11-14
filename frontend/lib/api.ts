@@ -630,4 +630,108 @@ export function createVerifiedUserToken(input: {
   return request('POST', '/platform/verify-user-token', input);
 }
 
+// ── Privacy & Security Centre ─────────────────────────────────────────
+export interface PrivacyStatus {
+  data_protection: {
+    encryption_enabled: boolean;
+    algorithm: string;
+    envelope_format: string;
+    encrypted_fields: string[];
+    unencrypted_metadata: string[];
+    kms: {
+      provider: string;
+      key_id: string;
+      local_dev_mode: boolean;
+    };
+    active_key: {
+      id: string;
+      version: number;
+      kek_id: string;
+      algorithm: string;
+      status: string;
+      created_at: string;
+    } | null;
+    keys: Array<{
+      id: string;
+      version: number;
+      kek_id: string;
+      algorithm: string;
+      status: string;
+      created_at: string;
+      rotated_at?: string | null;
+      revoked_at?: string | null;
+    }>;
+    retention_days: number;
+    deletion_requested_at: string | null;
+    deletion_scheduled_for: string | null;
+    operator_trust_boundary: string;
+  };
+  access_control: {
+    current_role: string;
+    current_scopes: string[];
+    members_count: number;
+    active_sessions_count: number;
+    active_api_keys_count: number;
+    available_permissions: string[];
+  };
+  ai_privacy: {
+    provider: string;
+    defaultModel: string;
+    configured: boolean;
+    requireTee: boolean;
+    confidentialInferenceModelSupported: boolean;
+    perRequestQuoteVerification: boolean;
+    trustBoundarySummary: string;
+  };
+  security_events: {
+    open_alerts_count: number;
+  };
+}
+
+export function getPrivacyStatus(): Promise<PrivacyStatus> {
+  return request<PrivacyStatus>('GET', '/privacy/status');
+}
+
+export function rotateTenantEncryptionKey(): Promise<{ id: string; version: number; status: string }> {
+  return request('POST', '/privacy/keys/rotate');
+}
+
+export function updatePrivacySettings(input: {
+  retention_days?: number;
+  require_tee?: boolean;
+}): Promise<{ retention_days: number; require_tee: number }> {
+  return request('PATCH', '/privacy/settings', input);
+}
+
+export function listPrivacyAuditLogs(limit = 40): Promise<Array<Record<string, unknown>>> {
+  return request('GET', `/privacy/audit-logs?limit=${limit}`);
+}
+
+export function listSecurityAlerts(): Promise<Array<Record<string, unknown>>> {
+  return request('GET', '/privacy/alerts');
+}
+
+export function resolveSecurityAlert(id: string): Promise<{ id: string; status: string }> {
+  return request('POST', `/privacy/alerts/${id}/resolve`);
+}
+
+export function listDashboardSessions(): Promise<Array<Record<string, unknown>>> {
+  return request('GET', '/privacy/sessions');
+}
+
+export function revokePrivacySession(id: string): Promise<{ id: string; revoked: boolean }> {
+  return request('DELETE', `/privacy/sessions/${id}`);
+}
+
+export function exportWorkspaceData(): Promise<Record<string, unknown>> {
+  return request('POST', '/privacy/export');
+}
+
+export function requestWorkspaceDeletion(): Promise<{
+  deletion_requested_at: string;
+  deletion_scheduled_for: string;
+}> {
+  return request('POST', '/privacy/deletion-request');
+}
+
 export { API_URL, PUBLIC_BASE_URL };

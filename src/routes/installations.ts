@@ -149,9 +149,9 @@ installationsRouter.post('/', validateBody(createInstallationSchema), async (c) 
     .run();
 
   const installation = await c.env.DB.prepare(
-    'SELECT * FROM installations WHERE id = ?',
+    'SELECT * FROM installations WHERE id = ? AND tenant_id = ?',
   )
-    .bind(id)
+    .bind(id, tenantId)
     .first();
 
   await logAudit(c.env.DB, {
@@ -222,9 +222,9 @@ installationsRouter.patch('/:id', validateBody(updateInstallationSchema), async 
   }
 
   const updated = await c.env.DB.prepare(
-    'SELECT * FROM installations WHERE id = ?',
+    'SELECT * FROM installations WHERE id = ? AND tenant_id = ?',
   )
-    .bind(installId)
+    .bind(installId, tenantId)
     .first();
 
   return c.json({ data: updated });
