@@ -199,7 +199,7 @@ describe('Telegram Bot Webhook', () => {
     );
 
     expect(res.status).toBe(200);
-    const body = await res.json();
+    const body = (await res.json()) as Record<string, any>;
     expect(body.ok).toBe(true);
 
     // Verify Telegram sendMessage was invoked
@@ -239,7 +239,7 @@ describe('Telegram Bot Webhook', () => {
     );
 
     expect(res.status).toBe(200);
-    const body = await res.json();
+    const body = (await res.json()) as Record<string, any>;
     expect(body.ignored).toBe(true);
     expect(mockFetch).not.toHaveBeenCalled();
   });
@@ -333,7 +333,7 @@ describe('WhatsApp Business Cloud API Webhook', () => {
     );
 
     expect(res.status).toBe(200);
-    const body = await res.json();
+    const body = (await res.json()) as Record<string, any>;
     expect(body.status).toBe('received');
 
     // Verify Meta Cloud API call
@@ -371,7 +371,7 @@ describe('Slack Events API Webhook', () => {
     );
 
     expect(res.status).toBe(200);
-    const body = await res.json();
+    const body = (await res.json()) as Record<string, any>;
     expect(body.challenge).toBe(challenge);
   });
 
@@ -433,7 +433,7 @@ describe('Slack Events API Webhook', () => {
     );
 
     expect(res.status).toBe(200);
-    const body = await res.json();
+    const body = (await res.json()) as Record<string, any>;
     expect(body.ok).toBe(true);
 
     expect(mockFetch).toHaveBeenCalledWith(
@@ -482,7 +482,7 @@ describe('Slack Events API Webhook', () => {
     );
 
     expect(res.status).toBe(200);
-    const body = await res.json();
+    const body = (await res.json()) as Record<string, any>;
     expect(body.ignored).toBe(true);
     expect(mockFetch).not.toHaveBeenCalled();
   });
@@ -507,7 +507,7 @@ describe('Channel Configuration & Management API', () => {
     );
 
     expect(res.status).toBe(200);
-    const body = await res.json();
+    const body = (await res.json()) as Record<string, any>;
     expect(body.data.status).toBe('connected');
     expect(body.data.config.bot_token).toBe('new-valid-token:123');
   });
@@ -523,7 +523,7 @@ describe('Channel Configuration & Management API', () => {
     );
 
     expect(res.status).toBe(200);
-    const body = await res.json();
+    const body = (await res.json()) as Record<string, any>;
     expect(Array.isArray(body.data)).toBe(true);
     expect(body.data.length).toBeGreaterThanOrEqual(3);
   });
@@ -545,7 +545,7 @@ describe('Channel Configuration & Management API', () => {
     );
 
     expect(res.status).toBe(200);
-    const body = await res.json();
+    const body = (await res.json()) as Record<string, any>;
     expect(body.data.connected).toBe(true);
     expect(body.data.webhook_url).toContain(`/api/webhooks/telegram/${telegramChannelId}`);
 

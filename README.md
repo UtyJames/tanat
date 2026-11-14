@@ -1,309 +1,227 @@
 # Tanat
 
-**Ship production AI agents inside your SaaS. Multi-tenant, approval-gated, and money-native on NEAR.**
+**Confidential, multi-tenant AI agents for real businesses — hardware-attested on NEAR AI Cloud, envelope-encrypted per tenant, and approval-gated on NEAR.**
 
 [![Built on NEAR](https://img.shields.io/badge/Built%20on-NEAR-00ec97?style=flat-square)](https://near.org)
-[![Cloudflare Workers](https://img.shields.io/badge/Deployed-Cloudflare%20Workers-F6821F?style=flat-square)](https://workers.cloudflare.com)
+[![NEAR AI Cloud TEE](https://img.shields.io/badge/Confidential%20AI-Intel%20TDX%20%2B%20H100%20TEE-0d7a5f?style=flat-square)](https://cloud-api.near.ai)
+[![Cloudflare Workers](https://img.shields.io/badge/Edge%20API-Cloudflare%20Workers-F6821F?style=flat-square)](https://workers.cloudflare.com)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue?style=flat-square)](LICENSE)
 
-## 🎯 What is Tanat?
+> **Live Production Deployment**
+> - **Web App & Privacy Centre:** [https://www.tanat.space](https://www.tanat.space)
+> - **API Gateway:** [https://api.tanat.space/health](https://api.tanat.space/health)
 
-Tanat is an **embedded multi-tenant AI agent platform** for SaaS products. It lets any SaaS ship production-ready AI agents to every customer — without building the agent backend, isolation, approvals, or payment layer themselves.
+---
 
-### The Problem
+## Hackathon Alignment (NEAR Hackathon 2026)
 
-Every SaaS wants to add AI agents. But building them properly requires:
-- Multi-tenant data isolation
-- Approval workflows for risky actions
-- Spending limits and metering
-- A way for agents to safely handle money
+Tanat is built for **NEAR Hackathon 2026**, targeting:
+1. **Privacy & Private AI** — Verifiable NEAR AI Cloud TEE inference (`GET /v1/attestation/report` with fresh nonce + `GET /v1/signature/{chat_id}` ECDSA `secp256k1` verification), per-tenant `AES-256-GCM` envelope encryption, context minimization, secret redaction, and a Conclave-parity `tee/` Phala `dstack` / Intel TDX enclave bundle.
+2. **AI Security & Defense** — Strict backend multi-tenant isolation (composite foreign keys & SQLite triggers), non-wildcard RBAC (`owner`, `admin`, `operator`, `member`, `auditor`), fail-closed KMS/TEE enforcement, prompt-injection boundary markers, and security alert monitoring.
+3. **Agent Economy & Unstoppable DeFi** — Human-in-the-loop approval gates (proposer cannot self-approve), per-tenant NEAR spending limits, idempotent execution, and NEAR Intents (`1Click` dry-run checkout/payout quotes).
 
-### The Solution
+---
 
-Tanat provides **one API / control plane** that handles:
-- **Tenants, Users, Installations** — full multi-tenant architecture
-- **Versioned Agents** — define and deploy AI agents per customer
-- **Approval System** — risky actions require explicit human approval before execution
-- **NEAR Money Movement** — every agent can safely hold and spend money via NEAR (Intents + scoped wallets)
-- **Perfect Isolation** — Tenant A cannot see or spend Tenant B's data or money
-- **Usage Metering** — track API calls, tokens, and transactions per tenant
+## Architecture
 
-## 🏗️ Architecture
-
-```
-┌─────────────────────────────────────────────────────┐
-│                    SaaS Product                      │
-│              (Your app, your users)                  │
-└────────────────────┬────────────────────────────────┘
-                     │ API Key + Tenant Context
-                     ▼
-┌─────────────────────────────────────────────────────┐
-│                  Tanat API (Hono)                     │
-│           Cloudflare Workers (Edge)                  │
-├─────────────────────────────────────────────────────┤
-│  Security Layer                                      │
-│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌────────┐ │
-│  │ API Auth │ │ Tenant   │ │ Rate     │ │ Audit  │ │
-│  │ (SHA-256)│ │ Isolation│ │ Limiting │ │ Logger │ │
-│  └──────────┘ └──────────┘ └──────────┘ └────────┘ │
-├─────────────────────────────────────────────────────┤
-│  Core Services                                       │
-│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌────────┐ │
-│  │ Agents   │ │ Sessions │ │ Actions  │ │ NEAR   │ │
-│  │ Service  │ │ & Chat   │ │ Approval │ │ Intents│ │
-│  └──────────┘ └──────────┘ └──────────┘ └────────┘ │
-├─────────────────────────────────────────────────────┤
-│  D1 Database (SQLite at Edge)                        │
-│  Full schema with FK constraints + indexes           │
-└─────────────────────────────────────────────────────┘
-                     │
-                     ▼
-┌─────────────────────────────────────────────────────┐
-│              NEAR Protocol (Testnet)                 │
-│     Intents · Scoped Wallets · Function-Call Keys    │
-└─────────────────────────────────────────────────────┘
+```text
+┌──────────────────────────────────────────────────────────────────────┐
+│                   Next.js 16 Dashboard & Channels                    │
+│        Web App (www.tanat.space) · Website Widget · Telegram · Slack │
+└───────────────────────────────┬──────────────────────────────────────┘
+                                │ Bearer Token / OTP Session / Webhook HMAC
+                                ▼
+┌──────────────────────────────────────────────────────────────────────┐
+│                      Tanat Control Plane (Hono)                      │
+│       Cloudflare Workers (Edge)  OR  tee/ dstack / Intel TDX CVM     │
+├──────────────────────────────────────────────────────────────────────┤
+│  Security & Isolation Layer                                          │
+│  • Tenant-scoped queries + composite FKs + DB cross-tenant triggers  │
+│  • Granular RBAC (Owner / Admin / Operator / Member / Auditor)       │
+│  • AES-256-GCM Envelope Encryption (AAD-bound DEK per tenant + KMS)  │
+│  • Enclave MRTD policy check (`assertEnclavePolicy`)                 │
+│  • Secret redaction, prompt-injection defense & context minimization │
+├──────────────────────────────────────────────────────────────────────┤
+│  Verifiable Confidential AI (NEAR AI Cloud)                          │
+│  • Enforce TEE-tier models when `require_tee = 1`                    │
+│  • Nonce-bound Intel TDX + NVIDIA GPU attestation (`/attestation/report`) │
+│  • Per-chat `SHA-256(req):SHA-256(res)` ECDSA `secp256k1` recovery   │
+│  • Persisted proofs in `tee_attestation_receipts`                    │
+├──────────────────────────────────────────────────────────────────────┤
+│  NEAR Protocol & Intents                                             │
+│  • Approval-gated NEAR transfers (proposer ≠ approver, spend limits) │
+│  • NEAR Intents dry-run quotes (`GET /tokens`, `POST /quote`)        │
+└──────────────────────────────────────────────────────────────────────┘
 ```
 
-## 🚀 Quick Start
+### Trust-Boundary Transparency
+
+Tanat never fabricates hardware guarantees:
+- **When running on Cloudflare Workers (`TEE_RUNTIME_MODE=cloudflare_worker`):** Tenant payloads are stored `AES-256-GCM` encrypted at rest, unwrapped in Worker RAM for authenticated requests, minimized/redacted, and verified against NEAR AI Cloud's Intel TDX + NVIDIA GPU TEE (`GET /v1/attestation/report` & `GET /v1/signature/{chat_id}`).
+- **When deployed via `tee/` on Phala `dstack` / Intel TDX (`TEE_RUNTIME_MODE=dstack_cvm`):** Tanat's own Hono runtime also executes inside a hardware-isolated Confidential VM with `/var/run/tappd.sock` mounted and `TEE_ALLOWED_MRTD` enforced before DEK unwrapping (`src/services/enclave-runtime.service.ts`).
+
+---
+
+## Quick Start (Local Development)
 
 ### Prerequisites
 
-- Node.js 18+
-- Wrangler CLI (`npm install -g wrangler`)
-- Cloudflare account (free tier works)
+- **Node.js 20+**
+- **npm**
+- **Wrangler CLI** (installed in `devDependencies`, or `npm install -g wrangler`)
 
-### Setup
+### 1. Install & Test Backend
 
 ```bash
-# Clone
-git clone https://github.com/your-org/tanat.git
+git clone https://github.com/UtyJames/tanat.git
 cd tanat
-
-# Install dependencies
 npm install
 
-# Create D1 database
-wrangler d1 create tanat-db
-# Copy the database_id into wrangler.toml
+# Run full automated test suite (10 test files, 142 tests)
+npm test
 
-# Run migrations
-npm run db:migrate
-
-# Seed demo data
-npm run db:seed
-
-# Add NEAR_AI_API_KEY to the ignored .dev.vars file to enable AI chat locally.
-# Never put provider keys in wrangler.toml or frontend environment variables.
-
-# Start dev server
-npm run dev
-# → API running at http://localhost:8787
+# Typecheck & build Cloudflare Worker bundle
+npm run typecheck
+npm run build:worker
 ```
 
-For local AI chat, add the following to the root `.dev.vars` file using a
-rotated NEAR AI Cloud key:
+### 2. Run Backend API Locally (`http://localhost:8787`)
+
+Option A — Node local D1/SQLite runner (auto-applies migrations `0001`–`0010` and seeds demo data):
+
+```bash
+npm run dev:node
+# → API listening on http://localhost:8787
+```
+
+Option B — Wrangler local Worker runtime:
+
+```bash
+npm run db:migrate
+npm run db:seed
+npm run dev
+```
+
+Create a root `.dev.vars` (gitignored) for optional live AI / email / KMS keys:
 
 ```dotenv
 NEAR_AI_API_KEY=your-near-ai-cloud-key
+API_KEY_SALT=local-dev-salt
+KMS_MASTER_KEY=local-dev-master-key-32-bytes-minimum
+RESEND_API_KEY=your-resend-key
+AUTH_EMAIL_FROM=Tanat <hello@yourdomain.com>
 ```
 
-`.dev.vars` is gitignored. For production, store the key as a Cloudflare Worker
-secret, not a `[vars]` entry:
+> Never commit `.dev.vars` or expose `NEAR_AI_API_KEY`, `KMS_MASTER_KEY`, or `MASTER_API_KEY` in `wrangler.toml` or frontend bundles.
 
-```bash
-npx wrangler secret put NEAR_AI_API_KEY
-npm run deploy
-```
-
-The backend sends chat requests only to the official NEAR AI Cloud endpoint.
-Never expose this key in the dashboard, browser bundles, logs, or source
-control. If a key has been pasted into chat or otherwise disclosed, revoke it
-and create a replacement before configuring it.
-
-### Frontend
+### 3. Run Next.js Frontend Locally (`http://localhost:3000`)
 
 ```bash
 cd frontend
 npm install
 npm run dev
-# → UI running at http://localhost:5173
+# → Web UI running at http://localhost:3000
 ```
 
-## 📡 API Reference
-
-### Authentication
-
-The dashboard uses a six-digit email verification code. After email verification, a new business gets a workspace, a starter Store Assistant agent and an installation, then a short-lived dashboard session. In the dashboard's **Settings → API keys** section, tenant admins can create integration API keys; plaintext keys are shown once and must be saved securely. That integration key is not the dashboard login and is not a NEAR wallet key.
-
-The public email signup endpoints are `POST /api/auth/otp/request` and `POST /api/auth/otp/verify`. Codes expire after 10 minutes, are stored as keyed HMAC digests, and permit at most five attempts. Email delivery requires a verified Resend sender domain, `RESEND_API_KEY` as a Wrangler secret, and `AUTH_EMAIL_FROM` set to the verified sender address. Until those are configured, signup returns `EMAIL_AUTH_NOT_CONFIGURED`. Dashboard sessions expire after seven days and can be revoked by signing out.
-
-All integration API requests require a tenant API key:
+To typecheck and build the static production frontend (`frontend/out`):
 
 ```bash
-curl -H "Authorization: Bearer tnt_your_api_key_here" \
-     https://tanat-api.your-worker.workers.dev/api/v1/tenants
+cd frontend
+npx tsc --noEmit
+npm run build
 ```
-
-### First production setup
-
-1. Verify a sending domain with Resend.
-2. Set `RESEND_API_KEY` with `wrangler secret put RESEND_API_KEY`.
-3. Configure `AUTH_EMAIL_FROM` to an address on that verified domain and deploy.
-4. Sign up at the dashboard using a business email; enter the six-digit code sent to your inbox.
-5. Create tenant integration keys in **Settings → API keys**.
-
-Do not use the platform `MASTER_API_KEY` as a tenant key. Do not enter wallet seed phrases or private keys in the dashboard.
-
-### Core Endpoints
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `POST` | `/api/v1/sessions` | Create a chat session |
-| `POST` | `/api/v1/sessions/:id/messages` | Send a message (chat) |
-| `GET` | `/api/v1/actions` | List pending actions |
-| `POST` | `/api/v1/actions/:id/approve` | Approve an action |
-| `POST` | `/api/v1/actions/:id/execute` | Execute approved action on NEAR |
-| `POST` | `/api/v1/keys` | Generate new API key |
-| `GET` | `/api/v1/near/intents/tokens` | List NEAR Intents-supported assets |
-| `POST` | `/api/v1/near/intents/quote` | Preview a checkout or payout quote (dry-run only) |
-
-### NEAR Intents payment previews
-
-The Intents endpoints currently support asset discovery and dry-run quote previews for both store checkouts and agent-to-merchant payouts. A quote preview is **not a payment**: Tanat always sends `dry: true` to 1Click, does not create a deposit, and does not submit or sign a transaction. The existing NEAR action executor is also disabled outside the test environment until a real, audited signing integration is available.
-
-```json
-{
-  "purpose": "checkout",
-  "origin_asset": "nep141:wrap.near",
-  "destination_asset": "nep141:usdt.tether-token.near",
-  "amount": "1000000000000000000000000",
-  "recipient": "merchant.near",
-  "recipient_type": "INTENTS",
-  "refund_to": "shopper.near",
-  "refund_type": "ORIGIN_CHAIN",
-  "slippage_tolerance": 100
-}
-```
-
-Send this to `POST /api/v1/near/intents/quote` with an API key that has `actions:propose` or `write` scope. `purpose` may be `checkout` or `payout`. Amounts are integer strings in the origin asset's smallest unit; use the asset's `decimals` from the tokens endpoint. The optional `INTENTS_API_KEY` Worker secret authenticates requests to 1Click. Do not treat a preview as an order or fulfill goods based on it.
-
-NEAR Intents has no testnet. Live deposits, payouts, and fulfillment tracking are not enabled. The external security audit and legal/sanctions review described in `PLAN.md` must be complete before enabling real payments.
-
-### Example: Full Agent Flow
-
-```bash
-# 1. Create a session
-SESSION=$(curl -s -X POST \
-  -H "Authorization: Bearer $API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{"installation_id": "inst_abc"}' \
-  /api/v1/sessions | jq -r '.data.id')
-
-# 2. Chat — agent proposes a refund
-curl -X POST \
-  -H "Authorization: Bearer $API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{"content": "Process a refund of 5 NEAR for customer alice.near"}' \
-  /api/v1/sessions/$SESSION/messages
-
-# Response includes an action proposal:
-# { "action": { "id": "act_xyz", "type": "near_transfer", "status": "pending" } }
-
-# 3. Approve the action
-curl -X POST -H "Authorization: Bearer $API_KEY" \
-  /api/v1/actions/act_xyz/approve
-
-# 4. Execute — money moves on NEAR
-curl -X POST -H "Authorization: Bearer $API_KEY" \
-  /api/v1/actions/act_xyz/execute
-
-# Response: { "data": { "status": "executed", "tx_hash": "..." } }
-```
-
-## 🔒 Security Model
-
-| Layer | Mechanism |
-|-------|-----------|
-| **Authentication** | SHA-256 hashed API keys, never stored in plaintext |
-| **Tenant Isolation** | Every query scoped by tenant_id, enforced at middleware level |
-| **Approval Gate** | All money movement requires explicit human approval |
-| **Spending Limits** | Per-tenant configurable limits, checked before execution |
-| **Idempotency** | Unique keys prevent double-execution of actions |
-| **Rate Limiting** | Per-key sliding window rate limits |
-| **Audit Trail** | Every sensitive operation logged with actor, IP, timestamp |
-| **Input Validation** | Zod schemas on every endpoint |
-| **Security Headers** | CSP, HSTS, X-Frame-Options, X-Content-Type-Options |
-
-## 🧪 Demo Scenario
-
-1. **Tenant A** (Acme Corp) asks their support agent to refund a customer
-2. Agent proposes: "Refund 5 NEAR to alice.near" → Action created as `pending`
-3. Human operator clicks **Approve** → Action status: `approved`
-4. System executes → NEAR transfer settles → Action status: `executed`
-5. Switch to **Tenant B** (Stark Industries) → completely isolated, sees nothing from Tenant A
-
-## 🏛️ Built With
-
-- **Runtime:** Cloudflare Workers (edge compute, 0ms cold start)
-- **Framework:** [Hono](https://hono.dev) (ultrafast web framework for Workers)
-- **Database:** Cloudflare D1 (SQLite at the edge)
-- **Blockchain:** NEAR Protocol (Intents, scoped wallets)
-- **Frontend:** React + Vite
-- **Validation:** Zod
-- **Language:** TypeScript (strict mode)
-
-## 📁 Project Structure
-
-```
-tanat/
-├── src/
-│   ├── index.ts              # Worker entry point
-│   ├── app.ts                # Hono app setup
-│   ├── middleware/
-│   │   ├── auth.ts           # API key authentication
-│   │   ├── cors.ts           # CORS configuration
-│   │   ├── rate-limit.ts     # Rate limiting
-│   │   ├── security.ts       # Security headers
-│   │   ├── tenant-isolation.ts # Multi-tenant isolation
-│   │   └── validation.ts     # Input validation schemas
-│   ├── routes/
-│   │   ├── tenants.ts        # Tenant management
-│   │   ├── agents.ts         # Agent definitions
-│   │   ├── installations.ts  # Agent installations
-│   │   ├── sessions.ts       # Chat sessions
-│   │   ├── actions.ts        # Approval workflow
-│   │   ├── near.ts           # NEAR integration
-│   │   └── keys.ts           # API key management
-│   ├── services/
-│   │   ├── tenant.service.ts
-│   │   ├── agent.service.ts
-│   │   ├── action.service.ts
-│   │   ├── near.service.ts
-│   │   └── metering.service.ts
-│   ├── db/
-│   │   └── migrations/
-│   │       └── 0001_init.sql # Full schema
-│   ├── types/
-│   │   └── index.ts          # TypeScript types
-│   └── utils/
-│       ├── crypto.ts         # Crypto utilities
-│       ├── errors.ts         # Error handling
-│       └── audit.ts          # Audit logging
-├── frontend/                 # React demo UI
-├── scripts/
-│   └── seed.sql              # Demo data
-├── wrangler.toml             # Cloudflare config
-└── package.json
-```
-
-## 🛣️ Track
-
-**Agent Economy** — Tanat enables an ecosystem where AI agents can safely transact on behalf of SaaS customers, with built-in economic controls and NEAR-native money movement.
-
-## 📄 License
-
-MIT
 
 ---
 
-**Built for the NEAR Hackathon 2026** 🚀
+## Conclave-Parity TEE Enclave Deployment (`tee/`)
+
+To migrate Tanat's own application runtime into an Intel TDX / Phala `dstack` Confidential VM:
+
+```bash
+npm run build:worker
+docker compose -f tee/docker-compose.tee.yml up -d --build
+```
+
+See [tee/README.md](tee/README.md) for `TEE_RUNTIME_MODE=dstack_cvm`, `TEE_STRICT_VERIFICATION=true`, `TEE_ALLOWED_MRTD`, and `/var/run/tappd.sock` configuration.
+
+---
+
+## Key Security & Privacy Controls
+
+| Control | Implementation | Source |
+|---------|----------------|--------|
+| **Envelope Encryption** | Per-tenant `AES-256-GCM` DEKs, AAD-bound to `tenant_id\|table\|record_id\|field`, KEK-wrapped, key rotation & revocation | [`src/services/encryption.service.ts`](src/services/encryption.service.ts) |
+| **KMS & Fail-Closed Prod** | External `KMS_MASTER_KEY` required in production; rejects fallback if missing | [`src/services/kms.service.ts`](src/services/kms.service.ts) |
+| **TEE Inference Verification** | Nonce-bound `/v1/attestation/report` + `secp256k1` ECDSA signature recovery over `SHA-256(req):SHA-256(res)` | [`src/services/near-ai-tee.service.ts`](src/services/near-ai-tee.service.ts) |
+| **Enclave Runtime Policy** | Honest worker vs `dstack_cvm`/`tdx_enclave` detection & MRTD pinning (`assertEnclavePolicy`) | [`src/services/enclave-runtime.service.ts`](src/services/enclave-runtime.service.ts) |
+| **Multi-Tenant Isolation** | Server-side `tenantId` scoping, composite `(tenant_id, id)` FKs & cross-tenant DB triggers | [`src/db/migrations/0009_security_privacy_overhaul.sql`](src/db/migrations/0009_security_privacy_overhaul.sql) |
+| **RBAC & Auth** | `owner` / `admin` / `operator` / `member` / `auditor`, zero wildcard dashboard scopes, strict `/login` vs `/start` separation | [`src/middleware/rbac.ts`](src/middleware/rbac.ts), [`src/routes/auth.ts`](src/routes/auth.ts) |
+| **AI Data Minimization** | Secret redaction, prompt-injection boundary markers, least-knowledge selection | [`src/services/ai-privacy.service.ts`](src/services/ai-privacy.service.ts) |
+
+---
+
+## Core API Endpoints
+
+### Authentication (Strict Sign Up vs Sign In Separation)
+- `POST /api/auth/otp/request` — Sends 6-digit HMAC-hashed OTP (`mode: "login"` returns `404 ACCOUNT_NOT_FOUND` for unregistered emails; `mode: "signup"` returns `409 ACCOUNT_EXISTS` for existing accounts)
+- `POST /api/auth/otp/verify` — Verifies OTP (max 5 attempts, 10m TTL) and issues 7-day revocable dashboard session (`tns_...`)
+
+### Privacy, Encryption & TEE Verification (`/api/v1/privacy`)
+- `GET /api/v1/privacy/status` — Encryption, KMS, RBAC, enclave runtime, and TEE verification status
+- `POST /api/v1/privacy/keys/rotate` — Rotate tenant DEK (keeps older keys for decrypting historical data)
+- `DELETE /api/v1/privacy/keys/:id` — Immediately revoke a tenant DEK
+- `POST /api/v1/privacy/tee-verify` — Live nonce-bound NEAR AI Cloud Intel TDX / NVIDIA GPU attestation check
+- `GET /api/v1/privacy/tee-receipts` — List persisted cryptographic TEE inference receipts (`tee_attestation_receipts`)
+- `PATCH /api/v1/privacy/settings` — Configure retention window & fail-closed `require_tee` policy
+- `POST /api/v1/privacy/export` & `POST /api/v1/privacy/deletion-request` — Tenant data export & scheduled deletion
+
+### Agents, Sessions, Actions & NEAR Intents (`/api/v1`)
+- `POST /api/v1/sessions` & `POST /api/v1/sessions/:id/messages` — Encrypted chat + TEE verification + tool proposals
+- `GET /api/v1/actions`, `POST /api/v1/actions/:id/approve`, `POST /api/v1/actions/:id/execute` — Dual-party human approval gate
+- `GET /api/v1/near/intents/tokens` & `POST /api/v1/near/intents/quote` — NEAR Intents (`1Click`) asset discovery & dry-run quotes
+
+---
+
+## Project Structure
+
+```text
+tanat/
+├── src/
+│   ├── index.ts                          # Cloudflare Worker entry point
+│   ├── app.ts                            # Hono router, CORS, security headers, rate limits
+│   ├── middleware/
+│   │   ├── auth.ts                       # API key & revocable dashboard session auth
+│   │   ├── rbac.ts                       # Granular role-based access control
+│   │   ├── scopes.ts                     # Explicit permission enforcement
+│   │   └── tenant-isolation.ts           # Tenant context verification
+│   ├── routes/
+│   │   ├── auth.ts                       # OTP signup/login separation & session management
+│   │   ├── privacy.ts                    # Privacy Centre, DEK rotation, live TEE verify & receipts
+│   │   ├── sessions.ts                   # Encrypted chat, knowledge minimization & TEE proofs
+│   │   ├── actions.ts                    # Human-in-the-loop approval & NEAR execution
+│   │   ├── near.ts                       # NEAR balance & NEAR Intents dry-run quotes
+│   │   └── ...                           # agents, installations, keys, knowledge, webhooks, public
+│   ├── services/
+│   │   ├── encryption.service.ts         # Per-tenant AES-256-GCM envelope encryption
+│   │   ├── kms.service.ts                # External KEK provider (fail-closed in prod)
+│   │   ├── near-ai.service.ts            # NEAR AI Cloud client + TEE enforcement
+│   │   ├── near-ai-tee.service.ts        # /attestation/report + /signature/{chat_id} ECDSA verifier
+│   │   ├── enclave-runtime.service.ts    # Worker vs dstack/TDX CVM boundary & MRTD policy
+│   │   └── ai-privacy.service.ts         # Secret redaction & context minimization
+│   └── db/migrations/
+│       └── 0001_init.sql ... 0010_tee_attestations.sql
+├── tee/                                  # Phala dstack / Intel TDX Confidential VM deployment
+│   ├── Dockerfile.tee
+│   ├── docker-compose.tee.yml
+│   └── README.md
+├── frontend/                             # Next.js 16 workspace UI, /login, /start, Privacy Centre
+├── scripts/local-api.mjs                 # Local Node D1/SQLite API server
+├── wrangler.toml                         # API Worker config (api.tanat.space)
+└── wrangler.web.toml                     # Static Web Worker config (www.tanat.space)
+```
+
+---
+
+## License
+
+MIT — Built for **NEAR Hackathon 2026**.

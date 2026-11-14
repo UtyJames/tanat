@@ -11,7 +11,7 @@ import { z } from 'zod';
 import type { HonoEnv } from '../types';
 import { validateBody, getValidatedBody } from '../middleware/validation';
 import { requireAnyScope, requireScope } from '../middleware/scopes';
-import { ForbiddenError, NotFoundError, ValidationError } from '../utils/errors';
+import { ForbiddenError, NotFoundError } from '../utils/errors';
 import { logAudit, requestIp } from '../utils/audit';
 import {
   decryptField,

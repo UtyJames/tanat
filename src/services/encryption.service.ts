@@ -68,7 +68,7 @@ export function isEncryptedValue(value: string | null | undefined): boolean {
   return typeof value === 'string' && value.startsWith(ENCRYPTED_PREFIX);
 }
 
-async function importAesGcmKey(rawDek: Uint8Array, usages: KeyUsage[]): Promise<CryptoKey> {
+async function importAesGcmKey(rawDek: Uint8Array, usages: ('encrypt' | 'decrypt')[]): Promise<CryptoKey> {
   return crypto.subtle.importKey('raw', rawDek, { name: 'AES-GCM' }, false, usages);
 }
 
