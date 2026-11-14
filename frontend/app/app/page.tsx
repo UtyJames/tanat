@@ -3243,7 +3243,7 @@ Option B (Custom Chat UI): Call POST ${PUBLIC_BASE_URL}/api/public/v1/sessions w
                               <li>
                                 Click <strong>Create an App</strong> → select <strong>Paste a manifest</strong>.
                               </li>
-                              <li>Select your workspace, choose <strong>JSON</strong> tab, and paste the snippet below:</li>
+                              <li>Pick your workspace, switch to the <strong>JSON</strong> tab, and paste the manifest below:</li>
                             </ol>
 
                             <pre className="ws-CodeBox" style={{ maxHeight: 180, fontSize: 11, marginBottom: 10 }}>
@@ -3271,39 +3271,14 @@ Option B (Custom Chat UI): Call POST ${PUBLIC_BASE_URL}/api/public/v1/sessions w
                               </a>
                             </div>
 
-                            <div style={{ marginTop: 14, paddingTop: 12, borderTop: '1px dashed #d6d0c8' }}>
-                              <div style={{ fontSize: 11.5, fontWeight: 600, color: '#1e1e1e', marginBottom: 8 }}>
-                                Visual Guide (Slack API Portal)
-                              </div>
-                              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                                <div style={{ border: '1px solid #d6d0c8', borderRadius: 10, overflow: 'hidden', background: '#faf8f6' }}>
-                                  <img
-                                    src="/images/slack-step-1.png"
-                                    alt="Step 1: Click Create an App on api.slack.com/apps"
-                                    style={{ width: '100%', height: 110, objectFit: 'cover', display: 'block', borderBottom: '1px dashed #d6d0c8' }}
-                                  />
-                                  <div style={{ padding: '6px 8px', fontSize: 11, color: '#525252' }}>
-                                    1. Click <strong>Create an App</strong>
-                                  </div>
-                                </div>
-                                <div style={{ border: '1px solid #d6d0c8', borderRadius: 10, overflow: 'hidden', background: '#faf8f6' }}>
-                                  <img
-                                    src="/images/slack-step-2.png"
-                                    alt="Step 2: Choose Paste a manifest"
-                                    style={{ width: '100%', height: 110, objectFit: 'cover', display: 'block', borderBottom: '1px dashed #d6d0c8' }}
-                                  />
-                                  <div style={{ padding: '6px 8px', fontSize: 11, color: '#525252' }}>
-                                    2. Select <strong>Paste a manifest</strong>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-
                             <ol start={4} style={{ paddingLeft: 18, lineHeight: 1.75, fontSize: 12.5, color: 'var(--muted)' }}>
                               <li>Click <strong>Next</strong> → <strong>Create</strong>.</li>
-                              <li>In the yellow banner at the top, click <strong>Install to Workspace</strong> and authorize.</li>
+                              <li>Click <strong>Install to Workspace</strong> → <strong>Allow</strong>.</li>
                               <li>
-                                Copy the <strong>Bot User OAuth Token</strong> (from <em>OAuth &amp; Permissions</em>) and <strong>Signing Secret</strong> (from <em>Basic Information</em>) into the fields on the left.
+                                Copy the <strong>Bot User OAuth Token</strong> (<code>xoxb-...</code> under <em>OAuth &amp; Permissions</em>) and <strong>Signing Secret</strong> (under <em>Basic Information → App Credentials</em>), paste them on the left, and click <strong>Save &amp; Activate Slack</strong>.
+                              </li>
+                              <li>
+                                Direct Messages are pre-enabled in the manifest — open your bot under <strong>Apps</strong> in Slack to test, or run <code>/invite @{botName}</code> in any channel.
                               </li>
                             </ol>
                           </div>
