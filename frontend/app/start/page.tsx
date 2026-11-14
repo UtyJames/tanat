@@ -360,6 +360,10 @@ export default function StartPage() {
   const [primaryTemplateId, setPrimaryTemplateId] = useState('tpl_customer_support');
   const [additionalTemplates, setAdditionalTemplates] = useState<string[]>([]);
   const [openAgentGroups, setOpenAgentGroups] = useState<string[]>(['Recommended for you']);
+  const [openConfigSections, setOpenConfigSections] = useState<string[]>(['Rules & escalation']);
+  const [openKnowledgeFaq, setOpenKnowledgeFaq] = useState(false);
+  const [openChannelGroups, setOpenChannelGroups] = useState<string[]>(['Ready now']);
+  const [openGovGroups, setOpenGovGroups] = useState<string[]>(['Allowed Actions', 'Human Approval Required']);
 
   // Step 5: Configure First Agent
   const [agentName, setAgentName] = useState('Customer Support Agent');
@@ -828,50 +832,38 @@ Integrate our Tanat AI agent ("${agentName}") into this application:
           {/* ── STEP 0: Welcome to Tanat ─────────────────────────────── */}
           {step === 0 && (
             <>
-              <span className="t-eyebrow">Step 1 · Welcome to Tanat</span>
+              <span className="t-eyebrow">Step 1 · Welcome</span>
               <h1 style={{ marginTop: 16 }}>
-                Let’s get AI working for your business.
+                Set up AI for your business.
               </h1>
               <p>
-                We’ll help you set up your workspace, choose the right AI agents,
-                connect your business information, and deploy your first agent —
-                without writing complex infrastructure code.
+                Configure your workspace, connect your knowledge, and deploy across
+                your channels in minutes — zero infrastructure setup.
               </p>
 
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))',
-                  gap: 12,
-                  marginTop: 20,
-                  marginBottom: 24,
-                }}
-              >
-                <div className="start-launch-item">
+              <div className="start-summary-grid start-grid-3" style={{ marginTop: 18, marginBottom: 22 }}>
+                <div className="start-summary-cell">
                   <strong>1. Business Profile</strong>
-                  Tell Tanat your industry, services, and goals so we recommend
-                  the right agents.
+                  <span>Industry, services, and goals.</span>
                 </div>
-                <div className="start-launch-item">
+                <div className="start-summary-cell">
                   <strong>2. Knowledge & Rules</strong>
-                  Add your website, FAQs, and policies, and set clear permission
-                  boundaries.
+                  <span>Policies, FAQs, and guardrails.</span>
                 </div>
-                <div className="start-launch-item">
+                <div className="start-summary-cell">
                   <strong>3. Test & Deploy</strong>
-                  Chat with your live agent in the sandbox, then embed on your
-                  website or connect channels.
+                  <span>Sandbox check, then go live.</span>
                 </div>
               </div>
 
               <div className="start-actions">
-                <span className="start-hint">Takes ~3 minutes · Progress saved automatically</span>
+                <span className="start-hint">~3 min · Auto-saved</span>
                 <button
                   className="t-btn t-btn-lime"
                   type="button"
                   onClick={() => setStep(1)}
                 >
-                  Start guided setup <ArrowIcon />
+                  Start setup <ArrowIcon />
                 </button>
               </div>
             </>
@@ -880,28 +872,26 @@ Integrate our Tanat AI agent ("${agentName}") into this application:
           {/* ── STEP 1: Business Information ─────────────────────────── */}
           {step === 1 && (
             <>
-              <span className="t-eyebrow">Step 2 · Business Information</span>
+              <span className="t-eyebrow">Step 2 · Business Profile</span>
               <h1 style={{ marginTop: 16 }}>Tell us about your business.</h1>
               <p>
-                Tanat uses this profile to tailor your workspace, recommend the
-                most relevant agents for your industry, and ground responses in
-                your business context.
+                Used to recommend the right agents and ground responses.
               </p>
 
               <div className="start-row">
                 <div className="start-field">
-                  <label htmlFor="biz-name">Business or organization name</label>
+                  <label htmlFor="biz-name">Business name</label>
                   <input
                     id="biz-name"
                     className="start-input"
-                    placeholder="Acme Health Clinic / Northwind SaaS"
+                    placeholder="Acme Health / Northwind SaaS"
                     value={businessName}
                     onChange={(e) => setBusinessName(e.target.value)}
                     autoFocus
                   />
                 </div>
                 <div className="start-field">
-                  <label htmlFor="biz-industry">Industry / Category</label>
+                  <label htmlFor="biz-industry">Industry</label>
                   <select
                     id="biz-industry"
                     className="start-select"
@@ -919,15 +909,14 @@ Integrate our Tanat AI agent ("${agentName}") into this application:
 
               <div className="start-field">
                 <label htmlFor="biz-desc">
-                  What does your business do?{' '}
-                  <span className="hint">1–2 sentences in plain language</span>
+                  What do you do? <span className="hint">1–2 sentences</span>
                 </label>
                 <textarea
                   id="biz-desc"
                   className="start-input"
-                  rows={3}
+                  rows={2}
                   style={{ height: 'auto', padding: '12px 14px' }}
-                  placeholder="e.g. We provide outpatient physical therapy across 3 clinics and help patients book evaluations, check insurance coverage, and follow recovery plans."
+                  placeholder="e.g. Outpatient physical therapy across 3 clinics — bookings, insurance checks, and recovery plans."
                   value={businessDescription}
                   onChange={(e) => setBusinessDescription(e.target.value)}
                 />
@@ -936,7 +925,7 @@ Integrate our Tanat AI agent ("${agentName}") into this application:
               <div className="start-row">
                 <div className="start-field">
                   <label htmlFor="biz-web">
-                    Website URL <span className="hint">optional</span>
+                    Website <span className="hint">optional</span>
                   </label>
                   <input
                     id="biz-web"
@@ -961,15 +950,15 @@ Integrate our Tanat AI agent ("${agentName}") into this application:
               {!isAuthenticated && (
                 <div
                   style={{
-                    marginTop: 16,
+                    marginTop: 14,
                     padding: 16,
-                    borderRadius: 12,
-                    background: 'rgba(12,13,11,0.03)',
-                    border: '1px solid var(--line)',
+                    borderRadius: 14,
+                    background: '#faf8f6',
+                    border: '1px dashed #d6d0c8',
                   }}
                 >
-                  <div style={{ fontWeight: 600, fontSize: 13.5, marginBottom: 6 }}>
-                    Verify your work email to save your workspace progress
+                  <div style={{ fontWeight: 600, fontSize: 13.5, marginBottom: 8 }}>
+                    Verify email to save progress
                   </div>
                   <div className="start-row">
                     <div className="start-field" style={{ marginBottom: 0 }}>
@@ -986,7 +975,7 @@ Integrate our Tanat AI agent ("${agentName}") into this application:
                     </div>
                     {otpSent && (
                       <div className="start-field" style={{ marginBottom: 0 }}>
-                        <label htmlFor="biz-otp">6-digit code from email</label>
+                        <label htmlFor="biz-otp">6-digit code</label>
                         <input
                           id="biz-otp"
                           className="start-input"
@@ -1359,12 +1348,9 @@ Integrate our Tanat AI agent ("${agentName}") into this application:
           {/* ── STEP 4: Configure First Agent ────────────────────────── */}
           {step === 4 && (
             <>
-              <span className="t-eyebrow">Step 5 · Configure First Agent</span>
+              <span className="t-eyebrow">Step 5 · Configure Agent</span>
               <h1 style={{ marginTop: 16 }}>Shape how {agentName} works.</h1>
-              <p>
-                Define your agent’s name, tone, responsibilities, and boundaries in
-                plain English. No prompt engineering needed.
-              </p>
+              <p>Set identity, rules, and escalation in plain language.</p>
 
               <div className="start-row">
                 <div className="start-field">
@@ -1377,7 +1363,7 @@ Integrate our Tanat AI agent ("${agentName}") into this application:
                   />
                 </div>
                 <div className="start-field">
-                  <label htmlFor="cfg-tone">Tone of voice</label>
+                  <label htmlFor="cfg-tone">Tone</label>
                   <select
                     id="cfg-tone"
                     className="start-select"
@@ -1405,7 +1391,7 @@ Integrate our Tanat AI agent ("${agentName}") into this application:
               </div>
 
               <div className="start-field">
-                <label htmlFor="cfg-purpose">Agent purpose</label>
+                <label htmlFor="cfg-purpose">Purpose</label>
                 <input
                   id="cfg-purpose"
                   className="start-input"
@@ -1414,64 +1400,121 @@ Integrate our Tanat AI agent ("${agentName}") into this application:
                 />
               </div>
 
-              <div className="start-row">
-                <div className="start-field">
-                  <label htmlFor="cfg-resp">
-                    Main responsibilities <span className="hint">one per line</span>
-                  </label>
-                  <textarea
-                    id="cfg-resp"
-                    className="start-input"
-                    rows={3}
-                    style={{ height: 'auto', padding: '10px 12px' }}
-                    value={responsibilitiesText}
-                    onChange={(e) => setResponsibilitiesText(e.target.value)}
-                  />
+              <div className="start-accordion" style={{ marginTop: 8 }}>
+                <div
+                  className={`start-accordion-item ${
+                    openConfigSections.includes('Rules & escalation') ? 'open' : ''
+                  }`}
+                >
+                  <button
+                    type="button"
+                    className="start-accordion-trigger"
+                    aria-expanded={openConfigSections.includes('Rules & escalation')}
+                    onClick={() =>
+                      setOpenConfigSections((prev) =>
+                        prev.includes('Rules & escalation')
+                          ? prev.filter((x) => x !== 'Rules & escalation')
+                          : [...prev, 'Rules & escalation'],
+                      )
+                    }
+                  >
+                    <span className="start-accordion-title-wrap">
+                      <span className="start-accordion-title">Rules & escalation</span>
+                      <span className="start-accordion-meta">Responsibilities, boundaries</span>
+                    </span>
+                    <span className="start-accordion-chevron" aria-hidden="true">
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M4 6l4 4 4-4" />
+                      </svg>
+                    </span>
+                  </button>
+                  {openConfigSections.includes('Rules & escalation') && (
+                    <div className="start-accordion-panel" style={{ padding: 16 }}>
+                      <div className="start-row">
+                        <div className="start-field">
+                          <label htmlFor="cfg-resp">
+                            Responsibilities <span className="hint">one/line</span>
+                          </label>
+                          <textarea
+                            id="cfg-resp"
+                            className="start-input"
+                            rows={3}
+                            style={{ height: 'auto', padding: '10px 12px' }}
+                            value={responsibilitiesText}
+                            onChange={(e) => setResponsibilitiesText(e.target.value)}
+                          />
+                        </div>
+                        <div className="start-field">
+                          <label htmlFor="cfg-never">
+                            Must never do <span className="hint">guardrails</span>
+                          </label>
+                          <textarea
+                            id="cfg-never"
+                            className="start-input"
+                            rows={3}
+                            style={{ height: 'auto', padding: '10px 12px' }}
+                            value={mustNotDoText}
+                            onChange={(e) => setMustNotDoText(e.target.value)}
+                          />
+                        </div>
+                      </div>
+                      <div className="start-field" style={{ marginBottom: 0 }}>
+                        <label htmlFor="cfg-esc">Human escalation rule</label>
+                        <input
+                          id="cfg-esc"
+                          className="start-input"
+                          value={escalationRules}
+                          onChange={(e) => setEscalationRules(e.target.value)}
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
-                <div className="start-field">
-                  <label htmlFor="cfg-never">
-                    Must never do <span className="hint">safety boundaries</span>
-                  </label>
-                  <textarea
-                    id="cfg-never"
-                    className="start-input"
-                    rows={3}
-                    style={{ height: 'auto', padding: '10px 12px' }}
-                    value={mustNotDoText}
-                    onChange={(e) => setMustNotDoText(e.target.value)}
-                  />
-                </div>
-              </div>
 
-              <div className="start-field">
-                <label htmlFor="cfg-esc">When to escalate to a human</label>
-                <input
-                  id="cfg-esc"
-                  className="start-input"
-                  value={escalationRules}
-                  onChange={(e) => setEscalationRules(e.target.value)}
-                />
-              </div>
-
-              <div className="start-preview">
-                <div className="start-preview-top">
-                  <span>Live Agent Behavior Preview</span>
-                  <span>
-                    {agentName} · {tone}
-                  </span>
-                </div>
-                <div className="start-preview-body">
-                  <div className="t-bubble t-bubble-agent">
-                    {welcomeMessage} I’m the {agentName} for{' '}
-                    {businessName || 'your business'}.
-                  </div>
-                  <div className="t-bubble t-bubble-user">
-                    Can you make an exception to your standard policy for me?
-                  </div>
-                  <div className="t-bubble t-bubble-agent">
-                    I can share our verified policy details right away, and I’ll loop
-                    in a human team member to review any policy exception for you.
-                  </div>
+                <div
+                  className={`start-accordion-item ${
+                    openConfigSections.includes('Behavior preview') ? 'open' : ''
+                  }`}
+                >
+                  <button
+                    type="button"
+                    className="start-accordion-trigger"
+                    aria-expanded={openConfigSections.includes('Behavior preview')}
+                    onClick={() =>
+                      setOpenConfigSections((prev) =>
+                        prev.includes('Behavior preview')
+                          ? prev.filter((x) => x !== 'Behavior preview')
+                          : [...prev, 'Behavior preview'],
+                      )
+                    }
+                  >
+                    <span className="start-accordion-title-wrap">
+                      <span className="start-accordion-title">Live behavior preview</span>
+                      <span className="start-accordion-meta">{tone} tone</span>
+                    </span>
+                    <span className="start-accordion-chevron" aria-hidden="true">
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M4 6l4 4 4-4" />
+                      </svg>
+                    </span>
+                  </button>
+                  {openConfigSections.includes('Behavior preview') && (
+                    <div className="start-accordion-panel">
+                      <div className="start-preview-body">
+                        <div className="t-bubble t-bubble-agent">
+                          {welcomeMessage} I’m the {agentName} for{' '}
+                          {businessName || 'your business'}.
+                        </div>
+                        <div className="t-bubble t-bubble-user">
+                          Can you make an exception to your standard policy for me?
+                        </div>
+                        <div className="t-bubble t-bubble-agent">
+                          I can share our verified policy details right away, and I’ll loop
+                          in a human team member to review any policy exception for you.
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -1487,7 +1530,7 @@ Integrate our Tanat AI agent ("${agentName}") into this application:
                     setStep(5);
                   }}
                 >
-                  Add business knowledge <ArrowIcon />
+                  Add knowledge <ArrowIcon />
                 </button>
               </div>
             </>
@@ -1496,18 +1539,16 @@ Integrate our Tanat AI agent ("${agentName}") into this application:
           {/* ── STEP 5: Add Business Knowledge ───────────────────────── */}
           {step === 5 && (
             <>
-              <span className="t-eyebrow">Step 6 · Add Business Knowledge</span>
+              <span className="t-eyebrow">Step 6 · Knowledge</span>
               <h1 style={{ marginTop: 16 }}>
-                Give {agentName} your real business knowledge.
+                Ground {agentName} in your info.
               </h1>
               <p>
-                Agents perform best when grounded in your actual policies, service
-                details, and FAQs. You can add more documents anytime in the
-                workspace.
+                Add key policies or FAQs now — you can upload more anytime.
               </p>
 
               <div className="start-field">
-                <label htmlFor="kn-title">Knowledge source title</label>
+                <label htmlFor="kn-title">Source title</label>
                 <input
                   id="kn-title"
                   className="start-input"
@@ -1518,73 +1559,88 @@ Integrate our Tanat AI agent ("${agentName}") into this application:
 
               <div className="start-field">
                 <label htmlFor="kn-text">
-                  Business policies, services, pricing, or operational notes{' '}
-                  <span className="hint">recommended</span>
+                  Policies, pricing, or notes <span className="hint">recommended</span>
                 </label>
                 <textarea
                   id="kn-text"
                   className="start-input"
-                  rows={4}
+                  rows={3}
                   style={{ height: 'auto', padding: '12px 14px' }}
-                  placeholder="Paste key facts about your services, hours, pricing tiers, return/cancellation rules, or internal SOPs..."
+                  placeholder="Paste key facts about your services, hours, pricing, or SOPs..."
                   value={knowledgeText}
                   onChange={(e) => setKnowledgeText(e.target.value)}
                 />
               </div>
 
-              <div
-                style={{
-                  marginTop: 14,
-                  padding: 14,
-                  borderRadius: 12,
-                  border: '1px solid var(--line)',
-                  background: 'rgba(12,13,11,0.02)',
-                }}
-              >
-                <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 8 }}>
-                  Frequently Asked Questions ({faqs.length})
-                </div>
-                {faqs.map((faq, index) => (
-                  <div
-                    key={index}
-                    style={{
-                      padding: '8px 10px',
-                      borderRadius: 8,
-                      background: '#fff',
-                      border: '1px solid var(--line)',
-                      marginBottom: 8,
-                      fontSize: 12.5,
-                    }}
+              <div className="start-accordion" style={{ marginTop: 14 }}>
+                <div className={`start-accordion-item ${openKnowledgeFaq ? 'open' : ''}`}>
+                  <button
+                    type="button"
+                    className="start-accordion-trigger"
+                    aria-expanded={openKnowledgeFaq}
+                    onClick={() => setOpenKnowledgeFaq((v) => !v)}
                   >
-                    <div style={{ fontWeight: 600 }}>Q: {faq.question}</div>
-                    <div style={{ color: 'var(--muted)', marginTop: 2 }}>
-                      A: {faq.answer}
-                    </div>
-                  </div>
-                ))}
+                    <span className="start-accordion-title-wrap">
+                      <span className="start-accordion-title">
+                        Frequently Asked Questions
+                      </span>
+                      <span className="start-accordion-meta">
+                        <span className="start-accordion-count">{faqs.length} added</span>
+                      </span>
+                    </span>
+                    <span className="start-accordion-chevron" aria-hidden="true">
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M4 6l4 4 4-4" />
+                      </svg>
+                    </span>
+                  </button>
 
-                <div className="start-row" style={{ marginTop: 8 }}>
-                  <input
-                    className="start-input"
-                    placeholder="Question (e.g. What is your cancellation policy?)"
-                    value={newFaqQ}
-                    onChange={(e) => setNewFaqQ(e.target.value)}
-                  />
-                  <input
-                    className="start-input"
-                    placeholder="Answer (e.g. Free cancellation up to 24h before.)"
-                    value={newFaqA}
-                    onChange={(e) => setNewFaqA(e.target.value)}
-                  />
+                  {openKnowledgeFaq && (
+                    <div className="start-accordion-panel" style={{ padding: 16 }}>
+                      {faqs.map((faq, index) => (
+                        <div
+                          key={index}
+                          style={{
+                            padding: '10px 12px',
+                            borderRadius: 10,
+                            background: '#faf8f6',
+                            border: '1px dashed #d6d0c8',
+                            marginBottom: 8,
+                            fontSize: 12.5,
+                          }}
+                        >
+                          <div style={{ fontWeight: 600 }}>Q: {faq.question}</div>
+                          <div style={{ color: 'var(--muted)', marginTop: 2 }}>
+                            A: {faq.answer}
+                          </div>
+                        </div>
+                      ))}
+
+                      <div className="start-row" style={{ marginTop: 10 }}>
+                        <input
+                          className="start-input"
+                          placeholder="Question"
+                          value={newFaqQ}
+                          onChange={(e) => setNewFaqQ(e.target.value)}
+                        />
+                        <input
+                          className="start-input"
+                          placeholder="Answer"
+                          value={newFaqA}
+                          onChange={(e) => setNewFaqA(e.target.value)}
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        className="start-agent-btn"
+                        style={{ marginTop: 10 }}
+                        onClick={addFaq}
+                      >
+                        + Add FAQ
+                      </button>
+                    </div>
+                  )}
                 </div>
-                <button
-                  type="button"
-                  className="t-mini-btn"
-                  style={{ width: 'auto', padding: '0 12px', marginTop: 8, height: 30 }}
-                  onClick={addFaq}
-                >
-                  + Add FAQ pair
-                </button>
               </div>
 
               <div className="start-actions">
@@ -1597,7 +1653,7 @@ Integrate our Tanat AI agent ("${agentName}") into this application:
                     type="button"
                     onClick={() => setStep(6)}
                   >
-                    Skip for now
+                    Skip
                   </button>
                   <button
                     className="t-btn t-btn-ink"
@@ -1617,63 +1673,110 @@ Integrate our Tanat AI agent ("${agentName}") into this application:
           {/* ── STEP 6: Choose Where the Agent Should Work ───────────── */}
           {step === 6 && (
             <>
-              <span className="t-eyebrow">Step 7 · Channels & Deployments</span>
+              <span className="t-eyebrow">Step 7 · Channels</span>
               <h1 style={{ marginTop: 16 }}>
                 Where should {agentName} work?
               </h1>
               <p>
-                Select the channels you want to enable. Website Widget and REST/MCP
-                API are ready immediately; messaging and app connectors can be
-                configured in your workspace.
+                Pick your launch channels. Add connectors anytime in your workspace.
               </p>
 
-              <div className="start-choices" style={{ marginTop: 12 }}>
-                {CHANNEL_OPTIONS.map((ch) => {
-                  const selected = selectedChannels.includes(ch.id);
+              <div className="start-accordion" style={{ marginTop: 16 }}>
+                {[
+                  {
+                    title: 'Ready now',
+                    items: CHANNEL_OPTIONS.filter((c) => c.badge === 'Available now'),
+                  },
+                  {
+                    title: 'Messaging & app connectors',
+                    items: CHANNEL_OPTIONS.filter((c) => c.badge !== 'Available now'),
+                  },
+                ].map((group) => {
+                  const isOpen = openChannelGroups.includes(group.title);
+                  const selectedInGroup = group.items.filter((c) =>
+                    selectedChannels.includes(c.id),
+                  ).length;
                   return (
-                    <button
-                      key={ch.id}
-                      type="button"
-                      className={`start-choice ${selected ? 'selected' : ''}`}
-                      onClick={() =>
-                        setSelectedChannels((list) => toggleItem(list, ch.id))
-                      }
+                    <div
+                      key={group.title}
+                      className={`start-accordion-item ${isOpen ? 'open' : ''}`}
                     >
-                      <span
-                        className="start-choice-icon"
-                        style={{
-                          background: '#ffffff',
-                          border: '1px solid var(--tn-border-strong)',
-                          color: 'var(--tn-ink)',
-                        }}
+                      <button
+                        type="button"
+                        className="start-accordion-trigger"
+                        aria-expanded={isOpen}
+                        onClick={() =>
+                          setOpenChannelGroups((prev) =>
+                            prev.includes(group.title)
+                              ? prev.filter((g) => g !== group.title)
+                              : [...prev, group.title],
+                          )
+                        }
                       >
-                        {CHANNEL_ICONS[ch.id] ?? '◎'}
-                      </span>
-                      <span>
-                        <strong>
-                          {ch.title}{' '}
-                          <span
-                            className="t-pill"
-                            style={{
-                              fontSize: 9.5,
-                              marginLeft: 6,
-                              background:
-                                ch.badge === 'Available now'
-                                  ? 'rgba(201,242,107,0.35)'
-                                  : 'rgba(12,13,11,0.06)',
-                            }}
-                          >
-                            {ch.badge}
+                        <span className="start-accordion-title-wrap">
+                          <span className="start-accordion-title">{group.title}</span>
+                          <span className="start-accordion-meta">
+                            {group.items.length} channels
+                            {selectedInGroup > 0 && (
+                              <span className="start-accordion-count">
+                                {selectedInGroup} selected
+                              </span>
+                            )}
                           </span>
-                        </strong>
-                        <span>
-                          {ch.group} · {ch.note}
                         </span>
-                      </span>
-                      <span className="start-choice-check">
-                        <CheckIcon size={10} />
-                      </span>
-                    </button>
+                        <span className="start-accordion-chevron" aria-hidden="true">
+                          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M4 6l4 4 4-4" />
+                          </svg>
+                        </span>
+                      </button>
+
+                      {isOpen && (
+                        <div className="start-accordion-panel">
+                          <div className="start-accordion-grid">
+                            {group.items.map((ch) => {
+                              const selected = selectedChannels.includes(ch.id);
+                              return (
+                                <button
+                                  key={ch.id}
+                                  type="button"
+                                  className={`start-accordion-cell ${selected ? 'selected' : ''}`}
+                                  onClick={() =>
+                                    setSelectedChannels((list) =>
+                                      toggleItem(list, ch.id),
+                                    )
+                                  }
+                                >
+                                  <span style={{ display: 'flex', alignItems: 'flex-start', gap: 11, minWidth: 0 }}>
+                                    <span
+                                      className="start-choice-icon"
+                                      style={{
+                                        background: '#ffffff',
+                                        border: '1px solid var(--tn-border-strong)',
+                                        color: 'var(--tn-ink)',
+                                      }}
+                                    >
+                                      {CHANNEL_ICONS[ch.id] ?? '◎'}
+                                    </span>
+                                    <span className="start-accordion-cell-body">
+                                      <span className="start-accordion-cell-title">
+                                        {ch.title}
+                                      </span>
+                                      <span className="start-accordion-cell-note">
+                                        {ch.note}
+                                      </span>
+                                    </span>
+                                  </span>
+                                  <span className="start-choice-check">
+                                    <CheckIcon size={10} />
+                                  </span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   );
                 })}
               </div>
@@ -1681,8 +1784,7 @@ Integrate our Tanat AI agent ("${agentName}") into this application:
               {selectedChannels.includes('website') && (
                 <div className="start-field" style={{ marginTop: 16 }}>
                   <label htmlFor="ch-domains">
-                    Allowed website domains for widget (CORS allowlist){' '}
-                    <span className="hint">comma-separated</span>
+                    Allowed domains <span className="hint">comma-separated</span>
                   </label>
                   <input
                     id="ch-domains"
@@ -1707,7 +1809,7 @@ Integrate our Tanat AI agent ("${agentName}") into this application:
                     setStep(7);
                   }}
                 >
-                  Permissions & governance <ArrowIcon />
+                  Permissions <ArrowIcon />
                 </button>
               </div>
             </>
@@ -1716,49 +1818,73 @@ Integrate our Tanat AI agent ("${agentName}") into this application:
           {/* ── STEP 7: Permissions & Actions ────────────────────────── */}
           {step === 7 && (
             <>
-              <span className="t-eyebrow">Step 8 · Permissions & Governance</span>
+              <span className="t-eyebrow">Step 8 · Governance</span>
               <h1 style={{ marginTop: 16 }}>
-                Set clear boundaries for {agentName}.
+                Set boundaries for {agentName}.
               </h1>
               <p>
-                Every Tanat agent runs under explicit governance rules. Review what
-                your agent can read, what it can propose, and what always requires a
-                human.
+                Review what your agent can read, act on, or must escalate.
               </p>
 
-              <div className="start-launch-grid" style={{ marginTop: 16 }}>
-                <div className="start-launch-item">
-                  <strong>Read-Only Permissions</strong>
-                  <ul style={{ margin: '8px 0 0', paddingLeft: 16, fontSize: 12.5 }}>
-                    {readOnlyPerms.map((p) => (
-                      <li key={p}>{p}</li>
-                    ))}
-                  </ul>
-                </div>
-                <div className="start-launch-item">
-                  <strong>Allowed Agent Actions</strong>
-                  <ul style={{ margin: '8px 0 0', paddingLeft: 16, fontSize: 12.5 }}>
-                    {actionPerms.map((p) => (
-                      <li key={p}>{p}</li>
-                    ))}
-                  </ul>
-                </div>
-                <div className="start-launch-item">
-                  <strong>Human Approval Required</strong>
-                  <ul style={{ margin: '8px 0 0', paddingLeft: 16, fontSize: 12.5 }}>
-                    {approvalPerms.map((p) => (
-                      <li key={p}>{p}</li>
-                    ))}
-                  </ul>
-                </div>
-                <div className="start-launch-item">
-                  <strong>Strictly Restricted</strong>
-                  <ul style={{ margin: '8px 0 0', paddingLeft: 16, fontSize: 12.5 }}>
-                    {restrictedPerms.map((p) => (
-                      <li key={p}>{p}</li>
-                    ))}
-                  </ul>
-                </div>
+              <div className="start-accordion" style={{ marginTop: 16 }}>
+                {[
+                  { title: 'Read-Only Permissions', items: readOnlyPerms },
+                  { title: 'Allowed Actions', items: actionPerms },
+                  { title: 'Human Approval Required', items: approvalPerms },
+                  { title: 'Strictly Restricted', items: restrictedPerms },
+                ].map((group) => {
+                  const isOpen = openGovGroups.includes(group.title);
+                  return (
+                    <div
+                      key={group.title}
+                      className={`start-accordion-item ${isOpen ? 'open' : ''}`}
+                    >
+                      <button
+                        type="button"
+                        className="start-accordion-trigger"
+                        aria-expanded={isOpen}
+                        onClick={() =>
+                          setOpenGovGroups((prev) =>
+                            prev.includes(group.title)
+                              ? prev.filter((g) => g !== group.title)
+                              : [...prev, group.title],
+                          )
+                        }
+                      >
+                        <span className="start-accordion-title-wrap">
+                          <span className="start-accordion-title">{group.title}</span>
+                          <span className="start-accordion-meta">
+                            <span className="start-accordion-count">
+                              {group.items.length} rules
+                            </span>
+                          </span>
+                        </span>
+                        <span className="start-accordion-chevron" aria-hidden="true">
+                          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M4 6l4 4 4-4" />
+                          </svg>
+                        </span>
+                      </button>
+                      {isOpen && (
+                        <div className="start-accordion-panel" style={{ padding: '14px 18px' }}>
+                          <ul
+                            style={{
+                              margin: 0,
+                              paddingLeft: 18,
+                              fontSize: 13,
+                              lineHeight: 1.65,
+                              color: '#525252',
+                            }}
+                          >
+                            {group.items.map((p) => (
+                              <li key={p}>{p}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
 
               <div className="start-actions">
@@ -1773,7 +1899,7 @@ Integrate our Tanat AI agent ("${agentName}") into this application:
                     setStep(8);
                   }}
                 >
-                  Test your agent live <ArrowIcon />
+                  Test live <ArrowIcon />
                 </button>
               </div>
             </>
@@ -1782,24 +1908,22 @@ Integrate our Tanat AI agent ("${agentName}") into this application:
           {/* ── STEP 8: Test Your Agent ──────────────────────────────── */}
           {step === 8 && (
             <>
-              <span className="t-eyebrow">Step 9 · Interactive Agent Sandbox</span>
-              <h1 style={{ marginTop: 16 }}>Test {agentName} before deploying.</h1>
+              <span className="t-eyebrow">Step 9 · Live Sandbox</span>
+              <h1 style={{ marginTop: 16 }}>Test {agentName}.</h1>
               <p>
-                Send a real message below. Your agent runs on NEAR AI Cloud using
-                the business description, FAQs, tone, and boundaries you just set.
+                Send a message to verify tone, knowledge, and boundaries.
               </p>
 
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 12 }}>
                 {[
-                  'What does your business do and how can you help me?',
-                  'What are your support hours and response times?',
-                  'I need a special policy exception — how is that handled?',
+                  'What do you do?',
+                  'Support hours?',
+                  'Policy exception?',
                 ].map((sample) => (
                   <button
                     key={sample}
                     type="button"
-                    className="t-mini-btn"
-                    style={{ width: 'auto', padding: '0 10px', height: 28, fontSize: 11.5 }}
+                    className="start-agent-btn"
                     onClick={() => void handleTestMessage(sample)}
                     disabled={testBusy}
                   >
@@ -1932,35 +2056,39 @@ Integrate our Tanat AI agent ("${agentName}") into this application:
           {/* ── STEP 9: Deploy / Save Summary ────────────────────────── */}
           {step === 9 && (
             <>
-              <span className="t-eyebrow">Step 10 · Deployment Summary</span>
+              <span className="t-eyebrow">Step 10 · Review & Deploy</span>
               <h1 style={{ marginTop: 16 }}>Ready to deploy {agentName}.</h1>
               <p>
-                Review your configuration below. Clicking <strong>Deploy agent</strong>{' '}
-                publishes your agent, stores your knowledge sources, and generates
-                your origin-locked publishable key and embed snippet.
+                Publishes your agent, stores knowledge, and generates your embed snippet.
               </p>
 
-              <div className="start-launch-grid">
-                <div className="start-launch-item">
-                  <strong>Business Workspace</strong>
-                  {businessName || 'My Business'} ·{' '}
-                  {INDUSTRIES.find((i) => i.id === industry)?.label}
+              <div className="start-summary-grid">
+                <div className="start-summary-cell">
+                  <strong>Workspace</strong>
+                  <span>
+                    {businessName || 'My Business'} ·{' '}
+                    {INDUSTRIES.find((i) => i.id === industry)?.label}
+                  </span>
                 </div>
-                <div className="start-launch-item">
+                <div className="start-summary-cell">
                   <strong>Primary Agent</strong>
-                  {agentName} ({tone} tone)
-                  {additionalTemplates.length > 0 &&
-                    ` + ${additionalTemplates.length} additional agent(s)`}
+                  <span>
+                    {agentName} ({tone})
+                    {additionalTemplates.length > 0 &&
+                      ` + ${additionalTemplates.length} more`}
+                  </span>
                 </div>
-                <div className="start-launch-item">
-                  <strong>Knowledge Sources</strong>
-                  {faqs.length} FAQ(s)
-                  {knowledgeText.trim() ? ` + "${knowledgeTitle}"` : ''}
-                  {websiteUrl.trim() ? ` + ${websiteUrl}` : ''}
+                <div className="start-summary-cell">
+                  <strong>Knowledge</strong>
+                  <span>
+                    {faqs.length} FAQ(s)
+                    {knowledgeText.trim() ? ` + "${knowledgeTitle}"` : ''}
+                    {websiteUrl.trim() ? ` + ${websiteUrl}` : ''}
+                  </span>
                 </div>
-                <div className="start-launch-item">
-                  <strong>Enabled Channels</strong>
-                  {selectedChannels.join(', ')}
+                <div className="start-summary-cell">
+                  <strong>Channels</strong>
+                  <span>{selectedChannels.join(', ')}</span>
                 </div>
               </div>
 
@@ -1976,7 +2104,7 @@ Integrate our Tanat AI agent ("${agentName}") into this application:
                   disabled={busy}
                   onClick={() => void handleDeploy()}
                 >
-                  {busy ? 'Deploying agent…' : 'Deploy agent'} <ArrowIcon />
+                  {busy ? 'Deploying…' : 'Deploy agent'} <ArrowIcon />
                 </button>
               </div>
             </>
@@ -1985,14 +2113,12 @@ Integrate our Tanat AI agent ("${agentName}") into this application:
           {/* ── STEP 10: Enter Workspace (Deployed!) ─────────────────── */}
           {step === 10 && (
             <>
-              <span className="t-eyebrow">Step 11 · Agent Deployed</span>
+              <span className="t-eyebrow">Step 11 · Deployed</span>
               <h1 style={{ marginTop: 16 }}>
-                {agentName} is live in your workspace.
+                {agentName} is live.
               </h1>
               <p>
-                Copy the embed snippet below to add the widget to your website, copy
-                the AI Vibecoder prompt for Cursor / Lovable / Bolt / v0, or enter
-                your full workspace dashboard.
+                Copy the embed snippet or AI builder prompt, or open your dashboard.
               </p>
 
               <div className="start-snippet">
@@ -2000,22 +2126,22 @@ Integrate our Tanat AI agent ("${agentName}") into this application:
                   `<script src="${PUBLIC_BASE_URL}/embed/tanat-widget.js" data-key="pk_live_..." data-agent="inst_..." defer></script>`}
               </div>
 
-              <div className="start-launch-grid">
-                <div className="start-launch-item">
+              <div className="start-summary-grid" style={{ marginTop: 16 }}>
+                <div className="start-summary-cell">
                   <strong>Publishable Key</strong>
                   <code>{deployResult?.publishable_key ?? 'pk_live_...'}</code>
                 </div>
-                <div className="start-launch-item">
+                <div className="start-summary-cell">
                   <strong>Installation ID</strong>
                   <code>{deployResult?.installation_id ?? 'inst_...'}</code>
                 </div>
-                <div className="start-launch-item">
-                  <strong>Channels Configured</strong>
-                  {selectedChannels.join(', ')}
+                <div className="start-summary-cell">
+                  <strong>Channels</strong>
+                  <span>{selectedChannels.join(', ')}</span>
                 </div>
-                <div className="start-launch-item">
+                <div className="start-summary-cell">
                   <strong>Governance</strong>
-                  Human approval active · TEE inference
+                  <span>Human approval active</span>
                 </div>
               </div>
 
