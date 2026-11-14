@@ -112,7 +112,62 @@ async function sendOtp(
       to: [email],
       subject: 'Your Tanat verification code',
       text: `Your Tanat verification code is ${code}. It expires in ${OTP_TTL_MINUTES} minutes. If you did not request this code, you can ignore this email.`,
-      html: `<!doctype html><html><body><p>Your Tanat verification code is:</p><p style="font-size:28px;font-weight:bold;letter-spacing:6px">${code}</p><p>This code expires in ${OTP_TTL_MINUTES} minutes. If you did not request it, you can ignore this email.</p></body></html>`,
+      html: `<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Your Tanat verification code</title>
+  </head>
+  <body style="margin:0;padding:0;background-color:#f7f5f3;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#1e1e1e;-webkit-font-smoothing:antialiased;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f7f5f3;padding:36px 16px;">
+      <tr>
+        <td align="center">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background-color:#ffffff;border:1px solid #d6d0c8;border-radius:16px;overflow:hidden;">
+            <tr>
+              <td style="padding:22px 28px;border-bottom:1px dashed #d6d0c8;background-color:#faf8f6;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                  <tr>
+                    <td align="left" style="vertical-align:middle;">
+                      <span style="display:inline-block;width:10px;height:10px;border-radius:999px;background-color:#00ec97;margin-right:8px;vertical-align:middle;"></span>
+                      <span style="font-size:18px;font-weight:700;letter-spacing:-0.03em;color:#141414;vertical-align:middle;">Tanat</span>
+                    </td>
+                    <td align="right" style="vertical-align:middle;">
+                      <span style="display:inline-block;padding:4px 10px;border-radius:999px;background-color:#dffcf0;color:#063324;font-size:11px;font-weight:600;letter-spacing:0.03em;text-transform:uppercase;">Verification</span>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:30px 28px 26px;">
+                <h1 style="margin:0 0 10px;font-size:22px;line-height:1.25;font-weight:600;letter-spacing:-0.02em;color:#141414;">
+                  Verify your email address
+                </h1>
+                <p style="margin:0 0 22px;font-size:14px;line-height:1.6;color:#525252;">
+                  Enter this 6-digit code to sign in to your private Tanat workspace.
+                </p>
+                <div style="background-color:#faf8f6;border:1px dashed #d6d0c8;border-radius:12px;padding:20px 16px;text-align:center;margin-bottom:20px;">
+                  <div style="font-family:ui-monospace,'SFMono-Regular',Menlo,Consolas,monospace;font-size:32px;font-weight:700;letter-spacing:8px;color:#141414;line-height:1;">
+                    ${code}
+                  </div>
+                </div>
+                <p style="margin:0;font-size:12.5px;line-height:1.55;color:#6e6e6e;">
+                  This code expires in <strong style="color:#1e1e1e;">${OTP_TTL_MINUTES} minutes</strong>. If you didn&rsquo;t request this email, you can safely ignore it.
+                </p>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:16px 28px;border-top:1px dashed #e5e1dc;background-color:#faf8f6;font-size:11.5px;line-height:1.5;color:#6e6e6e;">
+                Tanat &middot; Private AI for Real Businesses &middot; Powered by NEAR AI Cloud
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>`,
     }),
     signal: AbortSignal.timeout(10_000),
   }).catch(() => {

@@ -3866,17 +3866,6 @@ Option B (Custom Chat UI): Call POST ${PUBLIC_BASE_URL}/api/public/v1/sessions w
           {section === 'settings' && <Settings />}
         </main>
       </div>
-
-      <footer className="statusbar">
-        <span className="status-dot" />
-        <span>
-          Workspace: <strong>{tenant.name}</strong>
-        </span>
-        <span className="status-sep">|</span>
-        <span className="near-badge">NEAR AI Cloud · TEE Attested Inference</span>
-        <span className="status-sep">|</span>
-        <span className="mono">{API_URL}</span>
-      </footer>
     </div>
   );
 }
