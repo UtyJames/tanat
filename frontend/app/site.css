@@ -5,20 +5,20 @@
    ========================================================================== */
 
 :root {
-  --bone: #f6f3ea;
-  --paper: #fffdf7;
-  --ink: #0c0d0b;
-  --ink-2: #171914;
-  --ink-3: #22251e;
-  --lime: #c9f26b;
-  --lime-deep: #a8d84a;
-  --sage: #dde5d2;
-  --sage-2: #e9eee0;
-  --muted: #6b7065;
-  --muted-2: #8a8f82;
-  --line: rgba(12, 13, 11, 0.12);
-  --line-strong: rgba(12, 13, 11, 0.22);
-  --line-dark: rgba(246, 243, 234, 0.14);
+  --bone: #f7f5f3;
+  --paper: #ffffff;
+  --ink: #141414;
+  --ink-2: #1c1f1d;
+  --ink-3: #262626;
+  --lime: #00ec97;
+  --lime-deep: #00b876;
+  --sage: #dff4ec;
+  --sage-2: #edf8f3;
+  --muted: #595959;
+  --muted-2: #707070;
+  --line: #e5e1dc;
+  --line-strong: #d6d0c8;
+  --line-dark: rgba(247, 245, 243, 0.14);
   --radius: 16px;
   --radius-lg: 24px;
   --radius-xl: 32px;
@@ -172,13 +172,15 @@
 
 .t-btn-lime {
   background: var(--lime);
-  color: var(--ink);
+  color: #052e1e;
+  font-weight: 600;
   box-shadow: 0 1px 0 rgba(255, 255, 255, 0.5) inset,
-    0 10px 24px -12px rgba(120, 160, 20, 0.7);
+    0 10px 24px -12px rgba(0, 184, 118, 0.55);
 }
 
 .t-btn-lime:hover {
-  background: #d6f985;
+  background: #26f7ac;
+  color: #052e1e;
 }
 
 .t-btn-ink {

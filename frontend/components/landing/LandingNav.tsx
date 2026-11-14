@@ -4,18 +4,13 @@ import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 
 const SECTION_LINKS = [
-  { href: '#features', label: 'Features' },
-  { href: '#system', label: 'Problem & Solution' },
-  { href: '#platform', label: 'Platform Stack' },
-  { href: '#how-it-works', label: 'How It Works' },
-  { href: '#compare', label: 'Comparison' },
-  { href: '#benefits', label: 'Benefits' },
-  { href: '#integration', label: 'Integrations' },
-  { href: '#pricing', label: 'Pricing' },
-  { href: '#faq', label: 'FAQ' },
+  { href: '#how-it-works', label: 'How it works' },
+  { href: '#examples', label: 'Telegram, WhatsApp & Slack' },
+  { href: '#integrate', label: 'Integrations' },
+  { href: '#privacy', label: 'Privacy & NEAR AI' },
 ];
 
-export default function BotwiseNav() {
+export default function LandingNav() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const dropRef = useRef<HTMLDivElement>(null);
@@ -31,41 +26,42 @@ export default function BotwiseNav() {
   }, []);
 
   return (
-    <header className="bw-nav">
-      <div className="bw-nav-inner">
-        <Link href="/" className="bw-brand">
-          <span className="bw-brand-badge" aria-hidden="true">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-              <path
-                d="M12 3L14.6 9.4L21 12L14.6 14.6L12 21L9.4 14.6L3 12L9.4 9.4L12 3Z"
-                fill="currentColor"
-              />
-            </svg>
+    <header className="tn-nav">
+      <div className="tn-nav-inner">
+        <Link href="/" className="tn-brand">
+          <span className="tn-brand-mascot">
+            <img
+              src="/tanat-mascot.jpg"
+              alt="Tanat mascot"
+              width={36}
+              height={36}
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            />
           </span>
           <span>Tanat</span>
         </Link>
 
-        <nav className="bw-nav-links" aria-label="Primary">
-          <a href="#top" className="bw-nav-link is-active">
+        <nav className="tn-nav-links" aria-label="Primary">
+          <a href="#top" className="tn-nav-link is-active">
             Home
           </a>
-          <a href="#features" className="bw-nav-link">
-            Features
+          <a href="#how-it-works" className="tn-nav-link">
+            How it works
           </a>
-          <a href="#how-it-works" className="bw-nav-link">
-            How It Works
+          <a href="#examples" className="tn-nav-link">
+            Examples
           </a>
-          <a href="#pricing" className="bw-nav-link">
-            Pricing
+          <a href="#integrate" className="tn-nav-link">
+            Integrate
           </a>
-          <Link href="/docs" className="bw-nav-link">
+          <Link href="/docs" className="tn-nav-link">
             Docs
           </Link>
 
-          <div className="bw-nav-dropdown-wrap" ref={dropRef}>
+          <div className="tn-nav-dropdown-wrap" ref={dropRef}>
             <button
               type="button"
-              className="bw-nav-dropdown-btn"
+              className="tn-nav-dropdown-btn"
               onClick={() => setDropdownOpen((v) => !v)}
               aria-expanded={dropdownOpen}
             >
@@ -86,7 +82,7 @@ export default function BotwiseNav() {
               </svg>
             </button>
             {dropdownOpen && (
-              <div className="bw-nav-dropdown-menu" role="menu">
+              <div className="tn-nav-dropdown-menu" role="menu">
                 {SECTION_LINKS.map((item) => (
                   <a
                     key={item.href}
@@ -102,16 +98,16 @@ export default function BotwiseNav() {
           </div>
         </nav>
 
-        <div className="bw-nav-actions">
-          <Link href="/login" className="bw-btn bw-btn-beige">
+        <div className="tn-nav-actions">
+          <Link href="/login" className="tn-btn tn-btn-beige">
             Sign in
           </Link>
-          <Link href="/start" className="bw-btn bw-btn-dark">
-            Get Started
+          <Link href="/start" className="tn-btn tn-btn-dark">
+            Get started
           </Link>
           <button
             type="button"
-            className="bw-mobile-toggle"
+            className="tn-mobile-toggle"
             onClick={() => setMobileOpen((v) => !v)}
             aria-label="Toggle menu"
             aria-expanded={mobileOpen}
@@ -121,25 +117,25 @@ export default function BotwiseNav() {
         </div>
       </div>
 
-      <div className={`bw-mobile-drawer ${mobileOpen ? 'is-open' : ''}`}>
-        <a href="#features" className="bw-nav-link" onClick={() => setMobileOpen(false)}>
-          Features
+      <div className={`tn-mobile-drawer ${mobileOpen ? 'is-open' : ''}`}>
+        <a href="#how-it-works" className="tn-nav-link" onClick={() => setMobileOpen(false)}>
+          How it works
         </a>
-        <a href="#how-it-works" className="bw-nav-link" onClick={() => setMobileOpen(false)}>
-          How It Works
+        <a href="#examples" className="tn-nav-link" onClick={() => setMobileOpen(false)}>
+          Examples
         </a>
-        <a href="#pricing" className="bw-nav-link" onClick={() => setMobileOpen(false)}>
-          Pricing
+        <a href="#integrate" className="tn-nav-link" onClick={() => setMobileOpen(false)}>
+          Integrate
         </a>
-        <Link href="/docs" className="bw-nav-link" onClick={() => setMobileOpen(false)}>
+        <Link href="/docs" className="tn-nav-link" onClick={() => setMobileOpen(false)}>
           Docs
         </Link>
         <div style={{ display: 'flex', gap: 10, marginTop: 10 }}>
-          <Link href="/login" className="bw-btn bw-btn-beige" style={{ flex: 1 }}>
+          <Link href="/login" className="tn-btn tn-btn-beige" style={{ flex: 1 }}>
             Sign in
           </Link>
-          <Link href="/start" className="bw-btn bw-btn-dark" style={{ flex: 1 }}>
-            Get Started
+          <Link href="/start" className="tn-btn tn-btn-dark" style={{ flex: 1 }}>
+            Get started
           </Link>
         </div>
       </div>

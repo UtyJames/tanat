@@ -59,20 +59,21 @@ export default function LoginPage() {
         </Link>
         <div className="login-quote">
           <p className="t-eyebrow t-eyebrow-dark" style={{ marginBottom: 18 }}>
-            Tanat Workspace
+            Powered by NEAR AI Cloud
           </p>
           <h2>
-            AI infrastructure behind your business operations.
+            Private AI assistants that stay under your control.
           </h2>
           <p>
-            Sign in to manage your AI agents, update business knowledge, review
-            conversations and approvals, and deploy across your channels.
+            Sign in with one email code to manage your private knowledge base,
+            review Telegram, WhatsApp, and Slack conversations, and approve
+            customer actions in one click.
           </p>
         </div>
         <div className="login-art-foot">
-          <span>✓ Multi-agent workspace</span>
-          <span>✓ Knowledge & memory</span>
-          <span>✓ Governed permissions</span>
+          <span>✓ Private inference (no model training)</span>
+          <span>✓ Telegram, WhatsApp, Slack & Web</span>
+          <span>✓ 1-click owner approvals</span>
         </div>
       </aside>
 

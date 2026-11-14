@@ -1,582 +1,257 @@
 import Link from 'next/link';
-import './botwise.css';
-import BotwiseNav from '@/components/botwise/BotwiseNav';
-import BotwiseHero from '@/components/botwise/BotwiseHero';
+import './landing.css';
+import LandingNav from '@/components/landing/LandingNav';
+import LandingHero from '@/components/landing/LandingHero';
 import {
   AnimatedCounter,
-  BenefitsBento,
   BlurReveal,
-  FaqAccordion,
-  FeatureTestimonialSwitcher,
-  HowItWorksTabs,
-  PlatformAccordion,
-  PricingSection,
-  ScrollScrubQuote,
-  ShowcasePlayer,
-} from '@/components/botwise/BotwiseInteractiveParts';
+  ChannelExamplesExplorer,
+  HowItWorksInteractive,
+  IntegrationPartnerSection,
+  PrivacyScrubQuote,
+} from '@/components/landing/LandingSections';
+import {
+  CursorLogo,
+  NearLogo,
+  NextJsLogo,
+  ShopifyLogo,
+  SlackLogo,
+  TelegramLogo,
+  WhatsAppLogo,
+  WordPressLogo,
+} from '@/components/brand/PlatformLogos';
 
-const CLIENTS = [
-  'Shopify',
-  'WordPress',
-  'Telegram',
-  'WhatsApp',
-  'Framer',
-  'Lovable',
-  'Cursor',
-  'Next.js',
-];
-
-const INTEGRATIONS = [
-  { name: 'Website Widget', tag: '1-Line Script', href: '/docs#widget', soon: false },
-  { name: 'Telegram Bot', tag: 'Bot Token', href: '/start', soon: false },
-  { name: 'WhatsApp', tag: 'Business API', href: '/start', soon: false },
-  { name: 'Shopify', tag: 'Theme Embed', href: '/docs#widget', soon: false },
-  { name: 'WordPress', tag: 'Header Snippet', href: '/docs#widget', soon: false },
-  { name: 'Cursor / Lovable', tag: 'llms.txt', href: '/docs#vibecoding', soon: false },
-  { name: 'Slack', tag: 'Team Alerts', href: '/docs', soon: true },
-  { name: 'REST API', tag: 'Custom Apps', href: '/docs', soon: false },
-];
-
-const MATRIX_ROWS = [
-  { feature: 'Trained on your URLs, PDFs & FAQs', tanat: true, manual: true, basic: false, legacy: true },
-  { feature: '1-Click Owner Approval Guardrails', tanat: true, manual: true, basic: false, legacy: false },
-  { feature: 'Website + Telegram + WhatsApp Unified', tanat: true, manual: false, basic: false, legacy: true },
-  { feature: 'Persistent Customer Memory', tanat: true, manual: false, basic: false, legacy: false },
-  { feature: '1-Line Script Embed (Under 3 Min)', tanat: true, manual: false, basic: true, legacy: false },
-  { feature: '0.3s Instant 24/7 Responses', tanat: true, manual: false, basic: true, legacy: false },
-];
-
-const TESTIMONIAL_CARDS = [
-  {
-    quote: 'Setup took 3 minutes. Customers get instant answers on our store and Telegram.',
-    name: 'Maya Lin',
-    company: 'Studio Kanso',
-  },
-  {
-    quote: 'The 1-click refund approval gate gave our ops team total confidence to automate.',
-    name: 'Liam O’Connor',
-    company: 'Northwind Goods',
-  },
-  {
-    quote: 'Suggested questions at the bottom of the chat doubled our visitor engagement.',
-    name: 'Elena Rostova',
-    company: 'Harbor Dental',
-  },
-  {
-    quote: 'One line in our Framer & Next.js footer and it immediately knew our entire docs.',
-    name: 'Marcus Vance',
-    company: 'Velora Labs',
-  },
-  {
-    quote: 'Finally an AI assistant that remembers returning buyers instead of starting cold.',
-    name: 'Priya Nair',
-    company: 'Loom & Clay',
-  },
+const PARTNER_STRIP = [
+  { name: 'NEAR AI Cloud', logo: <NearLogo size={18} /> },
+  { name: 'WordPress', logo: <WordPressLogo size={18} /> },
+  { name: 'Slack', logo: <SlackLogo size={18} /> },
+  { name: 'Telegram', logo: <TelegramLogo size={18} /> },
+  { name: 'WhatsApp', logo: <WhatsAppLogo size={18} /> },
+  { name: 'Shopify', logo: <ShopifyLogo size={18} /> },
+  { name: 'Next.js', logo: <NextJsLogo size={18} /> },
+  { name: 'Cursor', logo: <CursorLogo size={18} /> },
 ];
 
 export default function Home() {
   return (
-    <div className="bw-site">
-      <BotwiseNav />
+    <div className="tn-site">
+      <LandingNav />
 
       <main>
-        <BotwiseHero />
+        <LandingHero />
 
-        {/* ── Clients / Platform Marquee ───────────────────────────────── */}
-        <div className="bw-frame" style={{ borderTop: 'none' }}>
-          <div className="bw-clients">
-            <div className="bw-clients-track">
-              {[...CLIENTS, ...CLIENTS].map((brand, idx) => (
-                <span key={`${brand}-${idx}`} className="bw-client-logo">
-                  <span
-                    style={{
-                      width: 8,
-                      height: 8,
-                      borderRadius: 2,
-                      background: idx % 2 === 0 ? '#3745f1' : '#d6d0c8',
-                    }}
-                  />
-                  {brand}
+        <div className="tn-frame" style={{ borderTop: 'none' }}>
+          {/* ── Partner Logos Marquee ─────────────────────────────────── */}
+          <div className="tn-clients">
+            <div className="tn-clients-track">
+              {[...PARTNER_STRIP, ...PARTNER_STRIP].map((p, idx) => (
+                <span key={`${p.name}-${idx}`} className="tn-client-logo">
+                  {p.logo}
+                  <span>{p.name}</span>
                 </span>
               ))}
             </div>
           </div>
-          <div className="bw-h-line" />
 
-          {/* ── Features Section ─────────────────────────────────────── */}
-          <section id="features">
-            <BlurReveal>
-              <div className="bw-sec-head">
-                <div>
-                  <span className="bw-eyebrow">FEATURES</span>
-                  <h2 className="bw-h2" style={{ marginTop: 10 }}>
-                    AI Agents For Customer Support
-                  </h2>
-                </div>
-                <p className="bw-sec-desc">
-                  Give every customer instant, accurate answers trained on your real
-                  business — while keeping human approval on every sensitive action.
-                </p>
-              </div>
-            </BlurReveal>
+          <div className="tn-h-line" />
 
-            <div className="bw-hatch" />
-
-            <div className="bw-grid-3">
-              <div className="bw-cell">
-                <span className="bw-eyebrow bw-eyebrow-muted">OMNICHANNEL</span>
-                <h3 className="bw-h3" style={{ fontSize: 21 }}>
-                  Unified Message Hub
-                </h3>
-                <p className="bw-sec-desc" style={{ fontSize: 14 }}>
-                  Route Website Chat, Telegram, and WhatsApp into one intelligent inbox.
-                </p>
-                <div className="bw-card-mockup">
-                  {['Website Chat · Active', 'Telegram Bot · Synced', 'WhatsApp · Connected'].map(
-                    (row) => (
-                      <div
-                        key={row}
-                        style={{
-                          padding: '9px 12px',
-                          borderRadius: 10,
-                          background: 'var(--bw-bg)',
-                          border: '1px solid var(--bw-border)',
-                          fontSize: 12.5,
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                        }}
-                      >
-                        <span>{row}</span>
-                        <span style={{ color: 'var(--bw-blue)', fontWeight: 600 }}>●</span>
-                      </div>
-                    ),
-                  )}
-                </div>
-              </div>
-
-              <div className="bw-cell">
-                <span className="bw-eyebrow bw-eyebrow-muted">KNOWLEDGE</span>
-                <h3 className="bw-h3" style={{ fontSize: 21 }}>
-                  Trained On Your Info
-                </h3>
-                <p className="bw-sec-desc" style={{ fontSize: 14 }}>
-                  Ingest URLs, PDFs, product catalogs, and custom policies with zero hallucination.
-                </p>
-                <div className="bw-card-mockup">
-                  <div
-                    style={{
-                      padding: 12,
-                      borderRadius: 12,
-                      background: '#f5f7ff',
-                      border: '1px solid rgba(55,69,241,0.2)',
-                      fontSize: 12.5,
-                    }}
-                  >
-                    <div style={{ fontWeight: 600, color: 'var(--bw-blue)' }}>
-                      Knowledge Synced
-                    </div>
-                    <div style={{ color: 'var(--bw-body)', marginTop: 4 }}>
-                      Return Policy.pdf + Pricing URL + 12 Custom FAQs
-                    </div>
-                  </div>
-                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                    {['URLs', 'PDF', 'Markdown', 'Custom Q&A'].map((t) => (
-                      <span
-                        key={t}
-                        style={{
-                          padding: '4px 10px',
-                          borderRadius: 100,
-                          background: 'var(--bw-beige)',
-                          fontSize: 11.5,
-                        }}
-                      >
-                        {t}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              <div className="bw-cell">
-                <span className="bw-eyebrow bw-eyebrow-muted">GUARDRAILS</span>
-                <h3 className="bw-h3" style={{ fontSize: 21 }}>
-                  Quick With Control
-                </h3>
-                <p className="bw-sec-desc" style={{ fontSize: 14 }}>
-                  Replies in 0.3s, pauses for your 1-click sign-off before refunds or bookings.
-                </p>
-                <div className="bw-card-mockup" style={{ alignItems: 'center', textAlign: 'center' }}>
-                  <div
-                    style={{
-                      fontFamily: 'var(--bw-font-mono)',
-                      fontSize: 26,
-                      fontWeight: 600,
-                      color: 'var(--bw-blue)',
-                    }}
-                  >
-                    00:03
-                  </div>
-                  <div style={{ fontSize: 12.5, color: 'var(--bw-body)' }}>
-                    Tanat Generating Verified Reply...
-                  </div>
-                  <span className="bw-mint-pill">Owner Approval Ready</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="bw-h-line" />
-
-            {/* Interactive Showcase */}
-            <ShowcasePlayer />
-
-            <div className="bw-h-line" />
-
-            {/* IN NUMBERS */}
-            <div className="bw-stats-4">
-              <div className="bw-stat-cell" style={{ justifyContent: 'center' }}>
-                <span className="bw-eyebrow">TANAT IN NUMBERS</span>
-                <div style={{ fontSize: 14, color: 'var(--bw-body)', marginTop: 4 }}>
-                  Built for speed, accuracy, and real-world reliability.
-                </div>
-              </div>
-              <div className="bw-stat-cell">
-                <div className="bw-stat-num">
-                  <AnimatedCounter target={2} suffix="M+" />
-                </div>
-                <div className="bw-stat-label">Conversations Automated</div>
-              </div>
-              <div className="bw-stat-cell">
-                <div className="bw-stat-num">
-                  <AnimatedCounter target={50} suffix="K+" />
-                </div>
-                <div className="bw-stat-label">Businesses & Teams</div>
-              </div>
-              <div className="bw-stat-cell">
-                <div className="bw-stat-num">
-                  <AnimatedCounter target={120} suffix="+" />
-                </div>
-                <div className="bw-stat-label">Countries Supported</div>
-              </div>
-            </div>
-
-            <div className="bw-h-line" />
-
-            {/* 4-Segment Testimonial Switcher */}
-            <FeatureTestimonialSwitcher />
-          </section>
-
-          <div className="bw-h-line" />
-
-          {/* ── System: Problem vs Solution ──────────────────────────── */}
-          <section id="system">
-            <BlurReveal>
-              <div className="bw-sec-head-center">
-                <span className="bw-eyebrow">SYSTEM</span>
-                <h2 className="bw-h2" style={{ marginTop: 10 }}>
-                  Your support systems aren’t unified
-                </h2>
-              </div>
-            </BlurReveal>
-
-            <div className="bw-h-line" />
-
-            <div className="bw-compare-2">
-              <div className="bw-center-orb" aria-hidden="true">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                  <path
-                    d="M12 3L14.6 9.4L21 12L14.6 14.6L12 21L9.4 14.6L3 12L9.4 9.4L12 3Z"
-                    fill="#3745f1"
-                  />
-                </svg>
-              </div>
-
-              <div className="bw-compare-col">
-                <span
-                  style={{
-                    padding: '4px 12px',
-                    borderRadius: 100,
-                    background: 'rgba(239,68,68,0.1)',
-                    color: '#dc2626',
-                    fontFamily: 'var(--bw-font-mono)',
-                    fontSize: 11,
-                    fontWeight: 600,
-                  }}
-                >
-                  PROBLEM
-                </span>
-                <h3 className="bw-h3" style={{ marginTop: 14 }}>
-                  Too Many Disconnected Tools
-                </h3>
-                <p className="bw-sec-desc" style={{ marginTop: 8 }}>
-                  Unanswered Telegram DMs, repetitive website questions, and zero shared
-                  context across channels.
-                </p>
-                <div className="bw-card-mockup" style={{ marginTop: 20, minHeight: 120 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
-                    <span style={{ color: '#dc2626', fontWeight: 600 }}>Unread 12+</span>
-                    <span style={{ color: 'var(--bw-muted)' }}>Avg Reply: 2h delay</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bw-compare-col">
-                <span
-                  style={{
-                    padding: '4px 12px',
-                    borderRadius: 100,
-                    background: 'rgba(55,69,241,0.1)',
-                    color: '#3745f1',
-                    fontFamily: 'var(--bw-font-mono)',
-                    fontSize: 11,
-                    fontWeight: 600,
-                  }}
-                >
-                  SOLUTION
-                </span>
-                <h3 className="bw-h3" style={{ marginTop: 14 }}>
-                  One Intelligent Unified Platform
-                </h3>
-                <p className="bw-sec-desc" style={{ marginTop: 8 }}>
-                  Tanat answers instantly from your knowledge base, remembers customers,
-                  and routes approvals to you.
-                </p>
-                <div className="bw-card-mockup" style={{ marginTop: 20, minHeight: 120 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
-                    <span style={{ color: '#3745f1', fontWeight: 600 }}>Resolved 12+ cleared</span>
-                    <span style={{ color: '#059669', fontWeight: 600 }}>Avg Reply: 0.3s</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <div className="bw-h-line" />
-
-          {/* ── Platform Interactive Accordion ───────────────────────── */}
-          <section id="platform">
-            <PlatformAccordion />
-          </section>
-
-          <div className="bw-h-line" />
-
-          {/* ── Scroll-Scrubbed Founder Quote ────────────────────────── */}
-          <ScrollScrubQuote />
-
-          <div className="bw-h-line" />
-
-          {/* ── How It Works 4-Step Tabs ─────────────────────────────── */}
+          {/* ── 1. How It Works (Same 3 Steps, Interactive) ───────────── */}
           <section id="how-it-works">
             <BlurReveal>
-              <div className="bw-sec-head-center">
-                <span className="bw-eyebrow">HOW IT WORKS</span>
-                <h2 className="bw-h2" style={{ marginTop: 10 }}>
-                  How Tanat Automates Support
-                </h2>
+              <div className="tn-sec-head">
+                <div>
+                  <span className="tn-eyebrow">HOW IT WORKS</span>
+                  <h2 className="tn-h2" style={{ marginTop: 10 }}>
+                    From zero to live assistant in three simple steps.
+                  </h2>
+                </div>
+                <p className="tn-sec-desc">
+                  No prompt engineering degree required. Add your business info,
+                  choose your channels & privacy rules, and paste one line on your
+                  website.
+                </p>
               </div>
             </BlurReveal>
-            <HowItWorksTabs />
+
+            <div className="tn-hatch" />
+            <HowItWorksInteractive />
           </section>
 
-          <div className="bw-h-line" />
+          <div className="tn-h-line" />
 
-          {/* ── Comparison Matrix ────────────────────────────────────── */}
-          <section id="compare">
+          {/* ── 2. Live Channels (Telegram, WhatsApp, Slack, Website) ─── */}
+          <section id="examples">
             <BlurReveal>
-              <div className="bw-sec-head-center">
-                <span className="bw-eyebrow">COMPARE</span>
-                <h2 className="bw-h2" style={{ marginTop: 10 }}>
-                  Better Than Traditional Support
-                </h2>
+              <div className="tn-sec-head">
+                <div>
+                  <span className="tn-eyebrow">BUILT FOR REAL BUSINESSES</span>
+                  <h2 className="tn-h2" style={{ marginTop: 10 }}>
+                    See Tanat in action on Telegram, WhatsApp & Slack.
+                  </h2>
+                </div>
+                <p className="tn-sec-desc">
+                  Pick a channel below to inspect a real customer or team thread —
+                  and test the 1-click owner approval guardrail.
+                </p>
               </div>
             </BlurReveal>
 
-            <div className="bw-matrix-wrap">
-              <table className="bw-matrix">
-                <thead>
-                  <tr>
-                    <th>AI Support Features</th>
-                    <th className="is-tanat" style={{ color: 'var(--bw-blue)' }}>
-                      Tanat
-                    </th>
-                    <th>Manual Support</th>
-                    <th>Basic Chatbots</th>
-                    <th>Legacy Helpdesk</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {MATRIX_ROWS.map((row) => (
-                    <tr key={row.feature}>
-                      <td>{row.feature}</td>
-                      <td className="is-tanat" style={{ color: 'var(--bw-blue)' }}>
-                        {row.tanat ? '✓' : '—'}
-                      </td>
-                      <td>{row.manual ? '✓' : '—'}</td>
-                      <td>{row.basic ? '✓' : '—'}</td>
-                      <td>{row.legacy ? '✓' : '—'}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <div className="tn-hatch" />
+            <ChannelExamplesExplorer />
           </section>
 
-          <div className="bw-h-line" />
+          <div className="tn-h-line" />
 
-          {/* ── Benefits 2x2 Bento ───────────────────────────────────── */}
-          <section id="benefits">
+          {/* ── 3. Easy Integration (Real Logos + Snippets) ───────────── */}
+          <section id="integrate">
             <BlurReveal>
-              <div className="bw-sec-head-center">
-                <span className="bw-eyebrow">BENEFITS</span>
-                <h2 className="bw-h2" style={{ marginTop: 10 }}>
-                  Advanced AI Driven Support Hub
-                </h2>
+              <div className="tn-sec-head">
+                <div>
+                  <span className="tn-eyebrow">EASY INTEGRATION</span>
+                  <h2 className="tn-h2" style={{ marginTop: 10 }}>
+                    Partnered with the tools your business already runs on.
+                  </h2>
+                </div>
+                <p className="tn-sec-desc">
+                  Click any platform below for its exact 60-second setup snippet —
+                  from WordPress and Shopify to Slack, Telegram, WhatsApp, and
+                  Cursor.
+                </p>
               </div>
             </BlurReveal>
-            <div className="bw-hatch" />
-            <BenefitsBento />
+
+            <IntegrationPartnerSection />
           </section>
 
-          <div className="bw-h-line" />
+          <div className="tn-h-line" />
 
-          {/* ── Integrations 4x2 Grid ────────────────────────────────── */}
-          <section id="integration">
+          {/* ── 4. Privacy & NEAR AI Cloud ────────────────────────────── */}
+          <section id="privacy">
             <BlurReveal>
-              <div className="bw-sec-head-center">
-                <span className="bw-eyebrow">INTEGRATION</span>
-                <h2 className="bw-h2" style={{ marginTop: 10 }}>
-                  Connect With Your Existing Stack
+              <div className="tn-sec-head-center">
+                <span className="tn-eyebrow">PRIVACY & EASE OF ACCESS</span>
+                <h2 className="tn-h2" style={{ marginTop: 10 }}>
+                  Private AI inference. Effortless control.
                 </h2>
               </div>
             </BlurReveal>
 
-            <div className="bw-int-grid">
-              {INTEGRATIONS.map((item) => (
-                <Link key={item.name} href={item.href} className="bw-int-card">
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span className="bw-eyebrow bw-eyebrow-muted">{item.tag}</span>
-                    {item.soon ? (
-                      <span
-                        style={{
-                          padding: '2px 8px',
-                          borderRadius: 100,
-                          background: 'var(--bw-beige)',
-                          fontSize: 11,
-                        }}
-                      >
-                        Soon
-                      </span>
-                    ) : (
-                      <span
-                        style={{
-                          width: 28,
-                          height: 28,
-                          borderRadius: '50%',
-                          border: '1px solid var(--bw-border)',
-                          display: 'grid',
-                          placeItems: 'center',
-                          fontSize: 13,
-                        }}
-                      >
-                        ↗
-                      </span>
-                    )}
-                  </div>
-                  <div style={{ fontFamily: 'var(--bw-font-display)', fontWeight: 600, fontSize: 18 }}>
-                    {item.name}
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </section>
-
-          <div className="bw-h-line" />
-
-          {/* ── Pricing Section ──────────────────────────────────────── */}
-          <PricingSection />
-
-          <div className="bw-h-line" />
-
-          {/* ── Testimonials Marquee ─────────────────────────────────── */}
-          <section id="testimonial">
-            <BlurReveal>
-              <div className="bw-sec-head-center">
-                <span className="bw-eyebrow">TESTIMONIALS</span>
-                <h2 className="bw-h2" style={{ marginTop: 10 }}>
-                  Loved By Real Businesses
-                </h2>
+            <div className="tn-grid-3" style={{ borderTop: '1px solid var(--tn-border)' }}>
+              <div className="tn-cell">
+                <span className="tn-eyebrow">POWERED BY NEAR AI CLOUD</span>
+                <h3 className="tn-h3" style={{ fontSize: 21 }}>
+                  Verifiable Private Inference
+                </h3>
+                <p className="tn-sec-desc" style={{ fontSize: 14 }}>
+                  Every prompt runs on NEAR AI Cloud with strict tenant isolation.
+                  Your documents and customer chats are never used to train public models.
+                </p>
               </div>
-            </BlurReveal>
-            <div className="bw-testi-marquee-wrap">
-              <div className="bw-testi-marquee-track">
-                {[...TESTIMONIAL_CARDS, ...TESTIMONIAL_CARDS].map((t, i) => (
-                  <div key={`${t.name}-${i}`} className="bw-testi-card">
-                    <p style={{ fontSize: 14.5, lineHeight: 1.55, color: 'var(--bw-ink)' }}>
-                      “{t.quote}”
-                    </p>
-                    <div>
-                      <div style={{ fontWeight: 600, fontSize: 13.5 }}>{t.name}</div>
-                      <div style={{ fontSize: 12, color: 'var(--bw-muted)' }}>{t.company}</div>
-                    </div>
-                  </div>
-                ))}
+              <div className="tn-cell">
+                <span className="tn-eyebrow">HUMAN GUARDRAILS</span>
+                <h3 className="tn-h3" style={{ fontSize: 21 }}>
+                  1-Click Owner Approvals
+                </h3>
+                <p className="tn-sec-desc" style={{ fontSize: 14 }}>
+                  Tanat answers routine questions automatically and pauses refunds,
+                  discounts, or bookings for your instant sign-off.
+                </p>
+              </div>
+              <div className="tn-cell">
+                <span className="tn-eyebrow">EFFORTLESS ACCESS</span>
+                <h3 className="tn-h3" style={{ fontSize: 21 }}>
+                  Live in Under 3 Minutes
+                </h3>
+                <p className="tn-sec-desc" style={{ fontSize: 14 }}>
+                  Sign in with one email code, upload a URL or PDF, and deploy
+                  across web, Telegram, WhatsApp, and Slack without engineers.
+                </p>
               </div>
             </div>
+
+            <div className="tn-h-line" />
+
+            <div className="tn-stats-4">
+              <div className="tn-stat-cell" style={{ justifyContent: 'center' }}>
+                <span className="tn-eyebrow">TANAT METRICS</span>
+                <div style={{ fontSize: 13.5, color: 'var(--tn-body)', marginTop: 4 }}>
+                  Built on NEAR AI Cloud for speed & privacy.
+                </div>
+              </div>
+              <div className="tn-stat-cell">
+                <div className="tn-stat-num">
+                  <AnimatedCounter target={3} suffix=" min" />
+                </div>
+                <div style={{ fontSize: 13.5, color: 'var(--tn-body)' }}>
+                  Average setup time
+                </div>
+              </div>
+              <div className="tn-stat-cell">
+                <div className="tn-stat-num">
+                  <AnimatedCounter target={100} suffix="%" />
+                </div>
+                <div style={{ fontSize: 13.5, color: 'var(--tn-body)' }}>
+                  Private workspace isolation
+                </div>
+              </div>
+              <div className="tn-stat-cell">
+                <div className="tn-stat-num">24/7</div>
+                <div style={{ fontSize: 13.5, color: 'var(--tn-body)' }}>
+                  Instant multi-channel coverage
+                </div>
+              </div>
+            </div>
+
+            <div className="tn-h-line" />
+            <PrivacyScrubQuote />
           </section>
 
-          <div className="bw-h-line" />
-
-          {/* ── FAQ Accordion ────────────────────────────────────────── */}
-          <FaqAccordion />
-
-          {/* ── Final Royal Blue CTA Card ────────────────────────────── */}
-          <div style={{ padding: '0 24px 56px' }}>
+          {/* ── 5. Final CTA ──────────────────────────────────────────── */}
+          <div style={{ padding: '16px 24px 56px' }}>
             <div
-              className="bw-blue-grain"
-              style={{
-                borderRadius: 22,
-                padding: '64px 32px',
-                textAlign: 'center',
-              }}
+              className="tn-near-grain"
+              style={{ borderRadius: 22, padding: '60px 32px', textAlign: 'center' }}
             >
-              <span className="bw-pushpin bw-pushpin-left" aria-hidden="true" />
-              <span className="bw-pushpin bw-pushpin-right" aria-hidden="true" />
-              <div className="bw-pixel-corner" style={{ top: 18, left: 64 }} aria-hidden="true" />
-              <div className="bw-pixel-corner" style={{ bottom: 18, right: 64 }} aria-hidden="true" />
+              <span className="tn-pushpin tn-pushpin-left" aria-hidden="true" />
+              <span className="tn-pushpin tn-pushpin-right" aria-hidden="true" />
+              <div className="tn-pixel-corner" style={{ top: 18, left: 64 }} aria-hidden="true" />
+              <div className="tn-pixel-corner" style={{ bottom: 18, right: 64 }} aria-hidden="true" />
 
               <span
-                className="bw-eyebrow"
-                style={{ color: 'rgba(255,255,255,0.85)', position: 'relative', zIndex: 2 }}
+                className="tn-eyebrow"
+                style={{ color: '#00ec97', position: 'relative', zIndex: 2 }}
               >
-                START TODAY
+                READY IN 3 MINUTES
               </span>
               <h2
-                className="bw-h1"
+                className="tn-h1"
                 style={{
                   color: '#ffffff',
                   marginTop: 12,
-                  maxWidth: 640,
+                  maxWidth: 660,
                   marginLeft: 'auto',
                   marginRight: 'auto',
                   position: 'relative',
                   zIndex: 2,
                 }}
               >
-                Upgrade Customer Support Today
+                Ready to put your private AI assistant to work?
               </h2>
               <p
                 style={{
                   marginTop: 14,
-                  color: 'rgba(255,255,255,0.84)',
-                  maxWidth: 520,
+                  color: 'rgba(255,255,255,0.85)',
+                  maxWidth: 540,
                   marginLeft: 'auto',
                   marginRight: 'auto',
                   position: 'relative',
                   zIndex: 2,
                 }}
               >
-                Set up your workspace in 3 minutes, test your assistant live, and paste
-                one line to go live everywhere.
+                Train on your business info, test with your own questions, and
+                connect WordPress, Shopify, Telegram, WhatsApp, or Slack.
               </p>
+
               <div
                 style={{
                   marginTop: 28,
@@ -588,11 +263,11 @@ export default function Home() {
                   zIndex: 2,
                 }}
               >
-                <Link href="/docs" className="bw-btn bw-btn-outline-light">
-                  Explore Docs
+                <Link href="/start" className="tn-btn tn-btn-near">
+                  Get started free →
                 </Link>
-                <Link href="/start" className="bw-btn bw-btn-white">
-                  Get Started →
+                <Link href="/docs" className="tn-btn tn-btn-outline-light">
+                  Integration guide
                 </Link>
               </div>
             </div>
@@ -600,52 +275,62 @@ export default function Home() {
         </div>
       </main>
 
-      {/* ── Dark Footer with Giant Grainy Wordmark ───────────────────── */}
-      <footer className="bw-footer">
-        <div className="bw-footer-grid">
-          <div className="bw-footer-col">
+      {/* ── Dark Footer ───────────────────────────────────────────────── */}
+      <footer className="tn-footer">
+        <div className="tn-footer-grid">
+          <div className="tn-footer-col">
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <span className="bw-brand-badge" aria-hidden="true">
-                ✦
+              <span className="tn-brand-mascot">
+                <img
+                  src="/tanat-mascot.jpg"
+                  alt="Tanat mascot"
+                  width={36}
+                  height={36}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                />
               </span>
-              <span style={{ fontFamily: 'var(--bw-font-display)', fontWeight: 600, fontSize: 19 }}>
+              <span style={{ fontFamily: 'var(--tn-font-display)', fontWeight: 600, fontSize: 19 }}>
                 Tanat
               </span>
             </div>
-            <p style={{ fontSize: 13.5, color: 'rgba(255,255,255,0.65)', marginTop: 6 }}>
-              AI assistants for real businesses — trained on your info and always under your control.
+            <p style={{ fontSize: 13.5, color: 'rgba(255,255,255,0.68)', marginTop: 6 }}>
+              Private AI assistants for real businesses — powered by NEAR AI Cloud
+              and always under your control.
             </p>
-            <div style={{ marginTop: 10 }}>
-              <Link href="/start" className="bw-btn bw-btn-white" style={{ height: 38, fontSize: 13 }}>
-                Get Started →
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#00ec97', fontSize: 12.5, fontWeight: 600 }}>
+              <NearLogo size={15} />
+              <span>Powered by NEAR AI Cloud</span>
+            </div>
+            <div style={{ marginTop: 8 }}>
+              <Link href="/start" className="tn-btn tn-btn-near" style={{ height: 38, fontSize: 13 }}>
+                Get started →
               </Link>
             </div>
           </div>
 
-          <div className="bw-footer-col">
-            <h4>Home</h4>
-            <a href="#features">Features</a>
-            <a href="#system">System</a>
-            <a href="#how-it-works">How It Works</a>
-            <a href="#pricing">Pricing</a>
-            <a href="#faq">FAQ</a>
+          <div className="tn-footer-col">
+            <h4>Product</h4>
+            <a href="#how-it-works">How it works</a>
+            <a href="#examples">Telegram, WhatsApp & Slack</a>
+            <a href="#integrate">Website widget</a>
+            <a href="#privacy">Privacy & NEAR AI</a>
           </div>
 
-          <div className="bw-footer-col">
-            <h4>Platform</h4>
-            <Link href="/start">3-Min Setup</Link>
-            <Link href="/app">Workspace Dashboard</Link>
-            <Link href="/login">Sign in</Link>
+          <div className="tn-footer-col">
+            <h4>Integration</h4>
             <Link href="/docs">Documentation</Link>
-          </div>
-
-          <div className="bw-footer-col">
-            <h4>Resources</h4>
             <Link href="/docs#widget">1-Line Widget</Link>
             <Link href="/docs#vibecoding">Cursor / Lovable / v0</Link>
             <a href="https://api.tanat.space/llms.txt" target="_blank" rel="noreferrer">
               llms.txt
             </a>
+          </div>
+
+          <div className="tn-footer-col">
+            <h4>Account</h4>
+            <Link href="/login">Sign in</Link>
+            <Link href="/app">Workspace dashboard</Link>
+            <Link href="/start">3-minute setup</Link>
             <a href="mailto:hello@tanat.space">hello@tanat.space</a>
           </div>
         </div>
@@ -660,11 +345,11 @@ export default function Home() {
             color: 'rgba(255,255,255,0.48)',
           }}
         >
-          <span>© 2026 Tanat. Built for real businesses.</span>
+          <span>© 2026 Tanat. Powered by NEAR AI Cloud.</span>
           <span>All systems operational</span>
         </div>
 
-        <div className="bw-footer-wordmark" aria-hidden="true">
+        <div className="tn-footer-wordmark" aria-hidden="true">
           Tanat
         </div>
       </footer>
