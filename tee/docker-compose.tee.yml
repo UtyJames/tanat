@@ -1,0 +1,28 @@
+services:
+  tanat-enclave:
+    build:
+      context: ..
+      dockerfile: tee/Dockerfile.tee
+    image: tanat-enclave:latest
+    restart: unless-stopped
+    ports:
+      - "8787:8787"
+    environment:
+      ENVIRONMENT: production
+      TEE_RUNTIME_MODE: dstack_cvm
+      TEE_STRICT_VERIFICATION: "true"
+      TEE_SOCKET_PATH: /var/run/tappd.sock
+      # Set TEE_ALLOWED_MRTD to pin KMS DEK unwrapping to this enclave's TDX MRTD measurement:
+      TEE_ALLOWED_MRTD: ${TEE_ALLOWED_MRTD:-}
+      KMS_MASTER_KEY: ${KMS_MASTER_KEY}
+      KMS_KEY_ID: ${KMS_KEY_ID:-dstack-tdx-kek-v1}
+      NEAR_AI_API_KEY: ${NEAR_AI_API_KEY}
+      API_KEY_SALT: ${API_KEY_SALT}
+      MASTER_API_KEY: ${MASTER_API_KEY}
+      CORS_ORIGINS: ${CORS_ORIGINS:-https://www.tanat.space,https://tanat.space}
+    volumes:
+      - /var/run/tappd.sock:/var/run/tappd.sock
+      - tanat_enclave_data:/app/.wrangler
+
+volumes:
+  tanat_enclave_data:

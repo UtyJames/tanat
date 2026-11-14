@@ -38,6 +38,12 @@ export interface Env {
   /** Master Key Encryption Key (KEK) for tenant DEK wrapping (32-byte base64/hex or secret) */
   KMS_MASTER_KEY?: string;
   KMS_KEY_ID?: string;
+
+  /** TEE / Conclave Enclave Runtime Configuration */
+  TEE_RUNTIME_MODE?: 'cloudflare_worker' | 'tdx_enclave' | 'dstack_cvm';
+  TEE_ALLOWED_MRTD?: string;
+  TEE_SOCKET_PATH?: string;
+  TEE_STRICT_VERIFICATION?: string;
 }
 
 /** Variables set by middleware and available on the Hono context */

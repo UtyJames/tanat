@@ -1,0 +1,21 @@
+FROM node:22-alpine
+
+WORKDIR /app
+
+COPY package.json package-lock.json ./
+RUN npm ci --omit=dev
+
+COPY dist ./dist
+COPY scripts/local-api.mjs ./scripts/local-api.mjs
+COPY scripts/seed.sql ./scripts/seed.sql
+COPY src/db ./src/db
+
+ENV NODE_ENV=production
+ENV TEE_RUNTIME_MODE=dstack_cvm
+ENV TEE_STRICT_VERIFICATION=true
+ENV TEE_SOCKET_PATH=/var/run/tappd.sock
+ENV PORT=8787
+
+EXPOSE 8787
+
+CMD ["node", "scripts/local-api.mjs"]

@@ -22,6 +22,12 @@ import {
 } from '../services/encryption.service';
 import { resolveKmsProvider } from '../services/kms.service';
 import { getAiPrivacyStatus } from '../services/ai-privacy.service';
+import {
+  fetchNearAiAttestationReport,
+  listTeeReceipts,
+} from '../services/near-ai-tee.service';
+import { NEAR_AI_DEFAULT_MODEL } from '../services/near-ai.service';
+import { resolveEnclaveMode } from '../services/enclave-runtime.service';
 import { recordSecurityAlert } from '../services/security-monitor.service';
 import { ALL_GRANULAR_PERMISSIONS, normalizeRole } from '../middleware/rbac';
 
@@ -523,4 +529,68 @@ privacyRouter.post(
     return c.json({ data: row });
   },
 );
+
+// ── GET /tee-receipts — List per-inference cryptographic TEE receipts ─────
+privacyRouter.get('/tee-receipts', async (c) => {
+  const tenantId = c.get('tenantId');
+  const receipts = await listTeeReceipts(c.env.DB, tenantId, 25);
+  return c.json({ data: receipts });
+});
+
+// ── POST /tee-verify — Live nonce-bound NEAR AI TEE attestation check ─────
+privacyRouter.post('/tee-verify', async (c) => {
+  const tenantId = c.get('tenantId');
+  const apiKey = (c.env.NEAR_AI_API_KEY ?? '').trim();
+  if (!apiKey) {
+    return c.json({
+      data: {
+        verified: false,
+        reason: 'NEAR_AI_API_KEY is not configured in this environment.',
+        enclave_mode: resolveEnclaveMode(c.env),
+      },
+    });
+  }
+
+  const body = await c.req.json().catch(() => ({})) as { model?: unknown };
+  const model =
+    typeof body.model === 'string' && body.model.trim().length > 0
+      ? body.model.trim()
+      : NEAR_AI_DEFAULT_MODEL;
+
+  const report = await fetchNearAiAttestationReport({
+    apiKey,
+    model,
+  });
+
+  await logAudit(c.env.DB, {
+    tenantId,
+    action: 'privacy.tee_attestation_verified',
+    resourceType: 'near_ai_model',
+    resourceId: model,
+    actorId: c.get('apiKeyId'),
+    details: {
+      signing_address: report.signingAddress,
+      tdx_present: report.tdxPresent,
+      gpu_attested: report.gpuAttested,
+    },
+    ipAddress: requestIp(c),
+  });
+
+  return c.json({
+    data: {
+      verified: report.tdxPresent || report.gpuAttested,
+      enclave_mode: resolveEnclaveMode(c.env),
+      report: {
+        model: report.model,
+        nonce: report.nonce,
+        signing_address: report.signingAddress,
+        signing_algo: report.signingAlgo,
+        tdx_present: report.tdxPresent,
+        gpu_attested: report.gpuAttested,
+        gateway_attested: report.gatewayAttested,
+        fetched_at: report.fetchedAt,
+      },
+    },
+  });
+});
 

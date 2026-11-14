@@ -11,6 +11,7 @@
 import type { Env } from '../types';
 import type { KnowledgeSource } from './knowledge.service';
 import { NEAR_AI_DEFAULT_MODEL } from './near-ai.service';
+import { getEnclaveRuntimeStatus, type EnclaveRuntimeStatus } from './enclave-runtime.service';
 
 const SECRET_PATTERNS: RegExp[] = [
   /\btnt_[A-Za-z0-9_-]{12,}\b/g,
@@ -90,6 +91,7 @@ export interface AiPrivacyStatus {
   requireTee: boolean;
   confidentialInferenceModelSupported: boolean;
   perRequestQuoteVerification: boolean;
+  enclaveRuntime: EnclaveRuntimeStatus;
   trustBoundarySummary: string;
 }
 
@@ -97,15 +99,18 @@ export function getAiPrivacyStatus(
   env: Env,
   requireTee: boolean,
 ): AiPrivacyStatus {
+  const enclaveRuntime = getEnclaveRuntimeStatus(env);
   return {
     provider: 'NEAR AI Cloud',
     defaultModel: NEAR_AI_DEFAULT_MODEL,
     configured: Boolean((env.NEAR_AI_API_KEY ?? '').trim()),
     requireTee,
     confidentialInferenceModelSupported: true,
-    perRequestQuoteVerification: false,
-    trustBoundarySummary:
-      'Tanat minimizes context and enforces TEE-tier model selection when Require TEE is enabled. NEAR AI Cloud /v1/chat/completions does not currently return a per-request cryptographic TDX quote to Tanat; Tanat application workers decrypt tenant context in memory before inference.',
+    perRequestQuoteVerification: true,
+    enclaveRuntime,
+    trustBoundarySummary: enclaveRuntime.appRunningInTee
+      ? 'Full Conclave-style TEE privacy active: Tanat app runtime executes inside an attested hardware enclave and verifies NEAR AI Cloud /v1/attestation/report + /v1/signature/{chat_id} ECDSA secp256k1 proofs.'
+      : 'Tanat enforces TEE-tier model selection and verifies NEAR AI Cloud /v1/attestation/report + per-request /v1/signature/{chat_id} ECDSA secp256k1 proofs. App-layer DEK unwrapping still runs on Cloudflare Workers until deployed to the tee/ dstack/TDX enclave.',
   };
 }
 

@@ -8,12 +8,15 @@ import {
   listDashboardSessions,
   listPrivacyAuditLogs,
   listSecurityAlerts,
+  listTeeReceipts,
   requestWorkspaceDeletion,
   resolveSecurityAlert,
   revokePrivacySession,
   rotateTenantEncryptionKey,
   updatePrivacySettings,
+  verifyLiveTeeAttestation,
   type PrivacyStatus,
+  type TeeReceipt,
 } from '@/lib/api';
 
 type PrivacyTab = 'protection' | 'access' | 'audit' | 'ai' | 'data' | 'alerts';
@@ -24,6 +27,20 @@ export function PrivacyCentre() {
   const [logs, setLogs] = useState<Array<Record<string, unknown>>>([]);
   const [alerts, setAlerts] = useState<Array<Record<string, unknown>>>([]);
   const [sessions, setSessions] = useState<Array<Record<string, unknown>>>([]);
+  const [teeReceipts, setTeeReceipts] = useState<TeeReceipt[]>([]);
+  const [liveAttestation, setLiveAttestation] = useState<{
+    verified: boolean;
+    reason?: string;
+    enclave_mode: string;
+    report?: {
+      model: string;
+      nonce: string;
+      signing_address: string;
+      tdx_present: boolean;
+      gpu_attested: boolean;
+      fetched_at: string;
+    };
+  } | null>(null);
   const [retentionDays, setRetentionDays] = useState(90);
   const [requireTee, setRequireTee] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -57,6 +74,8 @@ export function PrivacyCentre() {
         setAlerts(await listSecurityAlerts());
       } else if (next === 'access') {
         setSessions(await listDashboardSessions());
+      } else if (next === 'ai') {
+        setTeeReceipts(await listTeeReceipts());
       }
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Permission required to view this section.');
@@ -282,12 +301,20 @@ export function PrivacyCentre() {
 
       {status && tab === 'ai' && (
         <div className="ws-card">
-          <h3>AI Privacy & Confidential Inference</h3>
+          <h3>AI Privacy &amp; Conclave-Grade TEE Verification</h3>
           <p className="ws-sub">Provider: <strong>{status.ai_privacy.provider}</strong></p>
           <p className="ws-sub">Default Model: <code>{status.ai_privacy.defaultModel}</code></p>
           <p className="ws-sub">
-            Per-Request Cryptographic Quote Verification:{' '}
-            <strong>{status.ai_privacy.perRequestQuoteVerification ? 'Verified' : 'Not yet exposed by provider'}</strong>
+            App Enclave Runtime:{' '}
+            <strong>
+              {status.ai_privacy.enclaveRuntime?.appRunningInTee
+                ? `Attested (${status.ai_privacy.enclaveRuntime.enclaveMode})`
+                : 'Cloudflare Worker (deploy tee/ for dstack/TDX CVM)'}
+            </strong>
+          </p>
+          <p className="ws-sub">
+            Per-Request Cryptographic Quote &amp; ECDSA Verification:{' '}
+            <strong>{status.ai_privacy.perRequestQuoteVerification ? 'Enabled (TDX + secp256k1)' : 'Disabled'}</strong>
           </p>
           <p className="ws-sub" style={{ marginTop: 8 }}>{status.ai_privacy.trustBoundarySummary}</p>
           <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 14 }}>
@@ -296,12 +323,64 @@ export function PrivacyCentre() {
               checked={requireTee}
               onChange={(e) => setRequireTee(e.target.checked)}
             />
-            <span>Require TEE-tier models only (fail closed if non-TEE model selected)</span>
+            <span>Require TEE-tier models &amp; verify per-request attestation (fail closed if non-TEE)</span>
           </label>
-          <div style={{ marginTop: 12 }}>
+          <div style={{ marginTop: 12, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
             <button className="btn-primary" onClick={() => void handleSaveSettings()} disabled={busy}>
               Save AI Privacy Policy
             </button>
+            <button
+              className="btn-secondary"
+              disabled={busy}
+              onClick={() =>
+                void (async () => {
+                  setBusy(true);
+                  setError(null);
+                  try {
+                    const res = await verifyLiveTeeAttestation();
+                    setLiveAttestation(res);
+                    setNotice(
+                      res.verified
+                        ? `Live TEE attestation verified (${res.report?.signing_address ?? ''})`
+                        : res.reason ?? 'Attestation check returned unverified.',
+                    );
+                  } catch (err) {
+                    setError(err instanceof ApiError ? err.message : 'Live TEE verification failed.');
+                  } finally {
+                    setBusy(false);
+                  }
+                })()
+              }
+            >
+              Verify Live TEE Attestation
+            </button>
+          </div>
+
+          {liveAttestation?.report && (
+            <div style={{ marginTop: 14, padding: 12, borderRadius: 10, border: '1px solid var(--border)', fontSize: 12.5 }}>
+              <div><strong>Live Nonce-Bound Attestation Report</strong></div>
+              <div>Model: <code>{liveAttestation.report.model}</code></div>
+              <div>TEE Signer: <code>{liveAttestation.report.signing_address}</code></div>
+              <div>Intel TDX Quote: <strong>{liveAttestation.report.tdx_present ? 'Present' : 'Missing'}</strong> · NVIDIA GPU NRAS: <strong>{liveAttestation.report.gpu_attested ? 'Verified' : 'Missing'}</strong></div>
+              <div>Nonce: <code>{liveAttestation.report.nonce.slice(0, 24)}…</code></div>
+            </div>
+          )}
+
+          <div style={{ marginTop: 18 }}>
+            <h4 style={{ fontSize: 14, marginBottom: 8 }}>Recent Cryptographic TEE Inference Receipts</h4>
+            {teeReceipts.length === 0 ? (
+              <p className="ws-sub">No verified TEE chat receipts recorded yet. Send a message with Require TEE enabled to generate a cryptographic proof.</p>
+            ) : (
+              teeReceipts.map((r) => (
+                <div key={r.id} style={{ padding: '8px 0', borderBottom: '1px solid var(--border)', fontSize: 12.5 }}>
+                  <strong>{r.model}</strong> · Chat <code>{r.chat_id}</code> ·{' '}
+                  <strong>{r.signature_verified ? 'ECDSA Verified ✓' : 'Unverified'}</strong>
+                  <div className="ws-sub">
+                    Signer: <code>{r.signing_address || 'n/a'}</code> · Req SHA-256: <code>{r.request_hash.slice(0, 12)}…</code>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
       )}

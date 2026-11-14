@@ -33,6 +33,8 @@ import {
 } from '../services/knowledge.service';
 import { encryptField, decryptField } from '../services/encryption.service';
 import { isValidNearAccount } from '../services/near.service';
+import { persistTeeReceipt } from '../services/near-ai-tee.service';
+import { resolveEnclaveMode } from '../services/enclave-runtime.service';
 import {
   NearAiService,
   NEAR_AI_DEFAULT_MODEL,
@@ -697,10 +699,36 @@ export function createSessionsRouter(
           maxTokens: Math.min(Math.max(session.agent_max_tokens || 1024, 256), 4096),
           temperature: session.agent_temperature ?? 0.4,
           requireTee,
+          verifyTeeAttestation: requireTee,
+          strictTeeVerification: c.env.TEE_STRICT_VERIFICATION === 'true',
         });
 
         usedModel = result.model;
         privacyTier = result.privacyTier;
+
+        if (result.teeProof?.chatId) {
+          await persistTeeReceipt(c.env.DB, {
+            tenantId,
+            sessionId,
+            chatId: result.teeProof.chatId,
+            model: result.model,
+            nonce: result.teeProof.nonce,
+            signingAddress:
+              result.teeProof.signatureVerification?.signingAddress ||
+              result.teeProof.attestation?.signingAddress ||
+              '',
+            requestHash: result.teeProof.signatureVerification?.requestHash ?? '',
+            responseHash: result.teeProof.signatureVerification?.responseHash ?? '',
+            signature: result.teeProof.signatureVerification?.signature ?? '',
+            tdxVerified: Boolean(result.teeProof.attestation?.tdxPresent),
+            gpuVerified: Boolean(result.teeProof.attestation?.gpuAttested),
+            signatureVerified: Boolean(result.teeProof.signatureVerification?.signatureVerified),
+            enclaveMode: resolveEnclaveMode(c.env),
+            reportJson: result.teeProof.attestation?.rawReport ?? {},
+          }).catch(() => {
+            // Non-blocking receipt persistence unless strict mode already threw
+          });
+        }
 
         if (result.usage.totalTokens > 0) {
           await recordUsage(c.env.DB, tenantId, 'tokens', result.usage.totalTokens, {

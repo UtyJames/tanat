@@ -686,6 +686,14 @@ export interface PrivacyStatus {
     requireTee: boolean;
     confidentialInferenceModelSupported: boolean;
     perRequestQuoteVerification: boolean;
+    enclaveRuntime?: {
+      enclaveMode: 'cloudflare_worker' | 'tdx_enclave' | 'dstack_cvm';
+      appRunningInTee: boolean;
+      kmsMeasurementBound: boolean;
+      allowedMrtdConfigured: boolean;
+      socketPath: string | null;
+      summary: string;
+    };
     trustBoundarySummary: string;
   };
   security_events: {
@@ -737,6 +745,44 @@ export function requestWorkspaceDeletion(): Promise<{
   deletion_scheduled_for: string;
 }> {
   return request('POST', '/privacy/deletion-request');
+}
+
+export interface TeeReceipt {
+  id: string;
+  chat_id: string;
+  model: string;
+  nonce: string;
+  signing_address: string;
+  signing_algo: string;
+  request_hash: string;
+  response_hash: string;
+  tdx_verified: number;
+  gpu_verified: number;
+  signature_verified: number;
+  enclave_mode: string;
+  created_at: string;
+}
+
+export function listTeeReceipts(): Promise<TeeReceipt[]> {
+  return request<TeeReceipt[]>('GET', '/privacy/tee-receipts');
+}
+
+export function verifyLiveTeeAttestation(model?: string): Promise<{
+  verified: boolean;
+  reason?: string;
+  enclave_mode: string;
+  report?: {
+    model: string;
+    nonce: string;
+    signing_address: string;
+    signing_algo: string;
+    tdx_present: boolean;
+    gpu_attested: boolean;
+    gateway_attested: boolean;
+    fetched_at: string;
+  };
+}> {
+  return request('POST', '/privacy/tee-verify', model ? { model } : {});
 }
 
 export { API_URL, PUBLIC_BASE_URL };

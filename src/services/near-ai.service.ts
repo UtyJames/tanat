@@ -8,6 +8,13 @@
  */
 
 import { AppError } from '../utils/errors';
+import {
+  fetchAndVerifyNearAiSignature,
+  fetchNearAiAttestationReport,
+  generateTeeNonceHex,
+  type NearAiAttestationReport,
+  type NearAiSignatureVerification,
+} from './near-ai-tee.service';
 
 export const NEAR_AI_DEFAULT_BASE_URL = 'https://cloud-api.near.ai/v1';
 export const NEAR_AI_DEFAULT_MODEL = 'z-ai/glm-5.3';
@@ -47,11 +54,22 @@ export interface ChatToolCall {
   arguments: string;
 }
 
+export interface ChatTeeProof {
+  chatId: string;
+  nonce: string;
+  attestation: NearAiAttestationReport | null;
+  signatureVerification: NearAiSignatureVerification | null;
+  verified: boolean;
+  error?: string;
+}
+
 export interface ChatResult {
+  chatId?: string;
   content: string;
   toolCalls: ChatToolCall[];
   model: string;
   privacyTier: PrivacyTier;
+  teeProof?: ChatTeeProof;
   usage: {
     promptTokens: number;
     completionTokens: number;
@@ -67,6 +85,10 @@ export interface ChatOptions {
   temperature?: number;
   /** Require a TEE-backed model. Throws if the selected model is not TEE. */
   requireTee?: boolean;
+  /** Fetch and cryptographically verify NEAR AI attestation + per-chat ECDSA signature. */
+  verifyTeeAttestation?: boolean;
+  /** Fail closed if cryptographic TEE attestation or signature verification fails. */
+  strictTeeVerification?: boolean;
 }
 
 interface RawModel {
@@ -80,6 +102,7 @@ interface RawModel {
 }
 
 interface RawCompletion {
+  id?: unknown;
   choices?: Array<{
     message?: {
       content?: unknown;
@@ -202,21 +225,34 @@ export class NearAiService {
       );
     }
 
+    const rawRequestBody = JSON.stringify({
+      model: modelId,
+      messages: options.messages,
+      max_tokens: options.maxTokens ?? 1024,
+      temperature: options.temperature ?? 0.4,
+      ...(options.tools && options.tools.length > 0
+        ? { tools: options.tools, tool_choice: 'auto' }
+        : {}),
+    });
+
     const response = await this.request('/chat/completions', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: modelId,
-        messages: options.messages,
-        max_tokens: options.maxTokens ?? 1024,
-        temperature: options.temperature ?? 0.4,
-        ...(options.tools && options.tools.length > 0
-          ? { tools: options.tools, tool_choice: 'auto' }
-          : {}),
-      }),
+      body: rawRequestBody,
     });
 
-    const body = (await this.responseJson(response)) as RawCompletion;
+    const rawResponseBody = await response.text();
+    let body: RawCompletion;
+    try {
+      body = JSON.parse(rawResponseBody) as RawCompletion;
+    } catch {
+      throw new AppError(
+        'NEAR AI Cloud returned invalid JSON',
+        502,
+        'NEAR_AI_INVALID_RESPONSE',
+      );
+    }
+    const chatId = typeof body.id === 'string' ? body.id : undefined;
     const message = body.choices?.[0]?.message;
     if (!message) {
       throw new AppError(
@@ -241,11 +277,63 @@ export class NearAiService {
           .filter((call): call is ChatToolCall => call !== null)
       : [];
 
+    let teeProof: ChatTeeProof | undefined;
+    if (options.verifyTeeAttestation && chatId && this.apiKey) {
+      const nonce = generateTeeNonceHex();
+      try {
+        const attestation = await fetchNearAiAttestationReport({
+          apiKey: this.apiKey,
+          model: modelId,
+          nonce,
+          fetcher: this.fetcher,
+        });
+        const signatureVerification = await fetchAndVerifyNearAiSignature({
+          apiKey: this.apiKey,
+          chatId,
+          model: modelId,
+          rawRequestBody,
+          rawResponseBody,
+          expectedSigningAddress: attestation.signingAddress,
+          fetcher: this.fetcher,
+        });
+        const verified =
+          signatureVerification.signatureVerified &&
+          (attestation.tdxPresent || attestation.gpuAttested);
+        teeProof = {
+          chatId,
+          nonce,
+          attestation,
+          signatureVerification,
+          verified,
+          ...(signatureVerification.error ? { error: signatureVerification.error } : {}),
+        };
+      } catch (err) {
+        teeProof = {
+          chatId,
+          nonce,
+          attestation: null,
+          signatureVerification: null,
+          verified: false,
+          error: err instanceof Error ? err.message : 'TEE verification failed',
+        };
+      }
+
+      if (options.strictTeeVerification && !teeProof.verified) {
+        throw new AppError(
+          `TEE cryptographic verification failed for ${modelId}: ${teeProof.error ?? 'unverified'}`,
+          502,
+          'NEAR_AI_TEE_VERIFICATION_FAILED',
+        );
+      }
+    }
+
     return {
+      chatId,
       content: typeof message.content === 'string' ? message.content : '',
       toolCalls,
       model: modelId,
       privacyTier,
+      ...(teeProof ? { teeProof } : {}),
       usage: {
         promptTokens:
           typeof body.usage?.prompt_tokens === 'number'

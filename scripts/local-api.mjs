@@ -115,6 +115,10 @@ function loadDatabase() {
     if (!memberCols.some((col) => col.name === 'workspace_role')) {
       database.exec(readFileSync('src/db/migrations/0009_security_privacy_overhaul.sql', 'utf8'));
     }
+    const teeTable = database.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='tee_attestation_receipts'").get();
+    if (!teeTable) {
+      database.exec(readFileSync('src/db/migrations/0010_tee_attestations.sql', 'utf8'));
+    }
   }
 
   return database;
