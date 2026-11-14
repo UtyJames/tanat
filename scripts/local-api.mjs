@@ -107,6 +107,10 @@ function loadDatabase() {
   } else {
     // Ensure additive platform tables from 0007 exist on already-initialised DBs.
     database.exec(readFileSync('src/db/migrations/0007_channels_and_publishable_keys.sql', 'utf8'));
+    const cols = database.prepare('PRAGMA table_info(knowledge_sources)').all();
+    if (!cols.some((col) => col.name === 'metadata')) {
+      database.exec(readFileSync('src/db/migrations/0008_knowledge_metadata.sql', 'utf8'));
+    }
   }
 
   return database;

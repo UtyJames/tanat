@@ -134,6 +134,7 @@ export default function Dashboard() {
   const [knUploadSuccess, setKnUploadSuccess] = useState<string | null>(null);
   const [knDragOver, setKnDragOver] = useState(false);
   const [knEditorTab, setKnEditorTab] = useState<'edit' | 'preview'>('edit');
+  const [draftHydrated, setDraftHydrated] = useState(false);
   const knTextareaRef = useRef<HTMLTextAreaElement | null>(null);
   const knFileInputRef = useRef<HTMLInputElement | null>(null);
   const [memUserId, setMemUserId] = useState('customer_01');
@@ -256,6 +257,98 @@ export default function Dashboard() {
       knTextareaRef.current.style.height = `${Math.max(150, knTextareaRef.current.scrollHeight)}px`;
     }
   }, [knContent, knEditorTab, section]);
+
+  // Restore active section and Knowledge form draft on page refresh
+  useEffect(() => {
+    try {
+      const savedSection = localStorage.getItem('tanat_dashboard_section');
+      if (
+        savedSection &&
+        [
+          'overview',
+          'agents',
+          'knowledge',
+          'channels',
+          'integrations',
+          'conversations',
+          'activity',
+          'analytics',
+          'team',
+          'developers',
+          'settings',
+        ].includes(savedSection)
+      ) {
+        setSection(savedSection as Section);
+      }
+
+      const rawDraft = localStorage.getItem('tanat_knowledge_draft_v1');
+      if (rawDraft) {
+        const draft = JSON.parse(rawDraft) as Partial<{
+          knType: 'website' | 'faq' | 'document' | 'pdf' | 'text' | 'catalog' | 'policy' | 'other';
+          knCustomType: string;
+          knAgentId: string;
+          knTitle: string;
+          knUrl: string;
+          knContent: string;
+          knEditorTab: 'edit' | 'preview';
+        }>;
+        if (draft.knType) setKnType(draft.knType);
+        if (typeof draft.knCustomType === 'string') setKnCustomType(draft.knCustomType);
+        if (typeof draft.knAgentId === 'string') setKnAgentId(draft.knAgentId);
+        if (typeof draft.knTitle === 'string') setKnTitle(draft.knTitle);
+        if (typeof draft.knUrl === 'string') setKnUrl(draft.knUrl);
+        if (typeof draft.knContent === 'string') setKnContent(draft.knContent);
+        if (draft.knEditorTab === 'edit' || draft.knEditorTab === 'preview') {
+          setKnEditorTab(draft.knEditorTab);
+        }
+      }
+    } catch {
+      // Ignore storage errors
+    } finally {
+      setDraftHydrated(true);
+    }
+  }, []);
+
+  // Persist active section & Knowledge form draft across refreshes
+  useEffect(() => {
+    if (!draftHydrated) return;
+    try {
+      localStorage.setItem('tanat_dashboard_section', section);
+    } catch {
+      // Ignore storage errors
+    }
+  }, [draftHydrated, section]);
+
+  useEffect(() => {
+    if (!draftHydrated) return;
+    try {
+      const hasDraft =
+        knTitle ||
+        knUrl ||
+        knContent ||
+        knCustomType ||
+        knAgentId ||
+        knType !== 'policy';
+      if (hasDraft) {
+        localStorage.setItem(
+          'tanat_knowledge_draft_v1',
+          JSON.stringify({
+            knType,
+            knCustomType,
+            knAgentId,
+            knTitle,
+            knUrl,
+            knContent,
+            knEditorTab,
+          }),
+        );
+      } else {
+        localStorage.removeItem('tanat_knowledge_draft_v1');
+      }
+    } catch {
+      // Ignore quota / storage errors
+    }
+  }, [draftHydrated, knType, knCustomType, knAgentId, knTitle, knUrl, knContent, knEditorTab]);
 
   const selectedAgent = useMemo(
     () => agents.find((a) => a.id === selectedAgentId) ?? null,
@@ -569,6 +662,11 @@ export default function Dashboard() {
       setKnType('policy');
       setKnUploadSuccess(null);
       setKnEditorTab('edit');
+      try {
+        localStorage.removeItem('tanat_knowledge_draft_v1');
+      } catch {
+        // Ignore storage errors
+      }
       await loadWorkspace();
       flash('Added knowledge source to workspace.');
     } catch (err) {

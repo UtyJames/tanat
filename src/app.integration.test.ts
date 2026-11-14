@@ -1471,3 +1471,52 @@ describe('payment intents', () => {
     expect(refreshed.json.data.paid_at).toBeTruthy();
   });
 });
+
+describe('platform knowledge sources', () => {
+  it('saves standard and custom source types and returns them on refresh', async () => {
+    const standard = await api('/api/v1/platform/knowledge', {
+      method: 'POST',
+      key: acmeKey,
+      body: {
+        agent_id: null,
+        source_type: 'policy',
+        kind: 'policy',
+        title: '2026 Refund Policy',
+        label: '2026 Refund Policy',
+        url: 'https://acme.test/refunds',
+        uri: 'https://acme.test/refunds',
+        content: '**Full refunds** within 30 days.',
+      },
+    });
+    expect(standard.status).toBe(201);
+    expect(standard.json.data.title).toBe('2026 Refund Policy');
+    expect(standard.json.data.source_type).toBe('policy');
+
+    const custom = await api('/api/v1/platform/knowledge', {
+      method: 'POST',
+      key: acmeKey,
+      body: {
+        agent_id: null,
+        source_type: 'Clinical Intake Protocol',
+        kind: 'Clinical Intake Protocol',
+        title: 'Triage Checklist',
+        label: 'Triage Checklist',
+        content: '- Verify patient ID\n- Check allergies',
+        metadata: { custom_source_type: 'Clinical Intake Protocol' },
+      },
+    });
+    expect(custom.status).toBe(201);
+    expect(custom.json.data.title).toBe('Triage Checklist');
+    expect(custom.json.data.source_type).toBe('Clinical Intake Protocol');
+
+    const listed = await api('/api/v1/platform/knowledge', {
+      key: acmeKey,
+    });
+    expect(listed.status).toBe(200);
+    const titles = (listed.json.data as Array<{ title: string; source_type: string }>).map(
+      (k) => `${k.title}::${k.source_type}`,
+    );
+    expect(titles).toContain('2026 Refund Policy::policy');
+    expect(titles).toContain('Triage Checklist::Clinical Intake Protocol');
+  });
+});
