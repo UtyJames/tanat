@@ -220,3 +220,4 @@ CREATE TABLE IF NOT EXISTS tenant_privacy_settings (
     updated_at             TEXT NOT NULL DEFAULT (datetime('now')),
     FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE
 );
+

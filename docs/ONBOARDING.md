@@ -9,3 +9,4 @@
 - Progress is persisted via `PATCH /api/v1/onboarding/state` (`{ step, draft }`) and restored on return via `GET /api/v1/onboarding`.
 - `POST /api/v1/onboarding/keys` rejects wildcard (`*`) origins in production (`ENVIRONMENT === 'production'`), requiring explicit `https://` origins.
 - Advanced settings (knowledge uploads, team RBAC, approvals, spending limits, Privacy Centre) live in `/app`.
+

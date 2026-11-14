@@ -176,3 +176,4 @@ export class TenantRepository {
 export function tenantRepo(db: D1Database, tenantId: string): TenantRepository {
   return new TenantRepository(db, tenantId);
 }
+

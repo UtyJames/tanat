@@ -311,3 +311,4 @@ export async function listTenantKeys(
     .all<Omit<TenantKeyRow, 'wrapped_dek'>>();
   return results ?? [];
 }
+

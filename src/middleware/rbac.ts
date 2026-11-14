@@ -132,3 +132,4 @@ export function resolveMemberScopes(
 
   return Array.from(defaults);
 }
+

@@ -9,3 +9,4 @@
 
 ## Trust Boundary Disclosure
 - While `tenant_keys` and AES-256-GCM prevent raw D1 database dumps from exposing plaintext customer content without KMS credentials, **application workers running on Cloudflare Workers still unwrap DEKs in memory during request processing**. Cryptographic operator-blindness requires moving the application runtime itself into an attested Confidential VM / TEE.
+

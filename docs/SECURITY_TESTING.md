@@ -9,3 +9,4 @@
   5. Production rejection of wildcard (`*`) publishable key origins and resumable onboarding state persistence.
 - **Full Regression Suite:** `npx vitest run` runs all 9 test files (137 tests) against an in-memory SQLite D1 shim with all 9 migrations (`0001`–`0009`) applied.
 - **Frontend Build Verification:** `tsc --noEmit` + `next build`.
+

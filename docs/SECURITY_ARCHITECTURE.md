@@ -13,3 +13,4 @@ Tanat is a multi-tenant AI agent infrastructure platform running on Cloudflare W
 - **Implemented and verified:** Tenant isolation, DB-level cross-tenant triggers, RBAC scope resolution, AES-256-GCM envelope encryption, key rotation/revocation, audit logging, security alerts, privileged access request workflow, Privacy Centre UI.
 - **Implemented awaiting production secret:** `KMS_MASTER_KEY` secret must be provisioned via `wrangler secret put KMS_MASTER_KEY` before deploying production workers (production fails closed without it).
 - **Unsupported by current infrastructure:** Hardware operator-blind TEE execution for Cloudflare Workers themselves (Workers run on Cloudflare's V8 isolate runtime and decrypt DEKs in memory during request execution).
+

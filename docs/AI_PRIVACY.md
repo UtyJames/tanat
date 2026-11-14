@@ -9,3 +9,4 @@
 ## Confidential Inference & Honest Trust Boundaries
 - **Implemented:** `require_tee` policy flag (`tenant_privacy_settings.require_tee`) refuses non-TEE models in `NearAiService.chat()`.
 - **Verified Limitation:** NEAR AI Cloud `/v1/chat/completions` does not currently return a per-request cryptographic Intel TDX quote to Tanat's backend, and Tanat's Cloudflare Worker decrypts tenant context in memory before sending inference requests. The Privacy Centre displays this limitation transparently.
+

@@ -108,3 +108,4 @@ export function getAiPrivacyStatus(
       'Tanat minimizes context and enforces TEE-tier model selection when Require TEE is enabled. NEAR AI Cloud /v1/chat/completions does not currently return a per-request cryptographic TDX quote to Tanat; Tanat application workers decrypt tenant context in memory before inference.',
   };
 }
+

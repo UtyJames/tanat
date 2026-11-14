@@ -7,3 +7,4 @@
    - Composite unique indexes `UNIQUE (tenant_id, id)` on `agents`, `installations`, `sessions`, `messages`, `actions`, `knowledge_sources`, and `agent_channels`.
    - `BEFORE INSERT` / `BEFORE UPDATE` SQLite/D1 triggers (`trg_*_tenant_*`) abort with `CROSS_TENANT_RELATION` if any child row references a parent ID belonging to a different `tenant_id`.
 4. **Non-Disclosing Errors:** Cross-tenant resource lookups return `404 Not Found` rather than leaking whether a resource exists for another business.
+
