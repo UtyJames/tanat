@@ -18,6 +18,7 @@ import {
 } from '@/components/brand/PlatformLogos';
 import { FormattedPreview } from '@/components/FormattedPreview';
 import { getSuggestedQuestions } from '@/lib/chat-suggestions';
+import { extractTextFromFile } from '@/lib/file-extractor';
 import {
   ApiError,
   completeOnboarding,
@@ -458,6 +459,55 @@ export default function StartPage() {
   ]);
   const [newFaqQ, setNewFaqQ] = useState('');
   const [newFaqA, setNewFaqA] = useState('');
+  const [knDragActive, setKnDragActive] = useState(false);
+  const [knUploadBusy, setKnUploadBusy] = useState(false);
+  const [knUploadNotice, setKnUploadNotice] = useState<string | null>(null);
+  const knFileInputRef = useRef<HTMLInputElement | null>(null);
+
+  async function handleKnowledgeFiles(files: FileList | null) {
+    if (!files || files.length === 0) return;
+    setKnUploadBusy(true);
+    setError(null);
+    setKnUploadNotice(null);
+    try {
+      const extractedParts: string[] = [];
+      let totalWords = 0;
+      let firstTitle = '';
+      for (const file of Array.from(files)) {
+        const doc = await extractTextFromFile(file);
+        if (doc.text.trim()) {
+          if (!firstTitle) firstTitle = doc.suggestedTitle;
+          totalWords += doc.wordCount;
+          extractedParts.push(`### ${doc.suggestedTitle}\n${doc.text.trim()}`);
+        }
+      }
+      if (extractedParts.length === 0) {
+        setError('Could not extract readable text from the selected file.');
+        return;
+      }
+      if (
+        firstTitle &&
+        (!knowledgeTitle.trim() || knowledgeTitle === 'Business Policies & Overview')
+      ) {
+        setKnowledgeTitle(firstTitle);
+      }
+      setKnowledgeText((prev) =>
+        prev.trim()
+          ? `${prev.trim()}\n\n${extractedParts.join('\n\n')}`
+          : extractedParts.join('\n\n'),
+      );
+      setKnUploadNotice(
+        `Loaded ${files.length} file${files.length > 1 ? 's' : ''} (${totalWords.toLocaleString()} words extracted)`,
+      );
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : 'Could not read the uploaded file.',
+      );
+    } finally {
+      setKnUploadBusy(false);
+      if (knFileInputRef.current) knFileInputRef.current.value = '';
+    }
+  }
 
   // Step 7: Channels
   const [selectedChannels, setSelectedChannels] = useState<
@@ -1673,6 +1723,81 @@ Integrate our Tanat AI agent ("${agentName}") into this application:
               <p>
                 Add key policies or FAQs now — you can upload more anytime.
               </p>
+
+              <div
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  setKnDragActive(true);
+                }}
+                onDragLeave={() => setKnDragActive(false)}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  setKnDragActive(false);
+                  void handleKnowledgeFiles(e.dataTransfer.files);
+                }}
+                onClick={() => knFileInputRef.current?.click()}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    knFileInputRef.current?.click();
+                  }
+                }}
+                style={{
+                  marginBottom: 16,
+                  padding: '16px 18px',
+                  borderRadius: 14,
+                  border: knDragActive
+                    ? '1.5px dashed #008f5b'
+                    : '1.5px dashed #d6d0c8',
+                  background: knDragActive ? 'rgba(0, 236, 151, 0.1)' : '#faf8f6',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: 12,
+                  flexWrap: 'wrap',
+                  transition: 'border-color 140ms ease, background 140ms ease',
+                }}
+              >
+                <input
+                  ref={knFileInputRef}
+                  type="file"
+                  multiple
+                  accept=".pdf,.docx,.doc,.txt,.md,.markdown,.csv,.tsv,.json,.yaml,.yml"
+                  style={{ display: 'none' }}
+                  onChange={(e) => void handleKnowledgeFiles(e.target.files)}
+                />
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  <strong style={{ fontSize: 13.5, color: '#1e1e1e' }}>
+                    {knUploadBusy
+                      ? 'Extracting document text…'
+                      : 'Upload files (PDF, DOCX, TXT, MD, CSV)'}
+                  </strong>
+                  <span style={{ fontSize: 12, color: '#6e6e6e' }}>
+                    Drag & drop or click to browse — extracted locally in your browser.
+                  </span>
+                </div>
+                <span className="start-agent-btn">Choose file</span>
+              </div>
+
+              {knUploadNotice && (
+                <div
+                  style={{
+                    marginBottom: 14,
+                    padding: '9px 12px',
+                    borderRadius: 10,
+                    background: 'rgba(0, 236, 151, 0.14)',
+                    border: '1px dashed rgba(6, 51, 36, 0.3)',
+                    color: '#063324',
+                    fontSize: 12.5,
+                    fontWeight: 600,
+                  }}
+                >
+                  {knUploadNotice}
+                </div>
+              )}
 
               <div className="start-field">
                 <label htmlFor="kn-title">Source title</label>

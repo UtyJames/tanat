@@ -21,6 +21,11 @@ import type { NearAiFactory } from './sessions';
 import { NearAiService } from '../services/near-ai.service';
 import { dispatchChannelMessage } from '../services/channel-dispatcher';
 import { hmacSha256, timingSafeEqual } from '../utils/crypto';
+import {
+  formatForMrkdwn,
+  formatForTelegramHtml,
+  stripMarkdownForPlainText,
+} from '../utils/channel-format';
 import { NotFoundError, UnauthorizedError, ValidationError } from '../utils/errors';
 
 export interface ChannelRow {
@@ -127,8 +132,9 @@ export function createWebhooksRouter(
       },
     });
 
-    // Send reply back to Telegram
+    // Send reply back to Telegram (HTML parse mode for clean bold/bullets, with plain fallback)
     try {
+      const formattedHtml = formatForTelegramHtml(result.content);
       const tgRes = await fetch(
         `https://api.telegram.org/bot${config.bot_token}/sendMessage`,
         {
@@ -136,14 +142,27 @@ export function createWebhooksRouter(
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             chat_id: chatId,
-            text: result.content,
+            text: formattedHtml,
+            parse_mode: 'HTML',
             reply_to_message_id: message.message_id,
           }),
         },
       );
       if (!tgRes.ok) {
         const tgErr = await tgRes.text();
-        console.error('[telegram.webhook] sendMessage failed:', tgErr);
+        console.error('[telegram.webhook] HTML sendMessage failed, retrying plain:', tgErr);
+        await fetch(
+          `https://api.telegram.org/bot${config.bot_token}/sendMessage`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              chat_id: chatId,
+              text: stripMarkdownForPlainText(result.content),
+              reply_to_message_id: message.message_id,
+            }),
+          },
+        );
       }
     } catch (err) {
       console.error('[telegram.webhook] Network error delivering reply:', err);
@@ -254,7 +273,7 @@ export function createWebhooksRouter(
                       recipient_type: 'individual',
                       to: senderPhone,
                       type: 'text',
-                      text: { body: result.content },
+                      text: { body: formatForMrkdwn(result.content) },
                     }),
                   },
                 );
@@ -363,7 +382,8 @@ export function createWebhooksRouter(
                 },
                 body: JSON.stringify({
                   channel: ev.channel,
-                  text: result.content,
+                  text: formatForMrkdwn(result.content),
+                  mrkdwn: true,
                   thread_ts: ev.thread_ts ?? ev.ts,
                 }),
               });

@@ -119,21 +119,21 @@ async function sendOtp(
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Your Tanat verification code</title>
   </head>
-  <body style="margin:0;padding:0;background-color:#f7f5f3;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#1e1e1e;-webkit-font-smoothing:antialiased;">
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f7f5f3;padding:36px 16px;">
+  <body style="margin:0;padding:0;background-color:#07261c;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#1e1e1e;-webkit-font-smoothing:antialiased;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#07261c;background-image:linear-gradient(165deg,#07261c 0%,#0a3628 55%,#07231a 100%);padding:40px 16px;">
       <tr>
         <td align="center">
-          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background-color:#ffffff;border:1px solid #d6d0c8;border-radius:16px;overflow:hidden;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background-color:#ffffff;border:1px solid #00ec97;border-radius:16px;overflow:hidden;box-shadow:0 20px 50px rgba(0,0,0,0.28);">
             <tr>
-              <td style="padding:22px 28px;border-bottom:1px dashed #d6d0c8;background-color:#faf8f6;">
+              <td style="padding:22px 28px;border-bottom:1px dashed #d6d0c8;background-color:#0a3628;">
                 <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                   <tr>
                     <td align="left" style="vertical-align:middle;">
                       <span style="display:inline-block;width:10px;height:10px;border-radius:999px;background-color:#00ec97;margin-right:8px;vertical-align:middle;"></span>
-                      <span style="font-size:18px;font-weight:700;letter-spacing:-0.03em;color:#141414;vertical-align:middle;">Tanat</span>
+                      <span style="font-size:18px;font-weight:700;letter-spacing:-0.03em;color:#ffffff;vertical-align:middle;">Tanat</span>
                     </td>
                     <td align="right" style="vertical-align:middle;">
-                      <span style="display:inline-block;padding:4px 10px;border-radius:999px;background-color:#dffcf0;color:#063324;font-size:11px;font-weight:600;letter-spacing:0.03em;text-transform:uppercase;">Verification</span>
+                      <span style="display:inline-block;padding:4px 10px;border-radius:999px;background-color:#00ec97;color:#063324;font-size:11px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;">Verification</span>
                     </td>
                   </tr>
                 </table>
