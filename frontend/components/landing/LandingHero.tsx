@@ -92,13 +92,7 @@ export default function LandingHero() {
             </div>
           </div>
 
-          <div className="tn-near-badge">
-            <TanatMascotIcon size={18} />
-            <span>Private AI for Real Businesses</span>
-            <span className="tn-mint-pill">Fast & Easy</span>
-          </div>
-
-          <h1 className="tn-h1 tn-hero-title">
+          <h1 className="tn-h1 tn-hero-title" style={{ marginTop: 8 }}>
             Set Up Your Own AI,
             <br />
             Live Everywhere in Minutes
@@ -153,7 +147,7 @@ export default function LandingHero() {
           </form>
 
           <div style={{ marginTop: 22, display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'center', position: 'relative', zIndex: 2 }}>
-            <Link href="/start" className="tn-btn tn-btn-dark">
+            <Link href="/start" className="tn-btn tn-btn-white">
               Start 3-minute setup →
             </Link>
             <Link href="/docs#vibecoding" className="tn-btn tn-btn-outline-light">
@@ -223,7 +217,7 @@ export default function LandingHero() {
             )}
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 20 }}>
-              <Link href="/start" className="tn-btn tn-btn-dark" style={{ width: '100%', height: 46 }}>
+              <Link href="/start" className="tn-btn tn-btn-white" style={{ width: '100%', height: 46 }}>
                 Start 3-minute setup →
               </Link>
               <Link href="/login" className="tn-btn tn-btn-beige" style={{ width: '100%', height: 46 }}>

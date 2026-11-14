@@ -203,13 +203,15 @@
 
 .tn-btn-white {
   background: #ffffff;
-  color: var(--tn-ink);
-  box-shadow: 0 8px 20px -8px rgba(5, 30, 20, 0.4);
+  color: #141414;
+  border-color: #d6d0c8;
+  box-shadow: 0 8px 20px -8px rgba(5, 30, 20, 0.25);
 }
 
 .tn-btn-white:hover {
-  background: #f4f4f4;
-  color: var(--tn-ink);
+  background: var(--tn-near);
+  color: #052e1e;
+  border-color: var(--tn-near);
 }
 
 .tn-btn-outline-light {

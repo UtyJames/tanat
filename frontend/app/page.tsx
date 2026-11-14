@@ -287,7 +287,7 @@ export default function Home() {
                   zIndex: 2,
                 }}
               >
-                <Link href="/start" className="tn-btn tn-btn-dark">
+                <Link href="/start" className="tn-btn tn-btn-white">
                   Get started →
                 </Link>
                 <Link href="/docs" className="tn-btn tn-btn-outline-light">
@@ -314,7 +314,7 @@ export default function Home() {
               every channel, and stays under your control.
             </p>
             <div style={{ marginTop: 8 }}>
-              <Link href="/start" className="tn-btn tn-btn-dark" style={{ height: 38, fontSize: 13, border: '1px solid rgba(255,255,255,0.2)' }}>
+              <Link href="/start" className="tn-btn tn-btn-white" style={{ height: 38, fontSize: 13 }}>
                 Get started →
               </Link>
             </div>

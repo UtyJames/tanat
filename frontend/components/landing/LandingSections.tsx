@@ -183,7 +183,7 @@ export function HowItWorksInteractive() {
           <h3 className="tn-h3">{current.title}</h3>
           <p className="tn-sec-desc">{current.desc}</p>
           <div>
-            <Link href="/start" className="tn-btn tn-btn-dark">
+            <Link href="/start" className="tn-btn tn-btn-white">
               Start 3-minute setup →
             </Link>
           </div>

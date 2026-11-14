@@ -95,7 +95,7 @@ export default function LandingNav() {
           <Link href="/login" className="tn-btn tn-btn-beige">
             Sign in
           </Link>
-          <Link href="/start" className="tn-btn tn-btn-dark">
+          <Link href="/start" className="tn-btn tn-btn-white">
             Get started
           </Link>
           <button
@@ -127,7 +127,7 @@ export default function LandingNav() {
           <Link href="/login" className="tn-btn tn-btn-beige" style={{ flex: 1 }}>
             Sign in
           </Link>
-          <Link href="/start" className="tn-btn tn-btn-dark" style={{ flex: 1 }}>
+          <Link href="/start" className="tn-btn tn-btn-white" style={{ flex: 1 }}>
             Get started
           </Link>
         </div>
