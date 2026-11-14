@@ -83,7 +83,7 @@ export function storeKey(key: string): void {
 export async function requestOtp(input: {
   email: string;
   tenant_name?: string;
-  mode?: 'login' | 'signup';
+  mode?: 'auto' | 'login' | 'signup';
 }): Promise<void> {
   let response: Response;
   try {
@@ -110,7 +110,7 @@ export async function requestOtp(input: {
 export async function verifyOtp(
   email: string,
   code: string,
-  mode?: 'login' | 'signup',
+  mode?: 'auto' | 'login' | 'signup',
 ): Promise<void> {
   let response: Response;
   try {

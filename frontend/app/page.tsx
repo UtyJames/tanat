@@ -342,7 +342,7 @@ export default function Home() {
             <h4>Account</h4>
             <Link href="/login">Sign in</Link>
             <Link href="/app">Workspace dashboard</Link>
-            <Link href="/start">3-minute setup</Link>
+            <Link href="/start">Create workspace</Link>
             <a href="mailto:hello@tanat.space">hello@tanat.space</a>
           </div>
         </div>

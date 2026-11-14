@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import '../landing.css';
@@ -22,6 +22,18 @@ export default function LoginPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    const prefillEmail = params.get('email')?.trim();
+    if (prefillEmail) {
+      setEmail(prefillEmail);
+      if (params.get('reason') === 'exists') {
+        setNotice(`An account already exists for ${prefillEmail}. Sign in below.`);
+      }
+    }
+  }, []);
 
   async function sendCode(event: React.FormEvent) {
     event.preventDefault();
@@ -353,7 +365,7 @@ export default function LoginPage() {
           >
             <span>New to Tanat?</span>
             <Link href="/start" style={{ fontWeight: 600, color: 'var(--tn-emerald)' }}>
-              Start 3-minute setup →
+              Create a workspace →
             </Link>
           </div>
         </div>

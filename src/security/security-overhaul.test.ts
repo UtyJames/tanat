@@ -567,4 +567,28 @@ describe('Comprehensive Security & Privacy Overhaul', () => {
     const userCount = await d1.prepare('SELECT COUNT(*) AS c FROM dashboard_users').first<{ c: number }>();
     expect(userCount?.c ?? 0).toBe(0);
   });
+
+  it('rejects signup OTP requests for existing users so signup cannot sign in', async () => {
+    const { d1 } = createTestDatabase();
+    const env = createEnv(d1);
+    const app = createApp();
+    await seedTenantWithOwner(d1, 'existingbiz', 'existing@example.com');
+
+    const signupReq = await app.request(
+      '/api/auth/otp/request',
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: 'existing@example.com',
+          tenant_name: 'Duplicate Biz',
+          mode: 'signup',
+        }),
+      },
+      env,
+    );
+    expect(signupReq.status).toBe(409);
+    const body = (await signupReq.json()) as { error: { code: string } };
+    expect(body.error.code).toBe('ACCOUNT_EXISTS');
+  });
 });

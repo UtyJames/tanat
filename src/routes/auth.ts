@@ -14,13 +14,13 @@ export const authRouter = new Hono<HonoEnv>();
 const otpRequestSchema = z.object({
   email: z.string().email().max(254),
   tenant_name: z.string().trim().min(2).max(100).optional(),
-  mode: z.enum(['login', 'signup']).optional().default('signup'),
+  mode: z.enum(['auto', 'login', 'signup']).optional().default('auto'),
 }).strict();
 
 const otpVerifySchema = z.object({
   email: z.string().email().max(254),
   code: z.string().regex(/^\d{6}$/),
-  mode: z.enum(['login', 'signup']).optional().default('signup'),
+  mode: z.enum(['auto', 'login', 'signup']).optional().default('auto'),
 }).strict();
 
 const OTP_TTL_MINUTES = 10;
@@ -196,7 +196,7 @@ authRouter.post('/otp/request', validateBody(otpRequestSchema), async (c) => {
   await consumeAuthLimit(c, `auth-email:${emailHash}`, 3);
   await consumeAuthLimit(c, `auth-ip:${ipHash}`, 10);
 
-  if (body.mode === 'login') {
+  if (body.mode === 'login' || body.mode === 'signup') {
     const existingUser = await c.env.DB.prepare(
       `SELECT u.id FROM dashboard_users u
        JOIN tenants t ON t.id = u.tenant_id
@@ -205,11 +205,20 @@ authRouter.post('/otp/request', validateBody(otpRequestSchema), async (c) => {
     )
       .bind(email)
       .first<{ id: string }>();
-    if (!existingUser) {
+
+    if (body.mode === 'login' && !existingUser) {
       throw new AppError(
         'No account found for this email. Please sign up first.',
         404,
         'ACCOUNT_NOT_FOUND',
+      );
+    }
+
+    if (body.mode === 'signup' && existingUser) {
+      throw new AppError(
+        'An account already exists for this email. Please sign in instead.',
+        409,
+        'ACCOUNT_EXISTS',
       );
     }
   }
@@ -314,6 +323,14 @@ authRouter.post('/otp/verify', validateBody(otpVerifySchema), async (c) => {
     .bind(otp.email)
     .first<{ id: string; email: string; tenant_id: string; tenant_name: string }>();
 
+  if (user && mode === 'signup') {
+    throw new AppError(
+      'An account already exists for this email. Please sign in instead.',
+      409,
+      'ACCOUNT_EXISTS',
+    );
+  }
+
   if (!user) {
     if (mode === 'login') {
       throw new AppError(
@@ -337,7 +354,7 @@ authRouter.post('/otp/verify', validateBody(otpVerifySchema), async (c) => {
     await c.env.DB.batch([
       c.env.DB.prepare(
         `INSERT INTO tenants (id, name, slug, status, settings, near_account_id, spending_limit_near, total_spent_near)
-         SELECT ?, ?, ?, 'active', '{"onboarding":{"completed":false,"step":1}}', NULL, ?, '0'
+         SELECT ?, ?, ?, 'active', '{"onboarding":{"completed":true,"step":3}}', NULL, ?, '0'
          WHERE NOT EXISTS (SELECT 1 FROM dashboard_users WHERE email = ?)`,
       ).bind(tenantId, otp.tenant_name, slug, parseNearToYocto('0').toString(), otp.email),
       c.env.DB.prepare(
