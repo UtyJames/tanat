@@ -1794,6 +1794,14 @@ Option B (Custom Chat UI): Call POST ${PUBLIC_BASE_URL}/api/public/v1/sessions w
             const tgChannel = channels.find((c) => (c.channel || c.channel_type) === 'telegram');
             const waChannel = channels.find((c) => (c.channel || c.channel_type) === 'whatsapp');
             const slackChannel = channels.find((c) => (c.channel || c.channel_type) === 'slack');
+            const tgConfig = (() => {
+              try {
+                return typeof tgChannel?.config === 'string' ? JSON.parse(tgChannel.config) : tgChannel?.config || {};
+              } catch {
+                return {};
+              }
+            })();
+            const botUsername = (tgConfig as any)?.bot_username || '';
 
             return (
               <div className="ws-page">
@@ -2126,21 +2134,106 @@ Option B (Custom Chat UI): Call POST ${PUBLIC_BASE_URL}/api/public/v1/sessions w
                     </div>
 
                     <div className="ws-card">
-                      <h3>How to get your Bot Token in 30 seconds</h3>
-                      <ol style={{ paddingLeft: 18, lineHeight: 1.8, fontSize: 13, marginTop: 12 }}>
-                        <li>Open the Telegram app and search for <strong>@BotFather</strong> (verified with blue checkmark).</li>
-                        <li>Click <strong>Start</strong> and send the command: <code>/newbot</code></li>
-                        <li>Give your bot a friendly name (e.g. <em>Acme Support</em>) and a unique username ending in <code>bot</code> (e.g. <em>acme_support_bot</em>).</li>
-                        <li>BotFather will reply with an <strong>HTTP API Token</strong> formatted like <code>123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11</code>.</li>
-                        <li>Paste that token on the left and click <strong>Connect Telegram Bot</strong>. That's it!</li>
-                      </ol>
+                      {tgChannel?.status === 'connected' ? (
+                        <div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                            <h3>🧪 How to Test Your Bot</h3>
+                            <span className="ws-pill connected">Ready to Chat</span>
+                          </div>
 
-                      <div style={{ marginTop: 20, padding: 12, borderRadius: 8, background: 'var(--card-bg)', border: '1px solid var(--border)' }}>
-                        <div style={{ fontWeight: 600, fontSize: 12, marginBottom: 4 }}>💡 Shared Brain</div>
-                        <p className="muted" style={{ fontSize: 11.5, margin: 0 }}>
-                          Your Telegram bot automatically answers using the knowledge base, policies, and FAQs you upload in Tanat. No separate training or prompt duplication required.
-                        </p>
-                      </div>
+                          <p style={{ fontSize: 13.5, lineHeight: 1.6, marginBottom: 16 }}>
+                            Your Telegram bot is live and connected directly to your Tanat agent. Follow these steps to test it now:
+                          </p>
+
+                          <div style={{ padding: 14, borderRadius: 10, background: 'var(--bg)', border: '1px solid var(--border)', marginBottom: 14 }}>
+                            <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 6 }}>
+                              Step 1: Open the bot in Telegram
+                            </div>
+                            <p style={{ fontSize: 12.5, color: 'var(--muted)', margin: '0 0 10px 0' }}>
+                              {botUsername
+                                ? `Click below to launch @${botUsername} directly in your Telegram app:`
+                                : 'Open Telegram on your phone or desktop and open the bot you created with @BotFather.'}
+                            </p>
+                            {botUsername ? (
+                              <a
+                                href={`https://t.me/${botUsername}`}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="btn btn-sm btn-primary"
+                                style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                              >
+                                <span>Open @{botUsername} in Telegram ↗</span>
+                              </a>
+                            ) : (
+                              <a
+                                href="https://t.me"
+                                target="_blank"
+                                rel="noreferrer"
+                                className="btn btn-sm"
+                              >
+                                Open Telegram ↗
+                              </a>
+                            )}
+                          </div>
+
+                          <div style={{ padding: 14, borderRadius: 10, background: 'var(--bg)', border: '1px solid var(--border)', marginBottom: 14 }}>
+                            <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 6 }}>
+                              Step 2: Send your first message
+                            </div>
+                            <p style={{ fontSize: 12.5, color: 'var(--muted)', margin: '0 0 8px 0' }}>
+                              Click <strong>START</strong> at the bottom of the chat or type <code>/start</code>. Then test asking a real customer question:
+                            </p>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                              <div style={{ padding: '6px 10px', background: 'var(--card-bg)', borderRadius: 6, fontSize: 12, border: '1px solid var(--border)' }}>
+                                💬 <em>&quot;What products or services do you offer?&quot;</em>
+                              </div>
+                              <div style={{ padding: '6px 10px', background: 'var(--card-bg)', borderRadius: 6, fontSize: 12, border: '1px solid var(--border)' }}>
+                                💬 <em>&quot;What are your business hours or pricing?&quot;</em>
+                              </div>
+                              <div style={{ padding: '6px 10px', background: 'var(--card-bg)', borderRadius: 6, fontSize: 12, border: '1px solid var(--border)' }}>
+                                💬 <em>&quot;Can you help me with a return or refund?&quot;</em>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div style={{ padding: 14, borderRadius: 10, background: 'var(--bg)', border: '1px solid var(--border)' }}>
+                            <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 6 }}>
+                              Step 3: Check live execution telemetry
+                            </div>
+                            <p style={{ fontSize: 12.5, color: 'var(--muted)', margin: '0 0 10px 0' }}>
+                              Every message handled in Telegram is logged with token counts, execution latency, and exact knowledge sources used.
+                            </p>
+                            <button
+                              className="btn btn-sm"
+                              type="button"
+                              onClick={() => {
+                                setSection('activity');
+                                setActivityTab('runs');
+                              }}
+                            >
+                              View Live Runs &amp; Telemetry →
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div>
+                          <h3>How to get your Bot Token in 30 seconds</h3>
+                          <ol style={{ paddingLeft: 18, lineHeight: 1.8, fontSize: 13, marginTop: 12 }}>
+                            <li>Open the Telegram app and search for <strong>@BotFather</strong> (verified with blue checkmark).</li>
+                            <li>Click <strong>Start</strong> and send the command: <code>/newbot</code></li>
+                            <li>Give your bot a friendly name (e.g. <em>Acme Support</em>) and a unique username ending in <code>bot</code> (e.g. <em>acme_support_bot</em>).</li>
+                            <li>BotFather will reply with an <strong>HTTP API Token</strong> formatted like <code>123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11</code>.</li>
+                            <li>Paste that token on the left and click <strong>Connect Telegram Bot</strong>. That's it!</li>
+                          </ol>
+
+                          <div style={{ marginTop: 20, padding: 12, borderRadius: 8, background: 'var(--card-bg)', border: '1px solid var(--border)' }}>
+                            <div style={{ fontWeight: 600, fontSize: 12, marginBottom: 4 }}>💡 Shared Brain</div>
+                            <p className="muted" style={{ fontSize: 11.5, margin: 0 }}>
+                              Your Telegram bot automatically answers using the knowledge base, policies, and FAQs you upload in Tanat. No separate training or prompt duplication required.
+                            </p>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}

@@ -851,12 +851,28 @@ onboardingRouter.post('/channels/:id/setup-telegram', async (c) => {
     );
   }
 
+  // Fetch bot details from Telegram to get bot username and name
+  let botUsername: string | null = null;
+  let botFirstName: string | null = null;
+  try {
+    const meRes = await fetch(`https://api.telegram.org/bot${botToken}/getMe`);
+    const meData: any = await meRes.json().catch(() => null);
+    if (meData?.ok && meData.result?.username) {
+      botUsername = meData.result.username;
+      botFirstName = meData.result.first_name ?? null;
+    }
+  } catch {
+    // Non-blocking
+  }
+
   // Save secret and mark connected
   const updatedConfig = {
     ...cfg,
     webhook_secret: webhookSecret,
     webhook_url: webhookUrl,
     telegram_bot_info: tgResult,
+    bot_username: botUsername,
+    bot_first_name: botFirstName,
   };
 
   await c.env.DB.prepare(
