@@ -1952,7 +1952,14 @@
   grid-template-columns: 0.85fr 1.15fr;
   min-height: 100vh;
   background: var(--bone);
-  font-family: 'Switzer', var(--font-inter), var(--font-sans);
+  font-family: var(--tn-font-sans, var(--font-inter), 'Inter', -apple-system, BlinkMacSystemFont, sans-serif);
+}
+
+.start h1,
+.start h2,
+.start h3,
+.start .start-accordion-title {
+  font-family: var(--tn-font-display, 'Switzer', var(--font-inter), -apple-system, BlinkMacSystemFont, sans-serif);
 }
 
 .start-aside {
@@ -3432,4 +3439,320 @@
     padding: 12px;
     max-width: 100%;
   }
+}
+
+/* ── Step 3 Architectural Dropdown Accordion ─────────────────────────── */
+.start-accordion {
+  border: 1px solid #d6d0c8;
+  border-radius: 16px;
+  background: #ffffff;
+  overflow: hidden;
+}
+
+.start-accordion-item {
+  border-bottom: 1px dashed #d6d0c8;
+}
+
+.start-accordion-item:last-child {
+  border-bottom: none;
+}
+
+.start-accordion-trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 15px 18px;
+  border: none;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  transition: background 140ms ease;
+}
+
+.start-accordion-trigger:hover {
+  background: #f7f5f3;
+}
+
+.start-accordion-item.open > .start-accordion-trigger {
+  background: #faf8f6;
+}
+
+.start-accordion-title-wrap {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  min-width: 0;
+}
+
+.start-accordion-title {
+  font-size: 14.5px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: #1e1e1e;
+}
+
+.start-accordion-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--tn-font-mono, var(--font-dm-mono), monospace);
+  font-size: 11px;
+  color: #6e6e6e;
+}
+
+.start-accordion-count {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(0, 236, 151, 0.2);
+  color: #063324;
+  font-weight: 600;
+  font-size: 10.5px;
+}
+
+.start-accordion-chevron {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  border: 1px dashed #d6d0c8;
+  color: #1e1e1e;
+  flex-shrink: 0;
+  transition: transform 180ms ease, background 140ms ease, border-color 140ms ease;
+}
+
+.start-accordion-trigger:hover .start-accordion-chevron {
+  border-color: #1e1e1e;
+  background: #ffffff;
+}
+
+.start-accordion-item.open .start-accordion-chevron {
+  transform: rotate(180deg);
+  background: #141414;
+  border-color: #141414;
+  border-style: solid;
+  color: #00ec97;
+}
+
+.start-accordion-panel {
+  border-top: 1px dashed #d6d0c8;
+  background: #ffffff;
+}
+
+.start-accordion-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+.start-accordion-cell {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  padding-right: 40px;
+  border: none;
+  border-right: 1px dashed #e5e1dc;
+  border-bottom: 1px dashed #e5e1dc;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  transition: background 140ms ease;
+}
+
+.start-accordion-cell:nth-child(2n) {
+  border-right: none;
+}
+
+.start-accordion-cell:hover {
+  background: #f7f5f3;
+}
+
+.start-accordion-cell.selected {
+  background: rgba(0, 236, 151, 0.12);
+}
+
+.start-accordion-cell-body {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.start-accordion-cell-title {
+  font-size: 13.5px;
+  font-weight: 600;
+  line-height: 1.35;
+  color: #1e1e1e;
+}
+
+.start-accordion-cell-note {
+  font-size: 12px;
+  line-height: 1.45;
+  color: #6e6e6e;
+}
+
+.start-accordion-cell .start-choice-check {
+  top: 14px;
+  right: 14px;
+}
+
+.start-accordion-cell.selected .start-choice-check {
+  background: #141414;
+  border-color: #141414;
+  color: #00ec97;
+}
+
+@media (max-width: 640px) {
+  .start-accordion-trigger {
+    padding: 13px 14px;
+  }
+  .start-accordion-grid {
+    grid-template-columns: 1fr;
+  }
+  .start-accordion-cell,
+  .start-agent-cell {
+    border-right: none;
+    padding: 12px 14px;
+  }
+  .start-accordion-cell {
+    padding-right: 38px;
+  }
+}
+
+/* ── Step 4 Agent Blueprints Accordion Cells ──────────────────────────── */
+.start-agent-cell {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 16px;
+  border-right: 1px dashed #e5e1dc;
+  border-bottom: 1px dashed #e5e1dc;
+  background: transparent;
+  transition: background 140ms ease;
+}
+
+.start-agent-cell:nth-child(2n) {
+  border-right: none;
+}
+
+.start-agent-cell:hover {
+  background: #f7f5f3;
+}
+
+.start-agent-cell.primary {
+  background: rgba(0, 236, 151, 0.11);
+}
+
+.start-agent-cell.added {
+  background: rgba(20, 20, 20, 0.03);
+}
+
+.start-agent-cell-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.start-agent-cell-title-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.start-agent-cell-title {
+  font-family: var(--tn-font-display, 'Switzer', var(--font-inter), sans-serif);
+  font-size: 14.5px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: #1e1e1e;
+}
+
+.start-agent-rec-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(0, 236, 151, 0.22);
+  color: #063324;
+  font-family: var(--tn-font-mono, var(--font-dm-mono), monospace);
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.start-agent-cat {
+  font-family: var(--tn-font-mono, var(--font-dm-mono), monospace);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: #6e6e6e;
+  flex-shrink: 0;
+  padding-top: 2px;
+}
+
+.start-agent-desc {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: #525252;
+}
+
+.start-agent-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding-top: 10px;
+  border-top: 1px dashed #e5e1dc;
+}
+
+.start-agent-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  height: 30px;
+  padding: 0 11px;
+  border-radius: 999px;
+  border: 1px solid #d6d0c8;
+  background: #ffffff;
+  color: #1e1e1e;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 140ms ease, color 140ms ease, border-color 140ms ease;
+}
+
+.start-agent-btn:hover {
+  border-color: #141414;
+  background: #141414;
+  color: #ffffff;
+}
+
+.start-agent-btn.is-primary {
+  background: #141414;
+  border-color: #141414;
+  color: #00ec97;
+}
+
+.start-agent-btn.is-primary:hover {
+  background: #063324;
+  border-color: #063324;
+  color: #00ec97;
+}
+
+.start-agent-btn.is-added {
+  background: rgba(0, 236, 151, 0.2);
+  border-color: #008f5b;
+  color: #063324;
 }

@@ -351,11 +351,15 @@ export default function StartPage() {
     'customer_questions',
     'qualify_leads',
   ]);
+  const [openCapabilityGroups, setOpenCapabilityGroups] = useState<string[]>([
+    'Customer Experience',
+  ]);
 
   // Step 4: Recommended Templates
   const [templates, setTemplates] = useState<AgentTemplate[]>(DEFAULT_TEMPLATES);
   const [primaryTemplateId, setPrimaryTemplateId] = useState('tpl_customer_support');
   const [additionalTemplates, setAdditionalTemplates] = useState<string[]>([]);
+  const [openAgentGroups, setOpenAgentGroups] = useState<string[]>(['Recommended for you']);
 
   // Step 5: Configure First Agent
   const [agentName, setAgentName] = useState('Customer Support Agent');
@@ -1052,47 +1056,93 @@ Integrate our Tanat AI agent ("${agentName}") into this application:
                 recommend the right agents and pre-configure their capabilities.
               </p>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 18, marginTop: 14 }}>
-                {CAPABILITY_GROUPS.map((group) => (
-                  <div key={group.group}>
+              <div className="start-accordion" style={{ marginTop: 16 }}>
+                {CAPABILITY_GROUPS.map((group) => {
+                  const isOpen = openCapabilityGroups.includes(group.group);
+                  const selectedInGroup = group.items.filter((item) =>
+                    selectedCapabilities.includes(item.id),
+                  ).length;
+
+                  return (
                     <div
-                      className="t-mono"
-                      style={{
-                        fontSize: 11,
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.07em',
-                        color: 'var(--muted)',
-                        marginBottom: 8,
-                      }}
+                      key={group.group}
+                      className={`start-accordion-item ${isOpen ? 'open' : ''}`}
                     >
-                      {group.group}
-                    </div>
-                    <div className="start-choices">
-                      {group.items.map((item) => {
-                        const active = selectedCapabilities.includes(item.id);
-                        return (
-                          <button
-                            key={item.id}
-                            type="button"
-                            className={`start-choice ${active ? 'selected' : ''}`}
-                            onClick={() =>
-                              setSelectedCapabilities((list) => toggleItem(list, item.id))
-                            }
+                      <button
+                        type="button"
+                        className="start-accordion-trigger"
+                        aria-expanded={isOpen}
+                        onClick={() =>
+                          setOpenCapabilityGroups((prev) =>
+                            prev.includes(group.group)
+                              ? prev.filter((g) => g !== group.group)
+                              : [...prev, group.group],
+                          )
+                        }
+                      >
+                        <span className="start-accordion-title-wrap">
+                          <span className="start-accordion-title">{group.group}</span>
+                          <span className="start-accordion-meta">
+                            {group.items.length} options
+                            {selectedInGroup > 0 && (
+                              <span className="start-accordion-count">
+                                {selectedInGroup} selected
+                              </span>
+                            )}
+                          </span>
+                        </span>
+                        <span className="start-accordion-chevron" aria-hidden="true">
+                          <svg
+                            width="16"
+                            height="16"
+                            viewBox="0 0 16 16"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="1.8"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
                           >
-                            <span className="start-choice-icon">◆</span>
-                            <span>
-                              <strong>{item.label}</strong>
-                              <span>{item.note}</span>
-                            </span>
-                            <span className="start-choice-check">
-                              <CheckIcon size={10} />
-                            </span>
-                          </button>
-                        );
-                      })}
+                            <path d="M4 6l4 4 4-4" />
+                          </svg>
+                        </span>
+                      </button>
+
+                      {isOpen && (
+                        <div className="start-accordion-panel">
+                          <div className="start-accordion-grid">
+                            {group.items.map((item) => {
+                              const active = selectedCapabilities.includes(item.id);
+                              return (
+                                <button
+                                  key={item.id}
+                                  type="button"
+                                  className={`start-accordion-cell ${active ? 'selected' : ''}`}
+                                  onClick={() =>
+                                    setSelectedCapabilities((list) =>
+                                      toggleItem(list, item.id),
+                                    )
+                                  }
+                                >
+                                  <span className="start-accordion-cell-body">
+                                    <span className="start-accordion-cell-title">
+                                      {item.label}
+                                    </span>
+                                    <span className="start-accordion-cell-note">
+                                      {item.note}
+                                    </span>
+                                  </span>
+                                  <span className="start-choice-check">
+                                    <CheckIcon size={10} />
+                                  </span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
 
               <div className="start-actions">
@@ -1132,10 +1182,11 @@ Integrate our Tanat AI agent ("${agentName}") into this application:
                 <div
                   style={{
                     padding: '12px 14px',
-                    borderRadius: 10,
-                    background: 'rgba(201,242,107,0.18)',
-                    border: '1px solid rgba(12,13,11,0.15)',
+                    borderRadius: 12,
+                    background: 'rgba(0, 236, 151, 0.12)',
+                    border: '1px dashed rgba(6, 51, 36, 0.28)',
                     fontSize: 13,
+                    color: '#063324',
                     marginBottom: 16,
                   }}
                 >
@@ -1149,82 +1200,142 @@ Integrate our Tanat AI agent ("${agentName}") into this application:
                 </div>
               )}
 
-              <div className="start-choices" style={{ marginTop: 12 }}>
-                {scoredTemplates.map((tpl, idx) => {
-                  const isPrimary = primaryTemplateId === tpl.id;
-                  const isAdditional = additionalTemplates.includes(tpl.id);
-                  return (
-                    <div
-                      key={tpl.id}
-                      style={{
-                        border: isPrimary
-                          ? '2px solid var(--ink)'
-                          : '1px solid var(--line)',
-                        borderRadius: 12,
-                        padding: 14,
-                        background: isPrimary ? 'rgba(201,242,107,0.12)' : '#fff',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: 8,
-                      }}
-                    >
+              <div className="start-accordion" style={{ marginTop: 16 }}>
+                {[
+                  {
+                    title: 'Recommended for you',
+                    items: scoredTemplates.slice(0, 3),
+                    isRecommended: true,
+                  },
+                  {
+                    title: 'More agent blueprints',
+                    items: scoredTemplates.slice(3),
+                    isRecommended: false,
+                  },
+                ]
+                  .filter((g) => g.items.length > 0)
+                  .map((group) => {
+                    const isOpen = openAgentGroups.includes(group.title);
+                    const activeCount = group.items.filter(
+                      (tpl) =>
+                        tpl.id === primaryTemplateId ||
+                        additionalTemplates.includes(tpl.id),
+                    ).length;
+
+                    return (
                       <div
-                        style={{
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center',
-                          gap: 8,
-                        }}
+                        key={group.title}
+                        className={`start-accordion-item ${isOpen ? 'open' : ''}`}
                       >
-                        <div>
-                          <strong style={{ fontSize: 15 }}>{tpl.name}</strong>
-                          {idx < 3 && (
-                            <span
-                              className="t-pill t-pill-lime"
-                              style={{ marginLeft: 8, fontSize: 10 }}
-                            >
-                              Recommended
-                            </span>
-                          )}
-                        </div>
-                        <span className="t-mono" style={{ fontSize: 10.5, color: 'var(--muted)' }}>
-                          {tpl.category.toUpperCase()}
-                        </span>
-                      </div>
-                      <p style={{ fontSize: 13, color: 'var(--muted)', margin: 0 }}>
-                        {tpl.description}
-                      </p>
-                      <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
                         <button
                           type="button"
-                          className={`t-mini-btn ${isPrimary ? 't-mini-approve' : ''}`}
-                          style={{ width: 'auto', padding: '0 12px', height: 30 }}
-                          onClick={() => selectPrimaryTemplate(tpl)}
+                          className="start-accordion-trigger"
+                          aria-expanded={isOpen}
+                          onClick={() =>
+                            setOpenAgentGroups((prev) =>
+                              prev.includes(group.title)
+                                ? prev.filter((g) => g !== group.title)
+                                : [...prev, group.title],
+                            )
+                          }
                         >
-                          {isPrimary ? '✓ Primary First Agent' : 'Set as Primary Agent'}
+                          <span className="start-accordion-title-wrap">
+                            <span className="start-accordion-title">{group.title}</span>
+                            <span className="start-accordion-meta">
+                              {group.items.length} blueprints
+                              {activeCount > 0 && (
+                                <span className="start-accordion-count">
+                                  {activeCount} selected
+                                </span>
+                              )}
+                            </span>
+                          </span>
+                          <span className="start-accordion-chevron" aria-hidden="true">
+                            <svg
+                              width="16"
+                              height="16"
+                              viewBox="0 0 16 16"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="1.8"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            >
+                              <path d="M4 6l4 4 4-4" />
+                            </svg>
+                          </span>
                         </button>
-                        {!isPrimary && (
-                          <button
-                            type="button"
-                            className="t-mini-btn"
-                            style={{
-                              width: 'auto',
-                              padding: '0 10px',
-                              height: 30,
-                              background: isAdditional ? 'var(--ink)' : 'transparent',
-                              color: isAdditional ? '#fff' : 'var(--ink)',
-                            }}
-                            onClick={() =>
-                              setAdditionalTemplates((list) => toggleItem(list, tpl.id))
-                            }
-                          >
-                            {isAdditional ? '+ Added to Workspace' : '+ Also add to workspace'}
-                          </button>
+
+                        {isOpen && (
+                          <div className="start-accordion-panel">
+                            <div className="start-accordion-grid">
+                              {group.items.map((tpl) => {
+                                const isPrimary = primaryTemplateId === tpl.id;
+                                const isAdditional = additionalTemplates.includes(tpl.id);
+                                return (
+                                  <div
+                                    key={tpl.id}
+                                    className={`start-agent-cell ${
+                                      isPrimary ? 'primary' : isAdditional ? 'added' : ''
+                                    }`}
+                                  >
+                                    <div className="start-agent-cell-head">
+                                      <div className="start-agent-cell-title-row">
+                                        <strong className="start-agent-cell-title">
+                                          {tpl.name}
+                                        </strong>
+                                        {group.isRecommended && (
+                                          <span className="start-agent-rec-pill">
+                                            Recommended
+                                          </span>
+                                        )}
+                                      </div>
+                                      <span className="start-agent-cat">
+                                        {tpl.category.toUpperCase()}
+                                      </span>
+                                    </div>
+
+                                    <p className="start-agent-desc">{tpl.description}</p>
+
+                                    <div className="start-agent-actions">
+                                      <button
+                                        type="button"
+                                        className={`start-agent-btn ${
+                                          isPrimary ? 'is-primary' : ''
+                                        }`}
+                                        onClick={() => selectPrimaryTemplate(tpl)}
+                                      >
+                                        {isPrimary
+                                          ? '✓ Primary First Agent'
+                                          : 'Set as Primary Agent'}
+                                      </button>
+                                      {!isPrimary && (
+                                        <button
+                                          type="button"
+                                          className={`start-agent-btn ${
+                                            isAdditional ? 'is-added' : ''
+                                          }`}
+                                          onClick={() =>
+                                            setAdditionalTemplates((list) =>
+                                              toggleItem(list, tpl.id),
+                                            )
+                                          }
+                                        >
+                                          {isAdditional
+                                            ? '✓ Added to workspace'
+                                            : '+ Also add'}
+                                        </button>
+                                      )}
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
                         )}
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
               </div>
 
               <div className="start-actions">
