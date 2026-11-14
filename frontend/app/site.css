@@ -3824,3 +3824,111 @@
     border-bottom: none !important;
   }
 }
+
+/* ── Searchable Country Dropdown ─────────────────────────────────────── */
+.start-country-trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border: 1px solid var(--line-strong);
+  border-radius: 12px;
+  background: var(--bone);
+  padding: 13px 15px;
+  font: inherit;
+  font-size: 15px;
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 150ms ease, box-shadow 150ms ease, background 150ms ease;
+}
+
+.start-country-trigger:hover,
+.start-country-trigger.open {
+  border-color: var(--ink);
+  background: var(--paper);
+}
+
+.start-country-trigger.open {
+  box-shadow: 0 0 0 4px rgba(12, 13, 11, 0.06);
+}
+
+.start-country-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 40;
+  border: 1px solid #d6d0c8;
+  border-radius: 14px;
+  background: #ffffff;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.09);
+  overflow: hidden;
+}
+
+.start-country-search-wrap {
+  padding: 8px 10px;
+  border-bottom: 1px dashed #d6d0c8;
+  background: #faf8f6;
+}
+
+.start-country-search {
+  width: 100%;
+  border: 1px solid #e5e1dc;
+  border-radius: 9px;
+  background: #ffffff;
+  padding: 8px 11px;
+  font: inherit;
+  font-size: 13.5px;
+  color: #1e1e1e;
+  outline: none;
+}
+
+.start-country-search:focus {
+  border-color: #141414;
+}
+
+.start-country-list {
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.start-country-option {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 9px 14px;
+  border: none;
+  border-bottom: 1px dashed #f0ece7;
+  background: transparent;
+  font: inherit;
+  font-size: 13.5px;
+  color: #1e1e1e;
+  text-align: left;
+  cursor: pointer;
+  transition: background 120ms ease;
+}
+
+.start-country-option:last-child {
+  border-bottom: none;
+}
+
+.start-country-option:hover {
+  background: #f7f5f3;
+}
+
+.start-country-option.selected {
+  background: rgba(0, 236, 151, 0.14);
+  color: #063324;
+  font-weight: 600;
+}
+
+.start-country-empty {
+  padding: 14px;
+  text-align: center;
+  font-size: 13px;
+  color: #6e6e6e;
+}

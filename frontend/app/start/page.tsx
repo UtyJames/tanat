@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import '../landing.css';
@@ -312,6 +312,41 @@ const CHANNEL_ICONS: Record<string, React.ReactNode> = {
   api: <CursorLogo size={20} />,
 };
 
+const COUNTRIES = [
+  'Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola', 'Antigua and Barbuda',
+  'Argentina', 'Armenia', 'Australia', 'Austria', 'Azerbaijan', 'Bahamas', 'Bahrain',
+  'Bangladesh', 'Barbados', 'Belarus', 'Belgium', 'Belize', 'Benin', 'Bhutan',
+  'Bolivia', 'Bosnia and Herzegovina', 'Botswana', 'Brazil', 'Brunei', 'Bulgaria',
+  'Burkina Faso', 'Burundi', 'Cabo Verde', 'Cambodia', 'Cameroon', 'Canada',
+  'Central African Republic', 'Chad', 'Chile', 'China', 'Colombia', 'Comoros',
+  'Congo', 'Costa Rica', 'Croatia', 'Cuba', 'Cyprus', 'Czech Republic',
+  'Democratic Republic of the Congo', 'Denmark', 'Djibouti', 'Dominica',
+  'Dominican Republic', 'Ecuador', 'Egypt', 'El Salvador', 'Equatorial Guinea',
+  'Eritrea', 'Estonia', 'Eswatini', 'Ethiopia', 'Fiji', 'Finland', 'France',
+  'Gabon', 'Gambia', 'Georgia', 'Germany', 'Ghana', 'Greece', 'Grenada',
+  'Guatemala', 'Guinea', 'Guinea-Bissau', 'Guyana', 'Haiti', 'Honduras', 'Hungary',
+  'Iceland', 'India', 'Indonesia', 'Iran', 'Iraq', 'Ireland', 'Israel', 'Italy',
+  'Jamaica', 'Japan', 'Jordan', 'Kazakhstan', 'Kenya', 'Kiribati', 'Kuwait',
+  'Kyrgyzstan', 'Laos', 'Latvia', 'Lebanon', 'Lesotho', 'Liberia', 'Libya',
+  'Liechtenstein', 'Lithuania', 'Luxembourg', 'Madagascar', 'Malawi', 'Malaysia',
+  'Maldives', 'Mali', 'Malta', 'Marshall Islands', 'Mauritania', 'Mauritius',
+  'Mexico', 'Micronesia', 'Moldova', 'Monaco', 'Mongolia', 'Montenegro', 'Morocco',
+  'Mozambique', 'Myanmar', 'Namibia', 'Nauru', 'Nepal', 'Netherlands', 'New Zealand',
+  'Nicaragua', 'Niger', 'Nigeria', 'North Korea', 'North Macedonia', 'Norway',
+  'Oman', 'Pakistan', 'Palau', 'Palestine', 'Panama', 'Papua New Guinea', 'Paraguay',
+  'Peru', 'Philippines', 'Poland', 'Portugal', 'Qatar', 'Romania', 'Russia',
+  'Rwanda', 'Saint Kitts and Nevis', 'Saint Lucia', 'Saint Vincent and the Grenadines',
+  'Samoa', 'San Marino', 'Sao Tome and Principe', 'Saudi Arabia', 'Senegal',
+  'Serbia', 'Seychelles', 'Sierra Leone', 'Singapore', 'Slovakia', 'Slovenia',
+  'Solomon Islands', 'Somalia', 'South Africa', 'South Korea', 'South Sudan',
+  'Spain', 'Sri Lanka', 'Sudan', 'Suriname', 'Sweden', 'Switzerland', 'Syria',
+  'Taiwan', 'Tajikistan', 'Tanzania', 'Thailand', 'Timor-Leste', 'Togo', 'Tonga',
+  'Trinidad and Tobago', 'Tunisia', 'Turkey', 'Turkmenistan', 'Tuvalu', 'Uganda',
+  'Ukraine', 'United Arab Emirates', 'United Kingdom', 'United States', 'Uruguay',
+  'Uzbekistan', 'Vanuatu', 'Vatican City', 'Venezuela', 'Vietnam', 'Yemen',
+  'Zambia', 'Zimbabwe',
+];
+
 const STEP_LABELS = [
   '1. Welcome',
   '2. Business Info',
@@ -344,7 +379,37 @@ export default function StartPage() {
   const [businessDescription, setBusinessDescription] = useState('');
   const [websiteUrl, setWebsiteUrl] = useState('');
   const [country, setCountry] = useState('United States');
+  const [countryOpen, setCountryOpen] = useState(false);
+  const [countryQuery, setCountryQuery] = useState('');
+  const countryDropdownRef = useRef<HTMLDivElement | null>(null);
   const [timezone, setTimezone] = useState('UTC');
+
+  const filteredCountries = useMemo(() => {
+    const q = countryQuery.trim().toLowerCase();
+    if (!q) return COUNTRIES;
+    return COUNTRIES.filter((c) => c.toLowerCase().includes(q));
+  }, [countryQuery]);
+
+  useEffect(() => {
+    if (!countryOpen) return;
+    const onPointerDown = (e: MouseEvent) => {
+      if (
+        countryDropdownRef.current &&
+        !countryDropdownRef.current.contains(e.target as Node)
+      ) {
+        setCountryOpen(false);
+      }
+    };
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setCountryOpen(false);
+    };
+    document.addEventListener('mousedown', onPointerDown);
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', onPointerDown);
+      document.removeEventListener('keydown', onKeyDown);
+    };
+  }, [countryOpen]);
 
   // Step 3: Capabilities
   const [selectedCapabilities, setSelectedCapabilities] = useState<string[]>([
@@ -873,10 +938,7 @@ Integrate our Tanat AI agent ("${agentName}") into this application:
           {step === 1 && (
             <>
               <span className="t-eyebrow">Step 2 · Business Profile</span>
-              <h1 style={{ marginTop: 16 }}>Tell us about your business.</h1>
-              <p>
-                Used to recommend the right agents and ground responses.
-              </p>
+              <h1 style={{ marginTop: 16, marginBottom: 20 }}>Tell us about your business.</h1>
 
               <div className="start-row">
                 <div className="start-field">
@@ -935,15 +997,80 @@ Integrate our Tanat AI agent ("${agentName}") into this application:
                     onChange={(e) => setWebsiteUrl(e.target.value)}
                   />
                 </div>
-                <div className="start-field">
-                  <label htmlFor="biz-country">Country / Timezone</label>
-                  <input
+                <div className="start-field" ref={countryDropdownRef} style={{ position: 'relative' }}>
+                  <label htmlFor="biz-country">Country</label>
+                  <button
                     id="biz-country"
-                    className="start-input"
-                    placeholder="United States · EST"
-                    value={`${country} (${timezone})`}
-                    onChange={(e) => setCountry(e.target.value)}
-                  />
+                    type="button"
+                    className={`start-country-trigger ${countryOpen ? 'open' : ''}`}
+                    aria-expanded={countryOpen}
+                    aria-haspopup="listbox"
+                    onClick={() => {
+                      setCountryOpen((prev) => !prev);
+                      setCountryQuery('');
+                    }}
+                  >
+                    <span>{country || 'Select country'}</span>
+                    <svg
+                      width="15"
+                      height="15"
+                      viewBox="0 0 16 16"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.8"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      aria-hidden="true"
+                      style={{
+                        transform: countryOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                        transition: 'transform 160ms ease',
+                        flexShrink: 0,
+                      }}
+                    >
+                      <path d="M4 6l4 4 4-4" />
+                    </svg>
+                  </button>
+
+                  {countryOpen && (
+                    <div className="start-country-menu" role="listbox" aria-label="Countries">
+                      <div className="start-country-search-wrap">
+                        <input
+                          type="text"
+                          className="start-country-search"
+                          placeholder="Search country..."
+                          value={countryQuery}
+                          onChange={(e) => setCountryQuery(e.target.value)}
+                          autoFocus
+                        />
+                      </div>
+                      <div className="start-country-list">
+                        {filteredCountries.length === 0 ? (
+                          <div className="start-country-empty">No countries found</div>
+                        ) : (
+                          filteredCountries.map((c) => {
+                            const selected = c === country;
+                            return (
+                              <button
+                                key={c}
+                                type="button"
+                                role="option"
+                                aria-selected={selected}
+                                className={`start-country-option ${selected ? 'selected' : ''}`}
+                                onClick={() => {
+                                  setCountry(c);
+                                  setCountryOpen(false);
+                                  setCountryQuery('');
+                                }}
+                              >
+                                <span>{c}</span>
+                                {selected && <CheckIcon size={12} />}
+                              </button>
+                            );
+                          })
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 
