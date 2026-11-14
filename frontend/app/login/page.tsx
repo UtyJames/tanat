@@ -58,14 +58,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div
-      className="tn-site"
-      style={{
-        display: 'grid',
-        gridTemplateColumns: 'minmax(360px, 1.05fr) 1fr',
-        minHeight: '100vh',
-      }}
-    >
+    <div className="tn-site tn-split-layout">
       {/* Left Hero-Matched Grainy Emerald Panel with Floating Logos */}
       <aside
         className="tn-near-grain"
@@ -76,7 +69,6 @@ export default function LoginPage() {
           justifyContent: 'space-between',
           borderRight: '1px solid var(--tn-border)',
           position: 'relative',
-          minHeight: '100vh',
         }}
       >
         <div className="tn-hero-wireframe" />

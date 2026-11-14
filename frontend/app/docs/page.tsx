@@ -7,6 +7,7 @@ import LandingNav from '@/components/landing/LandingNav';
 import {
   CursorLogo,
   LovableLogo,
+  NearLogo,
   SlackLogo,
   TanatMascotIcon,
   TelegramLogo,
@@ -208,23 +209,9 @@ console.log(reply.content, reply.sources_used, reply.proposed_action);`;
         <div className="tn-frame" style={{ borderTop: 'none' }}>
           <div className="tn-hatch" />
 
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'minmax(220px, 260px) 1fr',
-              alignItems: 'start',
-            }}
-          >
+          <div className="tn-docs-layout">
             {/* Left Sticky Index */}
-            <aside
-              style={{
-                position: 'sticky',
-                top: 98,
-                padding: '28px 24px',
-                borderRight: '1px dashed var(--tn-border-strong)',
-                minHeight: 'calc(100vh - 120px)',
-              }}
-            >
+            <aside className="tn-docs-sidebar">
               <div
                 style={{
                   fontFamily: 'var(--tn-font-mono)',
@@ -670,16 +657,32 @@ console.log(reply.content, reply.sources_used, reply.proposed_action);`;
             margin: '18px auto 0',
             display: 'flex',
             justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: 12,
             fontSize: 12.5,
-            color: 'rgba(255,255,255,0.48)',
+            color: 'rgba(255,255,255,0.58)',
           }}
         >
           <span>© 2026 Tanat. Built for real businesses.</span>
-          <span>All systems operational</span>
+          <span
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 7,
+              color: '#00ec97',
+              fontFamily: 'var(--tn-font-mono)',
+              fontSize: 11.5,
+            }}
+          >
+            <NearLogo size={14} />
+            <span>Powered by NEAR AI</span>
+          </span>
         </div>
 
-        <div className="tn-footer-wordmark" aria-hidden="true">
-          Tanat
+        <div className="tn-footer-bottom-brand" aria-hidden="true">
+          <TanatMascotIcon size={64} />
+          <div className="tn-footer-wordmark">Tanat</div>
         </div>
       </footer>
     </div>

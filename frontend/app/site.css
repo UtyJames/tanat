@@ -2278,7 +2278,7 @@
   gap: 12px;
   margin-top: 34px;
   padding-top: 24px;
-  border-top: 1px solid var(--line);
+  border-top: 1px dashed #d6d0c8;
 }
 
 .start-back {
@@ -3358,5 +3358,78 @@
   }
   .t-compare {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 900px) {
+  .start {
+    grid-template-columns: 1fr;
+    overflow-x: hidden;
+  }
+  .start-aside {
+    position: static;
+    height: auto;
+    padding: 24px 20px;
+  }
+  .start-aside h2 {
+    font-size: 24px;
+    margin-top: 20px;
+  }
+  .start-steps {
+    display: none;
+  }
+  .start-aside-foot {
+    display: none;
+  }
+  .start-main {
+    padding: 20px 16px 40px;
+    min-width: 0;
+  }
+  .start-top {
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 18px;
+  }
+  .start-card {
+    padding: 24px 18px;
+    border-radius: 16px;
+    min-width: 0;
+  }
+  .start-launch-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .start-card h1 {
+    font-size: 24px;
+    line-height: 1.15;
+  }
+  .start-card > p {
+    font-size: 13.5px;
+    margin-bottom: 20px;
+  }
+  .start-row,
+  .start-choices {
+    grid-template-columns: 1fr;
+  }
+  .start-choice {
+    padding: 12px;
+  }
+  .start-input,
+  .start-textarea,
+  .start-select {
+    font-size: 14px;
+    padding: 11px 13px;
+  }
+  .start-actions {
+    flex-wrap: wrap;
+    margin-top: 24px;
+    padding-top: 18px;
+  }
+  .start-snippet {
+    font-size: 11px;
+    padding: 12px;
+    max-width: 100%;
   }
 }

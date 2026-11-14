@@ -6,11 +6,15 @@ import Link from 'next/link';
 import '../landing.css';
 import { CheckIcon, ArrowIcon } from '@/components/brand/Logo';
 import {
+  CursorLogo,
   LovableLogo,
+  ShopifyLogo,
   SlackLogo,
   TanatMascotIcon,
   TelegramLogo,
   WebflowLogo,
+  WhatsAppLogo,
+  WidgetLogo,
 } from '@/components/brand/PlatformLogos';
 import { FormattedPreview } from '@/components/FormattedPreview';
 import { getSuggestedQuestions } from '@/lib/chat-suggestions';
@@ -292,6 +296,21 @@ const CHANNEL_OPTIONS: ChannelOption[] = [
     badge: 'Available now',
   },
 ];
+
+const CHANNEL_ICONS: Record<string, React.ReactNode> = {
+  website: <WidgetLogo size={20} />,
+  whatsapp: <WhatsAppLogo size={20} />,
+  telegram: <TelegramLogo size={20} />,
+  email: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="3" y="5" width="18" height="14" rx="2.5" />
+      <path d="m3 7 9 6 9-6" />
+    </svg>
+  ),
+  slack: <SlackLogo size={20} />,
+  shopify: <ShopifyLogo size={20} />,
+  api: <CursorLogo size={20} />,
+};
 
 const STEP_LABELS = [
   '1. Welcome',
@@ -800,6 +819,7 @@ Integrate our Tanat AI agent ("${agentName}") into this application:
               <i key={name} className={index <= step ? 'done' : ''} />
             ))}
           </div>
+          <div style={{ borderTop: '1px dashed var(--tn-border-strong)', margin: '18px 0' }} />
 
           {/* ── STEP 0: Welcome to Tanat ─────────────────────────────── */}
           {step === 0 && (
@@ -1508,7 +1528,16 @@ Integrate our Tanat AI agent ("${agentName}") into this application:
                         setSelectedChannels((list) => toggleItem(list, ch.id))
                       }
                     >
-                      <span className="start-choice-icon">◎</span>
+                      <span
+                        className="start-choice-icon"
+                        style={{
+                          background: '#ffffff',
+                          border: '1px solid var(--tn-border-strong)',
+                          color: 'var(--tn-ink)',
+                        }}
+                      >
+                        {CHANNEL_ICONS[ch.id] ?? '◎'}
+                      </span>
                       <span>
                         <strong>
                           {ch.title}{' '}
@@ -1671,7 +1700,7 @@ Integrate our Tanat AI agent ("${agentName}") into this application:
               <div className="start-preview" style={{ marginTop: 8 }}>
                 <div className="start-preview-top">
                   <span>Live Sandbox · {agentName}</span>
-                  <span>NEAR AI Cloud TEE</span>
+                  <span>Private Sandbox</span>
                 </div>
                 <div
                   className="start-preview-body"
