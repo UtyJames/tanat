@@ -42,7 +42,7 @@ export default function SiteNav() {
             <Link className="t-nav-signin" href="/login">
               Sign in
             </Link>
-            <Link className="t-btn t-btn-lime t-btn-sm" href="/start">
+            <Link className="t-btn t-btn-ink t-btn-sm" href="/start">
               Get started
             </Link>
             <button

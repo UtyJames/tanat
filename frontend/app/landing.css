@@ -174,8 +174,9 @@
 }
 
 .tn-btn-dark:hover {
-  background: #272727;
-  color: #ffffff;
+  background: var(--tn-near);
+  color: #052e1e;
+  box-shadow: 0 10px 24px -10px rgba(0, 236, 151, 0.65);
 }
 
 .tn-btn-near {
@@ -664,15 +665,56 @@
 }
 
 .tn-float-badge-left {
-  left: 42px;
-  top: 120px;
+  left: 40px;
+  top: 96px;
   transform: rotate(-10deg);
+  animation: tn-float-a 5.4s ease-in-out infinite;
 }
 
 .tn-float-badge-right {
-  right: 42px;
-  top: 126px;
+  right: 40px;
+  top: 102px;
   transform: rotate(10deg);
+  animation: tn-float-b 6s ease-in-out infinite;
+}
+
+.tn-float-badge-left-2 {
+  left: 92px;
+  top: 255px;
+  transform: rotate(8deg);
+  animation: tn-float-b 6.4s ease-in-out infinite;
+}
+
+.tn-float-badge-right-2 {
+  right: 92px;
+  top: 265px;
+  transform: rotate(-8deg);
+  animation: tn-float-a 5.8s ease-in-out infinite;
+}
+
+.tn-float-badge-left-3 {
+  left: 48px;
+  top: 410px;
+  transform: rotate(-6deg);
+  animation: tn-float-a 6.8s ease-in-out infinite;
+}
+
+@keyframes tn-float-a {
+  0%, 100% {
+    transform: translateY(0px) rotate(-8deg);
+  }
+  50% {
+    transform: translateY(-10px) rotate(-3deg);
+  }
+}
+
+@keyframes tn-float-b {
+  0%, 100% {
+    transform: translateY(0px) rotate(8deg);
+  }
+  50% {
+    transform: translateY(-12px) rotate(3deg);
+  }
 }
 
 /* ── Clients / Integrations Marquee ───────────────────────────────────── */

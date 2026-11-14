@@ -185,11 +185,12 @@
 
 .t-btn-ink {
   background: var(--ink);
-  color: var(--bone);
+  color: #ffffff;
 }
 
 .t-btn-ink:hover {
-  background: #20231c;
+  background: #00ec97;
+  color: #052e1e;
 }
 
 .t-btn-ghost {

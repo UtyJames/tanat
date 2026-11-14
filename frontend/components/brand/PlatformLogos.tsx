@@ -118,6 +118,56 @@ export function CursorLogo({ size = 18 }: { size?: number }) {
   );
 }
 
+export function WebflowLogo({ size = 18 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="#146EF5" aria-hidden="true">
+      <path d="m24 4.515l-7.658 14.97H9.149l3.205-6.204h-.144C9.566 16.713 5.621 18.973 0 19.485v-6.118s3.596-.213 5.71-2.435H0V4.515h6.417v5.278l.144-.001l2.622-5.277h4.854v5.244h.144l2.72-5.244z" />
+    </svg>
+  );
+}
+
+export function LovableLogo({ size = 18 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 37 38" fill="none" aria-hidden="true">
+      <clipPath id="tnLovableClip" clipPathUnits="userSpaceOnUse">
+        <path
+          fillRule="evenodd"
+          clipRule="evenodd"
+          d="M11.3017 0.696625C17.2674 0.696625 22.1034 5.54547 22.1034 11.5268V15.643H25.6983C31.6639 15.643 36.5 20.4918 36.5 26.4732C36.5 32.4545 31.6639 37.3034 25.6983 37.3034H0.5V11.5268C0.5 5.54547 5.3361 0.696625 11.3017 0.696625Z"
+        />
+      </clipPath>
+      <g clipPath="url(#tnLovableClip)">
+        <rect x="0" y="0" width="37" height="38" fill="url(#tnLov0)" />
+        <rect x="0" y="0" width="37" height="38" fill="url(#tnLov1)" />
+        <rect x="0" y="0" width="37" height="38" fill="url(#tnLov2)" />
+        <rect x="0" y="0" width="37" height="38" fill="url(#tnLov3)" />
+      </g>
+      <defs>
+        <radialGradient id="tnLov0" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="matrix(42.38951 0 0 42.38951 16.2931 20.2368)">
+          <stop offset="0" stopColor="#4B73FF" stopOpacity="1" />
+          <stop offset="0.55" stopColor="#4B73FF" stopOpacity="0.5" />
+          <stop offset="1" stopColor="#4B73FF" stopOpacity="0" />
+        </radialGradient>
+        <radialGradient id="tnLov1" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="matrix(49.23061 0 0 42.38951 18.9662 6.86334)">
+          <stop offset="0" stopColor="#FF66F4" stopOpacity="1" />
+          <stop offset="0.6" stopColor="#FF66F4" stopOpacity="0.4" />
+          <stop offset="1" stopColor="#FF66F4" stopOpacity="0" />
+        </radialGradient>
+        <radialGradient id="tnLov2" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="matrix(42.38951 0 0 39.42161 24.0617 2.27707)">
+          <stop offset="0" stopColor="#FF0105" stopOpacity="1" />
+          <stop offset="0.6" stopColor="#FF0105" stopOpacity="0.3" />
+          <stop offset="1" stopColor="#FF0105" stopOpacity="0" />
+        </radialGradient>
+        <radialGradient id="tnLov3" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="matrix(32.67581 0 0 32.67581 19.4036 6.85751)">
+          <stop offset="0" stopColor="#FE7B02" stopOpacity="0.97" />
+          <stop offset="0.6" stopColor="#FE7B02" stopOpacity="0.2" />
+          <stop offset="1" stopColor="#FE7B02" stopOpacity="0" />
+        </radialGradient>
+      </defs>
+    </svg>
+  );
+}
+
 export function WidgetLogo({ size = 18 }: { size?: number }) {
   return <TanatMascotIcon size={size} />;
 }

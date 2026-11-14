@@ -13,17 +13,22 @@ import {
 import {
   CursorLogo,
   FramerLogo,
+  LovableLogo,
   NearLogo,
   NextJsLogo,
   ShopifyLogo,
   SlackLogo,
   TanatMascotIcon,
   TelegramLogo,
+  WebflowLogo,
   WhatsAppLogo,
   WordPressLogo,
 } from '@/components/brand/PlatformLogos';
 
 const PARTNER_STRIP = [
+  { name: 'Lovable', logo: <LovableLogo size={18} /> },
+  { name: 'Cursor', logo: <CursorLogo size={18} /> },
+  { name: 'Webflow', logo: <WebflowLogo size={18} /> },
   { name: 'WordPress', logo: <WordPressLogo size={18} /> },
   { name: 'Slack', logo: <SlackLogo size={18} /> },
   { name: 'Telegram', logo: <TelegramLogo size={18} /> },
@@ -31,7 +36,6 @@ const PARTNER_STRIP = [
   { name: 'Shopify', logo: <ShopifyLogo size={18} /> },
   { name: 'Next.js', logo: <NextJsLogo size={18} /> },
   { name: 'Framer', logo: <FramerLogo size={18} /> },
-  { name: 'Cursor', logo: <CursorLogo size={18} /> },
 ];
 
 export default function Home() {
@@ -43,6 +47,24 @@ export default function Home() {
         <LandingHero />
 
         <div className="tn-frame" style={{ borderTop: 'none' }}>
+          {/* ── Powered by NEAR AI Cloud Strip (Under Hero, Before Marquee) ── */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 8,
+              padding: '16px 24px 6px',
+              fontFamily: 'var(--tn-font-mono)',
+              fontSize: 12,
+              letterSpacing: '0.06em',
+              color: 'var(--tn-ink)',
+            }}
+          >
+            <NearLogo size={15} />
+            <span>POWERED BY NEAR AI CLOUD</span>
+          </div>
+
           {/* ── Partner Logos Marquee ─────────────────────────────────── */}
           <div className="tn-clients">
             <div className="tn-clients-track">
@@ -104,20 +126,20 @@ export default function Home() {
 
           <div className="tn-h-line" />
 
-          {/* ── 3. Easy Integration (Real Logos + Snippets) ───────────── */}
+          {/* ── 3. Easy Integration & Vibecoding ─────────────────────── */}
           <section id="integrate">
             <BlurReveal>
               <div className="tn-sec-head">
                 <div>
-                  <span className="tn-eyebrow">EASY INTEGRATION</span>
+                  <span className="tn-eyebrow">VIBECODING & INSTANT SETUP</span>
                   <h2 className="tn-h2" style={{ marginTop: 10 }}>
-                    Partnered with the tools your business already runs on.
+                    Whether you’re vibecoding or scaling a live site.
                   </h2>
                 </div>
                 <p className="tn-sec-desc">
-                  Click any platform below for its exact 60-second setup snippet —
-                  from WordPress and Shopify to Slack, Telegram, WhatsApp, and
-                  Cursor.
+                  Set up and integrate your own AI across Lovable, Cursor,
+                  Webflow, WordPress, Shopify, Slack, Telegram, and WhatsApp —
+                  without worrying about vector DBs, servers, or webhook plumbing.
                 </p>
               </div>
             </BlurReveal>
@@ -265,8 +287,8 @@ export default function Home() {
                   zIndex: 2,
                 }}
               >
-                <Link href="/start" className="tn-btn tn-btn-near">
-                  Get started free →
+                <Link href="/start" className="tn-btn tn-btn-dark">
+                  Get started →
                 </Link>
                 <Link href="/docs" className="tn-btn tn-btn-outline-light">
                   Integration guide
@@ -288,15 +310,11 @@ export default function Home() {
               </span>
             </div>
             <p style={{ fontSize: 13.5, color: 'rgba(255,255,255,0.68)', marginTop: 6 }}>
-              Private AI assistants for real businesses — easy to launch and
-              always under your control.
+              Private AI for real businesses — easy to set up, works across
+              every channel, and stays under your control.
             </p>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#00ec97', fontSize: 12.5, fontWeight: 600 }}>
-              <NearLogo size={15} />
-              <span>Powered by NEAR AI Cloud</span>
-            </div>
             <div style={{ marginTop: 8 }}>
-              <Link href="/start" className="tn-btn tn-btn-near" style={{ height: 38, fontSize: 13 }}>
+              <Link href="/start" className="tn-btn tn-btn-dark" style={{ height: 38, fontSize: 13, border: '1px solid rgba(255,255,255,0.2)' }}>
                 Get started →
               </Link>
             </div>

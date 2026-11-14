@@ -4,11 +4,13 @@ import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import {
   CursorLogo,
+  LovableLogo,
   NextJsLogo,
   ShopifyLogo,
   SlackLogo,
   TanatMascotIcon,
   TelegramLogo,
+  WebflowLogo,
   WhatsAppLogo,
   WidgetLogo,
   WordPressLogo,
@@ -497,12 +499,28 @@ export function ChannelExamplesExplorer() {
 
 const INTEGRATIONS = [
   {
+    id: 'lovable',
+    name: 'Lovable / Cursor / v0',
+    tag: 'VIBECODING',
+    logo: <LovableLogo size={22} />,
+    code: `Read https://api.tanat.space/llms.txt and connect my Tanat AI workspace ("your-biz") to this app.`,
+    note: 'Whether you’re vibecoding or shipping fast — paste one prompt to integrate your AI with zero infra.',
+  },
+  {
+    id: 'webflow',
+    name: 'Webflow',
+    tag: 'NO-CODE SITES',
+    logo: <WebflowLogo size={22} />,
+    code: `<!-- Webflow Site Settings → Custom Code → Footer -->\n<script src="https://api.tanat.space/widget.js" data-tenant="your-site" async></script>`,
+    note: 'Drop once in Webflow custom code and publish across every page.',
+  },
+  {
     id: 'widget',
-    name: '1-Line Website Widget',
+    name: '1-Line Website Embed',
     tag: 'ANY WEBSITE',
     logo: <WidgetLogo size={22} />,
     code: `<script src="https://api.tanat.space/widget.js" data-tenant="your-biz" async></script>`,
-    note: 'Paste once before </body> on HTML, Webflow, Wix, or Framer.',
+    note: 'Paste once before </body> on HTML, Wix, Framer, or custom sites.',
   },
   {
     id: 'wordpress',
@@ -538,32 +556,16 @@ const INTEGRATIONS = [
   },
   {
     id: 'shopify',
-    name: 'Shopify',
-    tag: 'ECOMMERCE',
+    name: 'Shopify & Next.js',
+    tag: 'STORES & APPS',
     logo: <ShopifyLogo size={22} />,
-    code: `<!-- Paste in theme.liquid before </body> -->\n<script src="https://api.tanat.space/widget.js" data-tenant="your-shop" async></script>`,
+    code: `<!-- Shopify theme.liquid or Next.js Script -->\n<script src="https://api.tanat.space/widget.js" data-tenant="your-shop" async></script>`,
     note: 'Trained on your product catalog, shipping rules, and return policy.',
-  },
-  {
-    id: 'nextjs',
-    name: 'Next.js / React',
-    tag: 'APP ROUTER',
-    logo: <NextJsLogo size={22} />,
-    code: `import Script from 'next/script';\n\n<Script src="https://api.tanat.space/widget.js" data-tenant="your-app" strategy="afterInteractive" />`,
-    note: 'Zero layout shift, static-export friendly, and lightweight.',
-  },
-  {
-    id: 'cursor',
-    name: 'Cursor / Lovable / MCP',
-    tag: 'AI BUILDERS',
-    logo: <CursorLogo size={22} />,
-    code: `Read https://api.tanat.space/llms.txt and embed the Tanat widget for tenant "your-biz".`,
-    note: 'Paste into Cursor, Lovable, Bolt, or v0 to integrate automatically.',
   },
 ];
 
 export function IntegrationPartnerSection() {
-  const [selectedId, setSelectedId] = useState('widget');
+  const [selectedId, setSelectedId] = useState('lovable');
   const [copied, setCopied] = useState(false);
 
   const selected = INTEGRATIONS.find((i) => i.id === selectedId) ?? INTEGRATIONS[0];
@@ -636,7 +638,7 @@ export function IntegrationPartnerSection() {
             <button
               type="button"
               onClick={handleCopy}
-              className="tn-btn tn-btn-near"
+              className="tn-btn tn-btn-dark"
               style={{ height: 34, padding: '0 14px', fontSize: 12.5 }}
             >
               {copied ? '✓ Copied' : 'Copy snippet'}

@@ -3,53 +3,19 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import {
-  NextJsLogo,
-  ShopifyLogo,
+  CursorLogo,
+  LovableLogo,
   SlackLogo,
   TanatMascotIcon,
   TelegramLogo,
-  WhatsAppLogo,
-  WordPressLogo,
+  WebflowLogo,
 } from '@/components/brand/PlatformLogos';
 
 const PLACEHOLDERS = [
-  'Connect Tanat to WordPress, Slack, and Telegram in 3 minutes...',
-  'Reply to customers instantly while keeping your data 100% private...',
-  'Pause refunds for my 1-click approval before anything goes out...',
-  'Add a smart chat widget to Shopify or Next.js with one line...',
-];
-
-const HERO_PARTNERS = [
-  {
-    name: 'WordPress',
-    logo: <WordPressLogo size={16} />,
-    prompt: 'Add Tanat to my WordPress site with a single header snippet',
-  },
-  {
-    name: 'Slack',
-    logo: <SlackLogo size={16} />,
-    prompt: 'Route team questions and owner approval alerts straight to Slack',
-  },
-  {
-    name: 'Telegram',
-    logo: <TelegramLogo size={16} />,
-    prompt: 'Connect my Telegram bot so customers get instant private replies 24/7',
-  },
-  {
-    name: 'WhatsApp',
-    logo: <WhatsAppLogo size={16} />,
-    prompt: 'Handle WhatsApp customer bookings and order updates automatically',
-  },
-  {
-    name: 'Shopify',
-    logo: <ShopifyLogo size={16} />,
-    prompt: 'Answer Shopify shipping, sizing, and return questions using my store policy',
-  },
-  {
-    name: 'Next.js',
-    logo: <NextJsLogo size={16} />,
-    prompt: 'Drop the Tanat widget into my Next.js or React app in 60 seconds',
-  },
+  'Whether you’re vibecoding in Lovable or Cursor, plug in your own AI in 1 line...',
+  'Deploy your own AI across your website, Telegram, WhatsApp & Slack in 3 min...',
+  'Skip vector DBs & webhook servers — train on your docs in 60 seconds...',
+  'Keep sensitive refunds and bookings behind 1-click owner approval...',
 ];
 
 export default function LandingHero() {
@@ -88,17 +54,29 @@ export default function LandingHero() {
           <div className="tn-pixel-corner" style={{ top: 18, left: 64 }} aria-hidden="true" />
           <div className="tn-pixel-corner" style={{ bottom: 18, right: 64 }} aria-hidden="true" />
 
-          {/* Floating Real Partner Logos */}
-          <div className="tn-float-badge tn-float-badge-left" title="Slack Integration" aria-hidden="true">
+          {/* Floating Animated Platform Logos (Left & Right) */}
+          <div className="tn-float-badge tn-float-badge-left" title="Slack" aria-hidden="true">
             <SlackLogo size={26} />
           </div>
 
-          <div className="tn-float-badge tn-float-badge-right" title="WordPress Integration" aria-hidden="true">
-            <WordPressLogo size={26} />
+          <div className="tn-float-badge tn-float-badge-right" title="Lovable" aria-hidden="true">
+            <LovableLogo size={26} />
+          </div>
+
+          <div className="tn-float-badge tn-float-badge-left-2" title="Telegram" aria-hidden="true">
+            <TelegramLogo size={26} />
+          </div>
+
+          <div className="tn-float-badge tn-float-badge-right-2" title="Webflow" aria-hidden="true">
+            <WebflowLogo size={26} />
+          </div>
+
+          <div className="tn-float-badge tn-float-badge-left-3" title="Cursor" aria-hidden="true">
+            <CursorLogo size={24} />
           </div>
 
           <div className="tn-float-note" aria-hidden="true">
-            Private by default — your data never trains AI models!
+            Vibecoding or live site — zero infra headaches!
           </div>
 
           {/* Mascot Toast Card */}
@@ -117,19 +95,19 @@ export default function LandingHero() {
           <div className="tn-near-badge">
             <TanatMascotIcon size={18} />
             <span>Private AI for Real Businesses</span>
-            <span className="tn-mint-pill">Live</span>
+            <span className="tn-mint-pill">Fast & Easy</span>
           </div>
 
           <h1 className="tn-h1 tn-hero-title">
-            Your Business Assistant,
+            Set Up Your Own AI,
             <br />
-            Everywhere Customers Chat
+            Live Everywhere in Minutes
           </h1>
 
           <p className="tn-hero-sub">
-            Teach Tanat your docs in 60 seconds and go live on WordPress,
-            Shopify, Telegram, WhatsApp, and Slack — with full privacy and
-            1-click owner approvals.
+            Whether you’re vibecoding a new app or running a business, plug your
+            own private AI into websites, Telegram, WhatsApp, and Slack — with
+            zero infrastructure complexity.
           </p>
 
           {/* Interactive Glass Prompt Box */}
@@ -140,7 +118,7 @@ export default function LandingHero() {
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
               placeholder={PLACEHOLDERS[phIdx]}
-              aria-label="Describe what your Tanat assistant should handle"
+              aria-label="Describe what your Tanat AI should do"
             />
             <div className="tn-prompt-footer">
               <button
@@ -159,7 +137,7 @@ export default function LandingHero() {
                     fontFamily: 'var(--tn-font-mono)',
                   }}
                 >
-                  3-min setup · Zero code
+                  3-min setup · Zero infra
                 </span>
                 <button
                   type="submit"
@@ -174,19 +152,13 @@ export default function LandingHero() {
             </div>
           </form>
 
-          {/* Clickable Partner Integration Pills */}
-          <div className="tn-hero-partners">
-            {HERO_PARTNERS.map((p) => (
-              <button
-                key={p.name}
-                type="button"
-                className="tn-partner-pill"
-                onClick={() => setPrompt(p.prompt)}
-              >
-                {p.logo}
-                <span>{p.name}</span>
-              </button>
-            ))}
+          <div style={{ marginTop: 22, display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'center', position: 'relative', zIndex: 2 }}>
+            <Link href="/start" className="tn-btn tn-btn-dark">
+              Start 3-minute setup →
+            </Link>
+            <Link href="/docs#vibecoding" className="tn-btn tn-btn-outline-light">
+              Vibecoding guide ↗
+            </Link>
           </div>
         </div>
       </div>
@@ -224,11 +196,11 @@ export default function LandingHero() {
 
             <span className="tn-eyebrow">PRIVATE WORKSPACE</span>
             <h3 id="tn-modal-title" className="tn-h3" style={{ marginTop: 8 }}>
-              Launch your Tanat assistant
+              Launch your own AI in 3 minutes
             </h3>
             <p style={{ marginTop: 8, color: 'var(--tn-body)', fontSize: 14 }}>
-              Set up in under 3 minutes. Your business docs and customer chats
-              stay 100% private and under your control.
+              No vector database setup, no webhook plumbing — your business docs
+              and customer chats stay 100% private.
             </p>
 
             {prompt.trim() && (
@@ -251,17 +223,17 @@ export default function LandingHero() {
             )}
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 20 }}>
-              <Link href="/start" className="tn-btn tn-btn-near" style={{ width: '100%', height: 46 }}>
+              <Link href="/start" className="tn-btn tn-btn-dark" style={{ width: '100%', height: 46 }}>
                 Start 3-minute setup →
               </Link>
               <Link href="/login" className="tn-btn tn-btn-beige" style={{ width: '100%', height: 46 }}>
                 Sign in to existing workspace
               </Link>
               <Link
-                href="/docs"
+                href="/docs#vibecoding"
                 style={{ textAlign: 'center', fontSize: 13, color: 'var(--tn-muted)', marginTop: 4 }}
               >
-                Read integration & privacy docs ↗
+                Vibecoding with Cursor / Lovable / v0 ↗
               </Link>
             </div>
           </div>
@@ -270,4 +242,3 @@ export default function LandingHero() {
     </section>
   );
 }
-
