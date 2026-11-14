@@ -72,25 +72,32 @@ const onboardingSchema = z
   })
   .strict();
 
+const originListSchema = z
+  .array(
+    z
+      .string()
+      .trim()
+      .min(1)
+      .max(300)
+      .refine((value) => value === '*' || /^https?:\/\/[^/\s]+$/.test(value), {
+        message: 'Origins must be http(s) origins without a path',
+      }),
+  )
+  .min(1)
+  .max(20);
+
 const publishableKeySchema = z
   .object({
     name: z.string().trim().min(1).max(80).default('Website widget'),
-    origins: z
-      .array(
-        z
-          .string()
-          .trim()
-          .min(1)
-          .max(300)
-          .refine((value) => value === '*' || /^https?:\/\/[^/\s]+$/.test(value), {
-            message: 'Origins must be http(s) origins without a path',
-          }),
-      )
-      .min(1)
-      .max(20),
+    origins: originListSchema.optional(),
+    allowed_origins: originListSchema.optional(),
     installation_id: z.string().min(1).max(100).optional(),
   })
-  .strict();
+  .strict()
+  .refine((data) => Boolean(data.origins?.length || data.allowed_origins?.length), {
+    message: 'At least one origin is required',
+    path: ['origins'],
+  });
 
 interface TenantSettings {
   business?: Record<string, unknown>;
@@ -596,11 +603,12 @@ onboardingRouter.post('/keys', validateBody(publishableKeySchema), async (c) => 
 
   if (!installation) throw new NotFoundError('Agent installation');
 
+  const resolvedOrigins = safeOrigins(body.origins ?? body.allowed_origins ?? ['*']);
   const created = await issuePublishableKey(c.env, {
     tenantId,
     installationId: installation.id,
     name: body.name,
-    origins: safeOrigins(body.origins),
+    origins: resolvedOrigins,
   });
 
   await logAudit(c.env.DB, {
@@ -609,7 +617,7 @@ onboardingRouter.post('/keys', validateBody(publishableKeySchema), async (c) => 
     resourceType: 'publishable_key',
     resourceId: created.id,
     actorId: c.get('apiKeyId'),
-    details: { origins: safeOrigins(body.origins), installation_id: installation.id },
+    details: { origins: resolvedOrigins, installation_id: installation.id },
   });
 
   return c.json(
@@ -619,7 +627,7 @@ onboardingRouter.post('/keys', validateBody(publishableKeySchema), async (c) => 
         key: created.key,
         prefix: created.prefix,
         installation_id: installation.id,
-        allowed_origins: safeOrigins(body.origins),
+        allowed_origins: resolvedOrigins,
         snippet: widgetSnippet(c.env, created.key, installation.id),
       },
       warning: 'This key is shown once. You can rotate it from the dashboard.',

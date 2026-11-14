@@ -74,14 +74,26 @@ function allowedOrigins(raw: string): string[] {
   }
 }
 
+function originMatchesPattern(origin: string, pattern: string): boolean {
+  const normalizedOrigin = origin.replace(/\/$/, '').toLowerCase();
+  const normalizedPattern = pattern.replace(/\/$/, '').toLowerCase();
+  if (normalizedPattern === '*') return true;
+  if (normalizedPattern === normalizedOrigin) return true;
+  if (!normalizedPattern.includes('*')) return false;
+  const escaped = normalizedPattern
+    .replace(/[.+?^${}()|[\]\\]/g, '\\$&')
+    .replace(/\*/g, '[^/]+');
+  return new RegExp(`^${escaped}$`).test(normalizedOrigin);
+}
+
 function originAllowed(origin: string | undefined, allowed: string[]): boolean {
   if (allowed.includes('*')) return true;
   if (!origin) return false;
-  return allowed.includes(origin.replace(/\/$/, ''));
+  return allowed.some((pattern) => originMatchesPattern(origin, pattern));
 }
 
 function readKey(c: Context<HonoEnv>): string {
-  const header = c.req.header('X-Tanat-Key');
+  const header = c.req.header('X-Tanat-Key') ?? c.req.header('X-Tanat-Publishable-Key');
   const query = c.req.query('key');
   const key = (header ?? query ?? '').trim();
   if (!key.startsWith('pk_') || key.length < 20) {
@@ -93,14 +105,22 @@ function readKey(c: Context<HonoEnv>): string {
 function applyCors(c: Context<HonoEnv>, allowed: string[]): void {
   const origin = c.req.header('Origin');
   if (!origin) return;
-  if (allowed.includes('*')) {
+  if (c.req.method === 'OPTIONS') {
+    // Browsers omit custom auth headers on preflight OPTIONS; actual GET/POST
+    // requests enforce the publishable key's origin allowlist in authenticate().
+    c.header('Access-Control-Allow-Origin', origin);
+    c.header('Vary', 'Origin');
+  } else if (allowed.includes('*')) {
     c.header('Access-Control-Allow-Origin', '*');
-  } else if (allowed.includes(origin.replace(/\/$/, ''))) {
+  } else if (originAllowed(origin, allowed)) {
     c.header('Access-Control-Allow-Origin', origin);
     c.header('Vary', 'Origin');
   }
   c.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  c.header('Access-Control-Allow-Headers', 'Content-Type, X-Tanat-Key, X-Tanat-Visitor');
+  c.header(
+    'Access-Control-Allow-Headers',
+    'Content-Type, X-Tanat-Key, X-Tanat-Publishable-Key, X-Tanat-Visitor',
+  );
   c.header('Access-Control-Max-Age', '86400');
 }
 
@@ -122,7 +142,11 @@ export function createPublicRouter(
   // browser. The key is looked up by hash; an invalid key simply gets no CORS.
   publicRouter.use('*', async (c, next) => {
     let allowed: string[] = [];
-    const raw = c.req.header('X-Tanat-Key') ?? c.req.query('key') ?? '';
+    const raw =
+      c.req.header('X-Tanat-Key') ??
+      c.req.header('X-Tanat-Publishable-Key') ??
+      c.req.query('key') ??
+      '';
     const salt = c.env.API_KEY_SALT ?? '';
     if (raw.startsWith('pk_') && salt) {
       try {
@@ -145,6 +169,7 @@ export function createPublicRouter(
 
   const createSessionSchema = z
     .object({
+      installation_id: z.string().max(120).optional(),
       user_id: z.string().max(160).optional(),
       user_signature: z.string().max(256).optional(),
       metadata: z.record(z.string(), z.unknown()).optional(),

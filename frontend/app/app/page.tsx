@@ -929,7 +929,7 @@ export default function Dashboard() {
   const activePkValue = activePubKey?.key_value || 'pk_live_your_key';
 
   const htmlWidgetSnippet = `<script
-  src="${PUBLIC_BASE_URL}/embed/tanat-widget.js"
+  src="https://www.tanat.space/embed/tanat-widget.js"
   data-key="${activePkValue}"
   data-agent="${activeInstId}"
   data-api="${PUBLIC_BASE_URL}"
@@ -945,7 +945,7 @@ export default function Dashboard() {
 export function TanatChatWidget() {
   return (
     <Script
-      src="${PUBLIC_BASE_URL}/embed/tanat-widget.js"
+      src="https://www.tanat.space/embed/tanat-widget.js"
       data-key="${activePkValue}"
       data-agent="${activeInstId}"
       data-api="${PUBLIC_BASE_URL}"
@@ -964,7 +964,7 @@ Integrate our Tanat AI agent for "${tenant?.name ?? 'our business'}" into this a
 Option A (Website Widget): Add this script tag to the root layout:
 ${htmlWidgetSnippet}
 
-Option B (Custom Chat UI): Call POST ${PUBLIC_BASE_URL}/api/public/v1/sessions with {"installation_id": "${activeInstId}"} and header "X-Tanat-Publishable-Key: ${activePkValue}", then send user messages to POST ${PUBLIC_BASE_URL}/api/public/v1/sessions/:id/messages.`;
+Option B (Custom Chat UI): Call POST ${PUBLIC_BASE_URL}/api/public/v1/sessions with {"installation_id": "${activeInstId}"} and header "X-Tanat-Key: ${activePkValue}", then send user messages to POST ${PUBLIC_BASE_URL}/api/public/v1/sessions/:id/messages.`;
 
   if (booting) {
     return (
