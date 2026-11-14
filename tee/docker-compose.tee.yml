@@ -26,3 +26,4 @@ services:
 
 volumes:
   tanat_enclave_data:
+

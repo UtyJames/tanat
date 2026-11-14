@@ -19,3 +19,4 @@ Tanat protects sensitive tenant data in two layers:
 npm run build:worker
 docker compose -f tee/docker-compose.tee.yml up -d --build
 ```
+

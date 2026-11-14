@@ -32,3 +32,4 @@ CREATE INDEX IF NOT EXISTS idx_tee_receipts_tenant_created
 
 CREATE INDEX IF NOT EXISTS idx_tee_receipts_session
   ON tee_attestation_receipts (tenant_id, session_id);
+

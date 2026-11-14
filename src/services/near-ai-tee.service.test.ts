@@ -168,3 +168,4 @@ describe('NEAR AI Cloud Verifiable TEE & Conclave Enclave Policy', () => {
     expect(() => assertEnclavePolicy(enclaveEnv, 'deadbeef')).toThrow(/MRTD measurement/);
   });
 });
+
