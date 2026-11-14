@@ -2,12 +2,13 @@
 
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
+import { TanatMascotIcon } from '@/components/brand/PlatformLogos';
 
 const SECTION_LINKS = [
   { href: '#how-it-works', label: 'How it works' },
   { href: '#examples', label: 'Telegram, WhatsApp & Slack' },
   { href: '#integrate', label: 'Integrations' },
-  { href: '#privacy', label: 'Privacy & NEAR AI' },
+  { href: '#privacy', label: 'Privacy & Control' },
 ];
 
 export default function LandingNav() {
@@ -29,15 +30,7 @@ export default function LandingNav() {
     <header className="tn-nav">
       <div className="tn-nav-inner">
         <Link href="/" className="tn-brand">
-          <span className="tn-brand-mascot">
-            <img
-              src="/tanat-mascot.jpg"
-              alt="Tanat mascot"
-              width={36}
-              height={36}
-              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-            />
-          </span>
+          <TanatMascotIcon size={36} />
           <span>Tanat</span>
         </Link>
 

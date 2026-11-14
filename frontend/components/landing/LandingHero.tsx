@@ -3,10 +3,10 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import {
-  NearLogo,
   NextJsLogo,
   ShopifyLogo,
   SlackLogo,
+  TanatMascotIcon,
   TelegramLogo,
   WhatsAppLogo,
   WordPressLogo,
@@ -14,9 +14,9 @@ import {
 
 const PLACEHOLDERS = [
   'Connect Tanat to WordPress, Slack, and Telegram in 3 minutes...',
-  'Answer customer questions privately on NEAR AI Cloud...',
-  'Pause refunds for 1-click owner approval before executing...',
-  'Embed one line on Shopify or Next.js with zero data training...',
+  'Reply to customers instantly while keeping your data 100% private...',
+  'Pause refunds for my 1-click approval before anything goes out...',
+  'Add a smart chat widget to Shopify or Next.js with one line...',
 ];
 
 const HERO_PARTNERS = [
@@ -103,19 +103,7 @@ export default function LandingHero() {
 
           {/* Mascot Toast Card */}
           <div className="tn-float-toast" aria-hidden="true">
-            <img
-              src="/tanat-mascot.jpg"
-              alt="Tanat AI Mascot"
-              width={40}
-              height={40}
-              style={{
-                width: 40,
-                height: 40,
-                borderRadius: 12,
-                objectFit: 'cover',
-                border: '1px solid rgba(0, 236, 151, 0.5)',
-              }}
-            />
+            <TanatMascotIcon size={40} />
             <div>
               <div style={{ fontSize: 12.5, fontWeight: 600, color: '#141414' }}>
                 Jenny Roy · Order #4821
@@ -126,25 +114,22 @@ export default function LandingHero() {
             </div>
           </div>
 
-          {/* Powered by NEAR AI Cloud Badge */}
           <div className="tn-near-badge">
-            <span style={{ color: '#00ec97', display: 'inline-flex' }}>
-              <NearLogo size={16} />
-            </span>
-            <span>Powered by NEAR AI Cloud</span>
-            <span className="tn-mint-pill">Private</span>
+            <TanatMascotIcon size={18} />
+            <span>Private AI for Real Businesses</span>
+            <span className="tn-mint-pill">Live</span>
           </div>
 
           <h1 className="tn-h1 tn-hero-title">
-            Private AI Assistants
+            Your Business Assistant,
             <br />
-            For Every Channel You Use
+            Everywhere Customers Chat
           </h1>
 
           <p className="tn-hero-sub">
-            Connect your docs once and go live on WordPress, Shopify, Telegram,
-            WhatsApp, and Slack in 3 minutes — with private inference and 1-click
-            human approvals.
+            Teach Tanat your docs in 60 seconds and go live on WordPress,
+            Shopify, Telegram, WhatsApp, and Slack — with full privacy and
+            1-click owner approvals.
           </p>
 
           {/* Interactive Glass Prompt Box */}
@@ -242,8 +227,8 @@ export default function LandingHero() {
               Launch your Tanat assistant
             </h3>
             <p style={{ marginTop: 8, color: 'var(--tn-body)', fontSize: 14 }}>
-              Set up in under 3 minutes. Powered by NEAR AI Cloud with strict
-              tenant isolation — your business data stays yours.
+              Set up in under 3 minutes. Your business docs and customer chats
+              stay 100% private and under your control.
             </p>
 
             {prompt.trim() && (

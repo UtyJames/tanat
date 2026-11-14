@@ -12,23 +12,25 @@ import {
 } from '@/components/landing/LandingSections';
 import {
   CursorLogo,
+  FramerLogo,
   NearLogo,
   NextJsLogo,
   ShopifyLogo,
   SlackLogo,
+  TanatMascotIcon,
   TelegramLogo,
   WhatsAppLogo,
   WordPressLogo,
 } from '@/components/brand/PlatformLogos';
 
 const PARTNER_STRIP = [
-  { name: 'NEAR AI Cloud', logo: <NearLogo size={18} /> },
   { name: 'WordPress', logo: <WordPressLogo size={18} /> },
   { name: 'Slack', logo: <SlackLogo size={18} /> },
   { name: 'Telegram', logo: <TelegramLogo size={18} /> },
   { name: 'WhatsApp', logo: <WhatsAppLogo size={18} /> },
   { name: 'Shopify', logo: <ShopifyLogo size={18} /> },
   { name: 'Next.js', logo: <NextJsLogo size={18} /> },
+  { name: 'Framer', logo: <FramerLogo size={18} /> },
   { name: 'Cursor', logo: <CursorLogo size={18} /> },
 ];
 
@@ -125,26 +127,26 @@ export default function Home() {
 
           <div className="tn-h-line" />
 
-          {/* ── 4. Privacy & NEAR AI Cloud ────────────────────────────── */}
+          {/* ── 4. Privacy & Ease of Access ───────────────────────────── */}
           <section id="privacy">
             <BlurReveal>
               <div className="tn-sec-head-center">
                 <span className="tn-eyebrow">PRIVACY & EASE OF ACCESS</span>
                 <h2 className="tn-h2" style={{ marginTop: 10 }}>
-                  Private AI inference. Effortless control.
+                  Private by default. Simple from day one.
                 </h2>
               </div>
             </BlurReveal>
 
             <div className="tn-grid-3" style={{ borderTop: '1px solid var(--tn-border)' }}>
               <div className="tn-cell">
-                <span className="tn-eyebrow">POWERED BY NEAR AI CLOUD</span>
+                <span className="tn-eyebrow">YOUR DATA STAYS YOURS</span>
                 <h3 className="tn-h3" style={{ fontSize: 21 }}>
-                  Verifiable Private Inference
+                  100% Private Workspace
                 </h3>
                 <p className="tn-sec-desc" style={{ fontSize: 14 }}>
-                  Every prompt runs on NEAR AI Cloud with strict tenant isolation.
-                  Your documents and customer chats are never used to train public models.
+                  Your documents, pricing, and customer chats stay isolated to your
+                  business and are never used to train public AI models.
                 </p>
               </div>
               <div className="tn-cell">
@@ -153,7 +155,7 @@ export default function Home() {
                   1-Click Owner Approvals
                 </h3>
                 <p className="tn-sec-desc" style={{ fontSize: 14 }}>
-                  Tanat answers routine questions automatically and pauses refunds,
+                  Tanat answers everyday questions automatically and pauses refunds,
                   discounts, or bookings for your instant sign-off.
                 </p>
               </div>
@@ -163,8 +165,8 @@ export default function Home() {
                   Live in Under 3 Minutes
                 </h3>
                 <p className="tn-sec-desc" style={{ fontSize: 14 }}>
-                  Sign in with one email code, upload a URL or PDF, and deploy
-                  across web, Telegram, WhatsApp, and Slack without engineers.
+                  Sign in with one email code, drop in a link or PDF, and launch
+                  on your website, Telegram, WhatsApp, and Slack.
                 </p>
               </div>
             </div>
@@ -173,9 +175,9 @@ export default function Home() {
 
             <div className="tn-stats-4">
               <div className="tn-stat-cell" style={{ justifyContent: 'center' }}>
-                <span className="tn-eyebrow">TANAT METRICS</span>
+                <span className="tn-eyebrow">TANAT AT A GLANCE</span>
                 <div style={{ fontSize: 13.5, color: 'var(--tn-body)', marginTop: 4 }}>
-                  Built on NEAR AI Cloud for speed & privacy.
+                  Fast to set up, safe to run 24/7.
                 </div>
               </div>
               <div className="tn-stat-cell">
@@ -280,22 +282,14 @@ export default function Home() {
         <div className="tn-footer-grid">
           <div className="tn-footer-col">
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <span className="tn-brand-mascot">
-                <img
-                  src="/tanat-mascot.jpg"
-                  alt="Tanat mascot"
-                  width={36}
-                  height={36}
-                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                />
-              </span>
+              <TanatMascotIcon size={36} />
               <span style={{ fontFamily: 'var(--tn-font-display)', fontWeight: 600, fontSize: 19 }}>
                 Tanat
               </span>
             </div>
             <p style={{ fontSize: 13.5, color: 'rgba(255,255,255,0.68)', marginTop: 6 }}>
-              Private AI assistants for real businesses — powered by NEAR AI Cloud
-              and always under your control.
+              Private AI assistants for real businesses — easy to launch and
+              always under your control.
             </p>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#00ec97', fontSize: 12.5, fontWeight: 600 }}>
               <NearLogo size={15} />
@@ -313,7 +307,7 @@ export default function Home() {
             <a href="#how-it-works">How it works</a>
             <a href="#examples">Telegram, WhatsApp & Slack</a>
             <a href="#integrate">Website widget</a>
-            <a href="#privacy">Privacy & NEAR AI</a>
+            <a href="#privacy">Privacy & control</a>
           </div>
 
           <div className="tn-footer-col">
@@ -345,7 +339,7 @@ export default function Home() {
             color: 'rgba(255,255,255,0.48)',
           }}
         >
-          <span>© 2026 Tanat. Powered by NEAR AI Cloud.</span>
+          <span>© 2026 Tanat. Built for real businesses.</span>
           <span>All systems operational</span>
         </div>
 

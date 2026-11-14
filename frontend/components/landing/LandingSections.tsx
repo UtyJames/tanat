@@ -4,10 +4,10 @@ import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import {
   CursorLogo,
-  NearLogo,
   NextJsLogo,
   ShopifyLogo,
   SlackLogo,
+  TanatMascotIcon,
   TelegramLogo,
   WhatsAppLogo,
   WidgetLogo,
@@ -257,7 +257,7 @@ const CHANNELS: Record<
     userMsg: 'Hi! My ceramic lamp arrived with a cracked shade. Can I swap it or get a refund?',
     tanatMsg:
       'Sorry about that! Under our 30-day damage policy, you qualify for a free replacement or a full $145 refund. I prepared the refund for owner sign-off.',
-    sourceNote: 'Source: Return Policy §2 · NEAR AI Cloud Private Inference',
+    sourceNote: 'Source: Return Policy §2 · Private workspace',
     actionTitle: 'Owner Approval · Refund $145.00 (#4821)',
     actionBtn: 'Approve in 1 Click',
     doneText: '✓ Refund approved — customer notified on Telegram',
@@ -361,8 +361,8 @@ export function ChannelExamplesExplorer() {
           <div style={{ fontWeight: 600, color: 'var(--tn-ink)', marginBottom: 4 }}>
             Why businesses love this workflow
           </div>
-          Every channel shares the exact same private knowledge base, customer
-          memory, and NEAR AI Cloud inference — no duplicate bots to maintain.
+          Every channel shares the same private knowledge base and customer
+          memory — set it up once, and it works everywhere.
         </div>
       </div>
 
@@ -435,13 +435,7 @@ export function ChannelExamplesExplorer() {
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 5 }}>
-                <img
-                  src="/tanat-mascot.jpg"
-                  alt="Tanat"
-                  width={18}
-                  height={18}
-                  style={{ borderRadius: 5, objectFit: 'cover' }}
-                />
+                <TanatMascotIcon size={18} />
                 <span style={{ fontSize: 11, fontFamily: 'var(--tn-font-mono)', color: '#00ec97' }}>
                   TANAT AI · 0.3s
                 </span>
@@ -680,7 +674,7 @@ export function IntegrationPartnerSection() {
 /* ── 5. Scroll-Scrubbed Privacy & NEAR AI Cloud Quote ────────────────── */
 
 const PRIVACY_WORDS =
-  'Your business knowledge shouldn’t be exposed to third-party training pipelines. Powered by NEAR AI Cloud, Tanat gives you private, tenant-isolated AI that is effortless to launch in 3 minutes.'.split(
+  'Your business knowledge belongs to you, not public AI training sets. Tanat keeps every customer chat private, learns your docs in 60 seconds, and lets you approve big actions in one click.'.split(
     ' ',
   );
 
@@ -721,8 +715,8 @@ export function PrivacyScrubQuote() {
           zIndex: 2,
         }}
       >
-        <NearLogo size={16} />
-        <span>POWERED BY NEAR AI CLOUD</span>
+        <TanatMascotIcon size={18} />
+        <span>PRIVATE BY DEFAULT · BUILT FOR EASE</span>
       </div>
 
       <p className="tn-quote-text">
