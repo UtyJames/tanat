@@ -211,14 +211,18 @@ export interface KnowledgeSource {
   id: string;
   tenant_id: string;
   agent_id: string | null;
-  source_type: 'website' | 'faq' | 'document' | 'pdf' | 'text' | 'catalog' | 'policy';
+  source_type: 'website' | 'faq' | 'document' | 'pdf' | 'text' | 'catalog' | 'policy' | 'other' | string;
+  kind?: string;
   title: string;
+  label?: string;
   url: string | null;
+  uri?: string | null;
   content: string;
-  metadata: string;
+  metadata?: string | Record<string, unknown>;
   status: 'ready' | 'processing' | 'pending' | 'failed';
   created_at: string;
-  updated_at: string;
+  updated_at?: string;
+  agent_name?: string;
 }
 
 export interface CustomerMemory {

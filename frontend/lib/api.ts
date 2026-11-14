@@ -512,13 +512,23 @@ export function listKnowledge(agentId?: string): Promise<KnowledgeSource[]> {
 
 export function createKnowledge(input: {
   agent_id?: string | null;
-  source_type: 'website' | 'faq' | 'document' | 'pdf' | 'text' | 'catalog' | 'policy';
+  source_type: 'website' | 'faq' | 'document' | 'pdf' | 'text' | 'catalog' | 'policy' | 'other' | string;
   title: string;
   url?: string;
   content: string;
   metadata?: Record<string, unknown>;
 }): Promise<KnowledgeSource> {
-  return request<KnowledgeSource>('POST', '/platform/knowledge', input);
+  return request<KnowledgeSource>('POST', '/platform/knowledge', {
+    agent_id: input.agent_id,
+    source_type: input.source_type,
+    kind: input.source_type,
+    title: input.title,
+    label: input.title,
+    url: input.url,
+    uri: input.url,
+    content: input.content,
+    metadata: input.metadata,
+  });
 }
 
 export function deleteKnowledge(id: string): Promise<{ deleted: boolean }> {

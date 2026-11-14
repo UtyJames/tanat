@@ -63,15 +63,52 @@ platformRouter.get('/templates', async (c) => {
 });
 
 // ── 2. Knowledge Base CRUD ────────────────────────────────────────────
+const validBuiltinKinds = ['website', 'document', 'pdf', 'faq', 'text', 'catalog', 'policy'] as const;
+
 const createKnowledgeSchema = z
   .object({
-    kind: z.enum(['website', 'document', 'pdf', 'faq', 'text', 'catalog', 'policy']),
-    label: z.string().trim().min(2).max(160),
-    uri: z.string().trim().max(500).optional(),
-    content: z.string().trim().max(30000).optional(),
+    kind: z.string().trim().max(100).optional(),
+    source_type: z.string().trim().max(100).optional(),
+    label: z.string().trim().max(200).optional(),
+    title: z.string().trim().max(200).optional(),
+    uri: z.string().trim().max(1000).optional(),
+    url: z.string().trim().max(1000).optional(),
+    content: z.string().trim().max(100000).optional(),
     agent_id: z.string().trim().max(100).nullable().optional(),
-  })
-  .strict();
+    metadata: z.union([z.record(z.string(), z.unknown()), z.string()]).optional(),
+  });
+
+function normalizeKnowledgeRow(row: Record<string, unknown>) {
+  let metaObj: Record<string, unknown> = {};
+  if (typeof row.metadata === 'string') {
+    try {
+      metaObj = JSON.parse(row.metadata);
+    } catch {
+      metaObj = {};
+    }
+  } else if (row.metadata && typeof row.metadata === 'object') {
+    metaObj = row.metadata as Record<string, unknown>;
+  }
+
+  const customSourceType = typeof metaObj.custom_source_type === 'string' && metaObj.custom_source_type.trim()
+    ? metaObj.custom_source_type.trim()
+    : undefined;
+
+  const displayType = customSourceType || (row.kind as string) || 'document';
+  const label = (row.label as string) || (row.title as string) || 'Untitled Source';
+  const uri = (row.uri as string) || (row.url as string) || null;
+
+  return {
+    ...row,
+    label,
+    title: label,
+    kind: displayType,
+    source_type: displayType,
+    uri,
+    url: uri,
+    metadata: metaObj,
+  };
+}
 
 platformRouter.get('/knowledge', async (c) => {
   const tenantId = c.get('tenantId');
@@ -93,17 +130,26 @@ platformRouter.get('/knowledge', async (c) => {
     ? c.env.DB.prepare(query).bind(tenantId, agentId)
     : c.env.DB.prepare(query).bind(tenantId);
 
-  const { results } = await stmt.all();
-  return c.json({ data: results ?? [] });
+  const { results } = await stmt.all<Record<string, unknown>>();
+  const normalized = (results ?? []).map(normalizeKnowledgeRow);
+  return c.json({ data: normalized });
 });
 
 platformRouter.post('/knowledge', validateBody(createKnowledgeSchema), async (c) => {
   const tenantId = c.get('tenantId');
   const body = getValidatedBody<z.infer<typeof createKnowledgeSchema>>(c);
 
-  const hasContent = Boolean(body.content && body.content.trim().length > 0);
-  if (!hasContent && !body.uri) {
-    throw new ValidationError('Provide either content text or a source URL.');
+  const label = (body.label ?? body.title ?? '').trim();
+  if (label.length < 2) {
+    throw new ValidationError('A title/label of at least 2 characters is required.');
+  }
+
+  const uri = (body.uri ?? body.url ?? '').trim() || null;
+  const content = (body.content ?? '').trim() || null;
+  const hasContent = Boolean(content && content.length > 0);
+
+  if (!hasContent && !uri) {
+    throw new ValidationError('Provide either content text, uploaded document text, or a source URL.');
   }
 
   if (body.agent_id) {
@@ -115,6 +161,32 @@ platformRouter.post('/knowledge', validateBody(createKnowledgeSchema), async (c)
     if (!agent) throw new NotFoundError('Agent');
   }
 
+  const rawType = (body.source_type ?? body.kind ?? 'document').trim();
+  let dbKind: string = 'document';
+  let customType: string | undefined = undefined;
+
+  if ((validBuiltinKinds as readonly string[]).includes(rawType.toLowerCase())) {
+    dbKind = rawType.toLowerCase();
+  } else {
+    dbKind = 'document';
+    customType = rawType;
+  }
+
+  let metaObj: Record<string, unknown> = {};
+  if (typeof body.metadata === 'string') {
+    try {
+      metaObj = JSON.parse(body.metadata);
+    } catch {
+      metaObj = {};
+    }
+  } else if (body.metadata && typeof body.metadata === 'object') {
+    metaObj = { ...body.metadata };
+  }
+
+  if (customType) {
+    metaObj.custom_source_type = customType;
+  }
+
   const id = generateId('knw');
   // Sources with inline content are immediately ready for retrieval;
   // URL-only sources without pasted text are marked pending crawl.
@@ -122,17 +194,18 @@ platformRouter.post('/knowledge', validateBody(createKnowledgeSchema), async (c)
 
   await c.env.DB.prepare(
     `INSERT INTO knowledge_sources
-       (id, tenant_id, agent_id, kind, label, uri, content, status, created_at, updated_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))`,
+       (id, tenant_id, agent_id, kind, label, uri, content, metadata, status, created_at, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))`,
   )
     .bind(
       id,
       tenantId,
       body.agent_id ?? null,
-      body.kind,
-      body.label,
-      body.uri ?? null,
-      body.content ?? null,
+      dbKind,
+      label,
+      uri,
+      content,
+      JSON.stringify(metaObj),
       status,
     )
     .run();
@@ -141,7 +214,7 @@ platformRouter.post('/knowledge', validateBody(createKnowledgeSchema), async (c)
     'SELECT * FROM knowledge_sources WHERE id = ? AND tenant_id = ?',
   )
     .bind(id, tenantId)
-    .first();
+    .first<Record<string, unknown>>();
 
   await logAudit(c.env.DB, {
     tenantId,
@@ -149,10 +222,10 @@ platformRouter.post('/knowledge', validateBody(createKnowledgeSchema), async (c)
     resourceType: 'knowledge_source',
     resourceId: id,
     actorId: c.get('apiKeyId'),
-    details: { kind: body.kind, label: body.label, status },
+    details: { kind: customType || dbKind, label, status },
   });
 
-  return c.json({ data: created }, 201);
+  return c.json({ data: created ? normalizeKnowledgeRow(created) : null }, 201);
 });
 
 platformRouter.delete('/knowledge/:id', async (c) => {

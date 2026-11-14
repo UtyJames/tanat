@@ -1380,3 +1380,94 @@ h3 {
   font-weight: 700;
   margin-left: 4px;
 }
+
+/* ── Knowledge Editor, Formatter & File Ingestion ──────────────────────── */
+.kn-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  border-radius: 8px 8px 0 0;
+  padding: 6px 10px;
+  align-items: center;
+}
+
+.kn-tool-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 3px 7px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.2;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.kn-tool-btn:hover {
+  background: var(--surface);
+  border-color: var(--border);
+  color: var(--text-primary);
+}
+
+.kn-tool-btn:active {
+  transform: translateY(1px);
+}
+
+.kn-tool-btn.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.kn-tab-pill {
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.kn-tab-pill.active {
+  background: var(--surface);
+  color: var(--text-primary);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+}
+
+.kn-dropzone {
+  border: 1.5px dashed var(--border);
+  border-radius: 8px;
+  padding: 16px 14px;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.015);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.kn-dropzone:hover,
+.kn-dropzone.dragging {
+  border-color: var(--accent);
+  background: rgba(59, 130, 246, 0.05);
+}
+
+.kn-preview-box {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  padding: 14px;
+  min-height: 160px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-primary);
+  overflow-y: auto;
+  word-break: break-word;
+}
+

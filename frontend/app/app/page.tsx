@@ -1,8 +1,10 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { extractTextFromFile } from '@/lib/file-extractor';
+import { FormattedPreview } from '@/components/FormattedPreview';
 import {
   ApiError,
   API_URL,
@@ -121,12 +123,19 @@ export default function Dashboard() {
 
   // Knowledge & Memory form state
   const [knType, setKnType] = useState<
-    'website' | 'faq' | 'document' | 'pdf' | 'text' | 'catalog' | 'policy'
+    'website' | 'faq' | 'document' | 'pdf' | 'text' | 'catalog' | 'policy' | 'other'
   >('policy');
+  const [knCustomType, setKnCustomType] = useState('');
   const [knTitle, setKnTitle] = useState('');
   const [knUrl, setKnUrl] = useState('');
   const [knContent, setKnContent] = useState('');
   const [knAgentId, setKnAgentId] = useState<string>('');
+  const [knUploading, setKnUploading] = useState(false);
+  const [knUploadSuccess, setKnUploadSuccess] = useState<string | null>(null);
+  const [knDragOver, setKnDragOver] = useState(false);
+  const [knEditorTab, setKnEditorTab] = useState<'edit' | 'preview'>('edit');
+  const knTextareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const knFileInputRef = useRef<HTMLInputElement | null>(null);
   const [memUserId, setMemUserId] = useState('customer_01');
   const [memKey, setMemKey] = useState('');
   const [memValue, setMemValue] = useState('');
@@ -241,6 +250,13 @@ export default function Dashboard() {
     void loadWorkspace();
   }, [loadWorkspace, router]);
 
+  useEffect(() => {
+    if (knTextareaRef.current && knEditorTab === 'edit') {
+      knTextareaRef.current.style.height = 'auto';
+      knTextareaRef.current.style.height = `${Math.max(150, knTextareaRef.current.scrollHeight)}px`;
+    }
+  }, [knContent, knEditorTab, section]);
+
   const selectedAgent = useMemo(
     () => agents.find((a) => a.id === selectedAgentId) ?? null,
     [agents, selectedAgentId],
@@ -343,20 +359,216 @@ export default function Dashboard() {
     }
   }
 
+  async function handleKnowledgeFileUpload(file: File) {
+    setKnUploading(true);
+    setKnUploadSuccess(null);
+    setError(null);
+    try {
+      const doc = await extractTextFromFile(file);
+      setKnContent((prev) => (prev.trim() ? `${prev.trim()}\n\n${doc.text}` : doc.text));
+      if (!knTitle.trim()) {
+        setKnTitle(doc.suggestedTitle);
+      }
+      if (knType !== 'other') {
+        setKnType(doc.suggestedType);
+      }
+      setKnEditorTab('edit');
+      const kbSize = (doc.fileSize / 1024).toFixed(1);
+      setKnUploadSuccess(
+        `Extracted ${doc.wordCount.toLocaleString()} words from "${doc.fileName}" (${kbSize} KB).`,
+      );
+      flash(`Extracted ${doc.wordCount.toLocaleString()} words from ${doc.fileName}.`);
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : 'Failed to extract text from the uploaded file.',
+      );
+    } finally {
+      setKnUploading(false);
+      if (knFileInputRef.current) {
+        knFileInputRef.current.value = '';
+      }
+    }
+  }
+
+  function applyKnowledgeFormat(
+    format:
+      | 'bold'
+      | 'italic'
+      | 'underline'
+      | 'strike'
+      | 'h2'
+      | 'h3'
+      | 'bullet'
+      | 'number'
+      | 'quote'
+      | 'code'
+      | 'clear',
+  ) {
+    const textarea = knTextareaRef.current;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const current = textarea.value;
+    const selected = current.slice(start, end);
+
+    let replacement = '';
+    let cursorStartOffset = 0;
+    let cursorEndOffset = 0;
+
+    switch (format) {
+      case 'bold': {
+        const inner = selected || 'bold text';
+        replacement = `**${inner}**`;
+        cursorStartOffset = selected ? replacement.length : 2;
+        cursorEndOffset = selected ? replacement.length : 2 + inner.length;
+        break;
+      }
+      case 'italic': {
+        const inner = selected || 'italic text';
+        replacement = `*${inner}*`;
+        cursorStartOffset = selected ? replacement.length : 1;
+        cursorEndOffset = selected ? replacement.length : 1 + inner.length;
+        break;
+      }
+      case 'underline': {
+        const inner = selected || 'underlined text';
+        replacement = `<u>${inner}</u>`;
+        cursorStartOffset = selected ? replacement.length : 3;
+        cursorEndOffset = selected ? replacement.length : 3 + inner.length;
+        break;
+      }
+      case 'strike': {
+        const inner = selected || 'strikethrough text';
+        replacement = `~~${inner}~~`;
+        cursorStartOffset = selected ? replacement.length : 2;
+        cursorEndOffset = selected ? replacement.length : 2 + inner.length;
+        break;
+      }
+      case 'h2': {
+        const prefix = start > 0 && current[start - 1] !== '\n' ? '\n## ' : '## ';
+        const inner = selected || 'Section Heading';
+        replacement = `${prefix}${inner}`;
+        cursorStartOffset = selected ? replacement.length : prefix.length;
+        cursorEndOffset = replacement.length;
+        break;
+      }
+      case 'h3': {
+        const prefix = start > 0 && current[start - 1] !== '\n' ? '\n### ' : '### ';
+        const inner = selected || 'Subheading';
+        replacement = `${prefix}${inner}`;
+        cursorStartOffset = selected ? replacement.length : prefix.length;
+        cursorEndOffset = replacement.length;
+        break;
+      }
+      case 'bullet': {
+        if (selected.includes('\n')) {
+          replacement = selected
+            .split('\n')
+            .map((line) => (line.trim() ? `- ${line.replace(/^[-*•]\s+/, '')}` : line))
+            .join('\n');
+          cursorStartOffset = replacement.length;
+          cursorEndOffset = replacement.length;
+        } else {
+          const prefix = start > 0 && current[start - 1] !== '\n' ? '\n- ' : '- ';
+          const inner = selected || 'List item';
+          replacement = `${prefix}${inner}`;
+          cursorStartOffset = selected ? replacement.length : prefix.length;
+          cursorEndOffset = replacement.length;
+        }
+        break;
+      }
+      case 'number': {
+        if (selected.includes('\n')) {
+          let index = 1;
+          replacement = selected
+            .split('\n')
+            .map((line) => (line.trim() ? `${index++}. ${line.replace(/^\d+\.\s+/, '')}` : line))
+            .join('\n');
+          cursorStartOffset = replacement.length;
+          cursorEndOffset = replacement.length;
+        } else {
+          const prefix = start > 0 && current[start - 1] !== '\n' ? '\n1. ' : '1. ';
+          const inner = selected || 'Numbered item';
+          replacement = `${prefix}${inner}`;
+          cursorStartOffset = selected ? replacement.length : prefix.length;
+          cursorEndOffset = replacement.length;
+        }
+        break;
+      }
+      case 'quote': {
+        if (selected.includes('\n')) {
+          replacement = selected
+            .split('\n')
+            .map((line) => (line.trim() ? `> ${line}` : line))
+            .join('\n');
+          cursorStartOffset = replacement.length;
+          cursorEndOffset = replacement.length;
+        } else {
+          const prefix = start > 0 && current[start - 1] !== '\n' ? '\n> ' : '> ';
+          const inner = selected || 'Key policy note';
+          replacement = `${prefix}${inner}`;
+          cursorStartOffset = selected ? replacement.length : prefix.length;
+          cursorEndOffset = replacement.length;
+        }
+        break;
+      }
+      case 'code': {
+        const inner = selected || 'code';
+        replacement = selected.includes('\n') ? `\`\`\`\n${inner}\n\`\`\`` : `\`${inner}\``;
+        cursorStartOffset = selected ? replacement.length : 1;
+        cursorEndOffset = selected ? replacement.length : 1 + inner.length;
+        break;
+      }
+      case 'clear': {
+        replacement = selected
+          .replace(/\*\*(.*?)\*\*/g, '$1')
+          .replace(/\*(.*?)\*/g, '$1')
+          .replace(/<u>(.*?)<\/u>/g, '$1')
+          .replace(/~~(.*?)~~/g, '$1')
+          .replace(/`([^`]+)`/g, '$1')
+          .replace(/^(#{1,3}|>|-|\*|\d+\.)\s+/gm, '');
+        cursorStartOffset = 0;
+        cursorEndOffset = replacement.length;
+        break;
+      }
+    }
+
+    const updated = current.slice(0, start) + replacement + current.slice(end);
+    setKnContent(updated);
+
+    setTimeout(() => {
+      textarea.focus();
+      textarea.setSelectionRange(start + cursorStartOffset, start + cursorEndOffset);
+    }, 10);
+  }
+
   async function handleAddKnowledge(e: React.FormEvent) {
     e.preventDefault();
     if (!knTitle.trim() || !knContent.trim()) return;
+    if (knType === 'other' && !knCustomType.trim()) {
+      setError('Please enter a custom source type.');
+      return;
+    }
+
+    const effectiveType = knType === 'other' ? knCustomType.trim() : knType;
+
     try {
       await createKnowledge({
         agent_id: knAgentId || null,
-        source_type: knType,
+        source_type: effectiveType,
         title: knTitle.trim(),
         url: knUrl.trim() || undefined,
         content: knContent.trim(),
+        metadata: knType === 'other' ? { custom_source_type: effectiveType } : undefined,
       });
       setKnTitle('');
       setKnUrl('');
       setKnContent('');
+      setKnCustomType('');
+      setKnType('policy');
+      setKnUploadSuccess(null);
+      setKnEditorTab('edit');
       await loadWorkspace();
       flash('Added knowledge source to workspace.');
     } catch (err) {
@@ -1360,11 +1572,11 @@ Option B (Custom Chat UI): Call POST ${PUBLIC_BASE_URL}/api/public/v1/sessions w
                               }}
                             >
                               <div>
-                                <strong>{k.title}</strong>{' '}
-                                <span className="ws-pill ready">{k.source_type}</span>
+                                <strong>{k.title || k.label}</strong>{' '}
+                                <span className="ws-pill ready">{k.source_type || k.kind}</span>
                                 <div className="muted" style={{ fontSize: 12, marginTop: 4 }}>
-                                  {k.content.slice(0, 160)}
-                                  {k.content.length > 160 ? '…' : ''}
+                                  {(k.content || '').slice(0, 160)}
+                                  {(k.content || '').length > 160 ? '…' : ''}
                                 </div>
                               </div>
                               <span className="ws-pill ready">{k.status}</span>
@@ -1564,7 +1776,8 @@ Option B (Custom Chat UI): Call POST ${PUBLIC_BASE_URL}/api/public/v1/sessions w
                               | 'pdf'
                               | 'text'
                               | 'catalog'
-                              | 'policy',
+                              | 'policy'
+                              | 'other',
                           )
                         }
                       >
@@ -1574,6 +1787,8 @@ Option B (Custom Chat UI): Call POST ${PUBLIC_BASE_URL}/api/public/v1/sessions w
                         <option value="catalog">Product / Service Catalog</option>
                         <option value="document">Internal Document / Handbook</option>
                         <option value="text">Business Notes</option>
+                        <option value="pdf">PDF Manual / Whitepaper</option>
+                        <option value="other">Other (Custom Source Type)...</option>
                       </select>
                     </div>
                     <div>
@@ -1594,6 +1809,118 @@ Option B (Custom Chat UI): Call POST ${PUBLIC_BASE_URL}/api/public/v1/sessions w
                         ))}
                       </select>
                     </div>
+                  </div>
+                  {knType === 'other' && (
+                    <div style={{ marginBottom: 10 }}>
+                      <label style={{ display: 'block', marginBottom: 5 }}>
+                        CUSTOM SOURCE TYPE
+                      </label>
+                      <input
+                        className="input"
+                        style={{ width: '100%' }}
+                        placeholder="e.g. Employee Handbook, Clinical Protocol, Pricing Matrix, SLA"
+                        value={knCustomType}
+                        onChange={(e) => setKnCustomType(e.target.value)}
+                        required
+                      />
+                    </div>
+                  )}
+                  <div style={{ marginBottom: 12 }}>
+                    <label style={{ display: 'block', marginBottom: 5 }}>
+                      UPLOAD DOCUMENT (OPTIONAL)
+                    </label>
+                    <input
+                      ref={knFileInputRef}
+                      type="file"
+                      accept=".txt,.text,.md,.markdown,.csv,.tsv,.json,.yaml,.yml,.docx,.doc,.pdf"
+                      style={{ display: 'none' }}
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) void handleKnowledgeFileUpload(file);
+                      }}
+                    />
+                    <div
+                      className={`kn-dropzone ${knDragOver ? 'dragging' : ''}`}
+                      onClick={() => knFileInputRef.current?.click()}
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        setKnDragOver(true);
+                      }}
+                      onDragLeave={() => setKnDragOver(false)}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        setKnDragOver(false);
+                        const file = e.dataTransfer.files?.[0];
+                        if (file) void handleKnowledgeFileUpload(file);
+                      }}
+                    >
+                      {knUploading ? (
+                        <div style={{ fontSize: 13, fontWeight: 600 }}>
+                          Extracting text from document...
+                        </div>
+                      ) : (
+                        <>
+                          <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 4 }}>
+                            Click to browse or drag & drop a file
+                          </div>
+                          <div
+                            className="muted"
+                            style={{
+                              fontSize: 11.5,
+                              display: 'flex',
+                              justifyContent: 'center',
+                              flexWrap: 'wrap',
+                              gap: 6,
+                              alignItems: 'center',
+                            }}
+                          >
+                            <span>Supported:</span>
+                            {['TXT', 'DOCX', 'CSV', 'PDF', 'MD', 'JSON'].map((ext) => (
+                              <span
+                                key={ext}
+                                style={{
+                                  padding: '1px 6px',
+                                  borderRadius: 4,
+                                  background: 'var(--surface)',
+                                  border: '1px solid var(--border)',
+                                  fontSize: 10.5,
+                                  fontWeight: 600,
+                                }}
+                              >
+                                {ext}
+                              </span>
+                            ))}
+                          </div>
+                        </>
+                      )}
+                    </div>
+                    {knUploadSuccess && (
+                      <div
+                        style={{
+                          marginTop: 8,
+                          padding: '8px 12px',
+                          borderRadius: 6,
+                          background: 'rgba(34, 197, 94, 0.1)',
+                          border: '1px solid rgba(34, 197, 94, 0.3)',
+                          color: 'var(--success, #22c55e)',
+                          fontSize: 12,
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          gap: 8,
+                        }}
+                      >
+                        <span>✓ {knUploadSuccess}</span>
+                        <button
+                          type="button"
+                          className="kn-tool-btn"
+                          style={{ color: 'inherit', fontSize: 11 }}
+                          onClick={() => setKnUploadSuccess(null)}
+                        >
+                          Dismiss
+                        </button>
+                      </div>
+                    )}
                   </div>
                   <div style={{ marginBottom: 10 }}>
                     <label style={{ display: 'block', marginBottom: 5 }}>TITLE</label>
@@ -1622,15 +1949,208 @@ Option B (Custom Chat UI): Call POST ${PUBLIC_BASE_URL}/api/public/v1/sessions w
                     <label style={{ display: 'block', marginBottom: 5 }}>
                       KNOWLEDGE CONTENT
                     </label>
-                    <textarea
-                      className="input"
-                      rows={5}
-                      style={{ width: '100%', height: 'auto', padding: 10 }}
-                      placeholder="Paste your policy text, FAQs, pricing tiers, or operational procedures..."
-                      value={knContent}
-                      onChange={(e) => setKnContent(e.target.value)}
-                      required
-                    />
+                    <div className="kn-toolbar">
+                      <button
+                        type="button"
+                        className="kn-tool-btn"
+                        title="Bold (**text**)"
+                        onClick={() => {
+                          if (knEditorTab !== 'edit') setKnEditorTab('edit');
+                          setTimeout(() => applyKnowledgeFormat('bold'), 0);
+                        }}
+                      >
+                        <strong>B</strong>
+                      </button>
+                      <button
+                        type="button"
+                        className="kn-tool-btn"
+                        title="Italic (*text*)"
+                        onClick={() => {
+                          if (knEditorTab !== 'edit') setKnEditorTab('edit');
+                          setTimeout(() => applyKnowledgeFormat('italic'), 0);
+                        }}
+                      >
+                        <em>I</em>
+                      </button>
+                      <button
+                        type="button"
+                        className="kn-tool-btn"
+                        title="Underline (<u>text</u>)"
+                        onClick={() => {
+                          if (knEditorTab !== 'edit') setKnEditorTab('edit');
+                          setTimeout(() => applyKnowledgeFormat('underline'), 0);
+                        }}
+                      >
+                        <u>U</u>
+                      </button>
+                      <button
+                        type="button"
+                        className="kn-tool-btn"
+                        title="Strikethrough (~~text~~)"
+                        onClick={() => {
+                          if (knEditorTab !== 'edit') setKnEditorTab('edit');
+                          setTimeout(() => applyKnowledgeFormat('strike'), 0);
+                        }}
+                      >
+                        <s>S</s>
+                      </button>
+                      <span
+                        style={{
+                          width: 1,
+                          height: 16,
+                          background: 'var(--border)',
+                          margin: '0 3px',
+                        }}
+                      />
+                      <button
+                        type="button"
+                        className="kn-tool-btn"
+                        title="Heading 2 (## )"
+                        onClick={() => {
+                          if (knEditorTab !== 'edit') setKnEditorTab('edit');
+                          setTimeout(() => applyKnowledgeFormat('h2'), 0);
+                        }}
+                      >
+                        H2
+                      </button>
+                      <button
+                        type="button"
+                        className="kn-tool-btn"
+                        title="Heading 3 (### )"
+                        onClick={() => {
+                          if (knEditorTab !== 'edit') setKnEditorTab('edit');
+                          setTimeout(() => applyKnowledgeFormat('h3'), 0);
+                        }}
+                      >
+                        H3
+                      </button>
+                      <button
+                        type="button"
+                        className="kn-tool-btn"
+                        title="Bullet List (- )"
+                        onClick={() => {
+                          if (knEditorTab !== 'edit') setKnEditorTab('edit');
+                          setTimeout(() => applyKnowledgeFormat('bullet'), 0);
+                        }}
+                      >
+                        • List
+                      </button>
+                      <button
+                        type="button"
+                        className="kn-tool-btn"
+                        title="Numbered List (1. )"
+                        onClick={() => {
+                          if (knEditorTab !== 'edit') setKnEditorTab('edit');
+                          setTimeout(() => applyKnowledgeFormat('number'), 0);
+                        }}
+                      >
+                        1. List
+                      </button>
+                      <button
+                        type="button"
+                        className="kn-tool-btn"
+                        title="Quote (> )"
+                        onClick={() => {
+                          if (knEditorTab !== 'edit') setKnEditorTab('edit');
+                          setTimeout(() => applyKnowledgeFormat('quote'), 0);
+                        }}
+                      >
+                        ❝ Quote
+                      </button>
+                      <button
+                        type="button"
+                        className="kn-tool-btn"
+                        title="Code (`code`)"
+                        onClick={() => {
+                          if (knEditorTab !== 'edit') setKnEditorTab('edit');
+                          setTimeout(() => applyKnowledgeFormat('code'), 0);
+                        }}
+                      >
+                        &lt;/&gt; Code
+                      </button>
+                      <button
+                        type="button"
+                        className="kn-tool-btn"
+                        title="Clear Formatting"
+                        onClick={() => {
+                          if (knEditorTab !== 'edit') setKnEditorTab('edit');
+                          setTimeout(() => applyKnowledgeFormat('clear'), 0);
+                        }}
+                      >
+                        Clear
+                      </button>
+                      <div
+                        style={{
+                          marginLeft: 'auto',
+                          display: 'flex',
+                          gap: 2,
+                          background: 'var(--bg)',
+                          border: '1px solid var(--border)',
+                          borderRadius: 6,
+                          padding: 2,
+                        }}
+                      >
+                        <button
+                          type="button"
+                          className={`kn-tab-pill ${knEditorTab === 'edit' ? 'active' : ''}`}
+                          onClick={() => setKnEditorTab('edit')}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          type="button"
+                          className={`kn-tab-pill ${knEditorTab === 'preview' ? 'active' : ''}`}
+                          onClick={() => setKnEditorTab('preview')}
+                        >
+                          Preview
+                        </button>
+                      </div>
+                    </div>
+                    {knEditorTab === 'edit' ? (
+                      <textarea
+                        ref={knTextareaRef}
+                        className="input"
+                        rows={6}
+                        style={{
+                          width: '100%',
+                          minHeight: 150,
+                          resize: 'vertical',
+                          borderTopLeftRadius: 0,
+                          borderTopRightRadius: 0,
+                          padding: 12,
+                          lineHeight: 1.55,
+                          overflowY: 'hidden',
+                        }}
+                        placeholder="Paste your policy text, FAQs, pricing tiers, or operational procedures — or upload a document above..."
+                        value={knContent}
+                        onChange={(e) => {
+                          setKnContent(e.target.value);
+                          e.target.style.height = 'auto';
+                          e.target.style.height = `${Math.max(150, e.target.scrollHeight)}px`;
+                        }}
+                        required
+                      />
+                    ) : (
+                      <div className="kn-preview-box">
+                        <FormattedPreview content={knContent} />
+                      </div>
+                    )}
+                    <div
+                      className="muted"
+                      style={{
+                        fontSize: 11.5,
+                        marginTop: 6,
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                      }}
+                    >
+                      <span>Supports bold, italic, underline, headings, lists & code.</span>
+                      <span className="mono">
+                        {knContent.split(/\s+/).filter(Boolean).length.toLocaleString()} words ·{' '}
+                        {knContent.length.toLocaleString()} chars · ~
+                        {Math.ceil(knContent.length / 4).toLocaleString()} tokens
+                      </span>
+                    </div>
                   </div>
                   <button className="btn btn-primary" type="submit">
                     Save Knowledge Source
@@ -1760,18 +2280,30 @@ Option B (Custom Chat UI): Call POST ${PUBLIC_BASE_URL}/api/public/v1/sessions w
                         gap: 12,
                       }}
                     >
-                      <div>
-                        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                          <strong>{k.title}</strong>
-                          <span className="ws-pill ready">{k.source_type}</span>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+                          <strong>{k.title || k.label}</strong>
+                          <span className="ws-pill ready">{k.source_type || k.kind}</span>
                           <span className="ws-pill ready">{k.status}</span>
                         </div>
-                        {k.url && (
+                        {(k.url || k.uri) && (
                           <div className="mono" style={{ fontSize: 11, marginTop: 3 }}>
-                            {k.url}
+                            {k.url || k.uri}
                           </div>
                         )}
-                        <p style={{ marginTop: 6 }}>{k.content}</p>
+                        <div
+                          style={{
+                            marginTop: 8,
+                            maxHeight: 220,
+                            overflowY: 'auto',
+                            background: 'var(--surface)',
+                            border: '1px solid var(--border)',
+                            borderRadius: 6,
+                            padding: '8px 12px',
+                          }}
+                        >
+                          <FormattedPreview content={k.content || ''} />
+                        </div>
                       </div>
                       <button
                         className="btn btn-sm btn-danger"
@@ -2349,77 +2881,273 @@ Option B (Custom Chat UI): Call POST ${PUBLIC_BASE_URL}/api/public/v1/sessions w
                 )}
 
                 {/* TAB 4: SLACK WORKSPACE */}
-                {activeChannelTab === 'slack' && (
-                  <div className="ws-grid-2">
-                    <div className="ws-card">
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-                        <h3>Connect Slack Workspace</h3>
-                        <span className={`ws-pill ${slackChannel?.status === 'connected' ? 'connected' : 'pending'}`}>
-                          {slackChannel?.status === 'connected' ? 'Active & Live' : 'Not Connected'}
-                        </span>
-                      </div>
-                      <p style={{ marginBottom: 14 }}>
-                        Deploy an internal AI assistant in your Slack team for HR, IT helpdesk, internal SOPs, or sales queries.
-                      </p>
+                {activeChannelTab === 'slack' && (() => {
+                  const slackWebhookUrl = `https://api.tanat.space/api/webhooks/slack/${slackChannel?.id || selectedInstId || 'channel_id'}`;
+                  const currentAgent = installations.find((i) => i.id === selectedInstId);
+                  const botName = currentAgent?.agent_name || 'Tanat Assistant';
+                  const slackManifestJson = JSON.stringify(
+                    {
+                      display_information: {
+                        name: botName,
+                        description: 'AI operations & knowledge assistant powered by Tanat',
+                        background_color: '#0C0D0B',
+                      },
+                      features: {
+                        bot_user: {
+                          display_name: botName,
+                          always_online: true,
+                        },
+                      },
+                      oauth_config: {
+                        scopes: {
+                          bot: [
+                            'chat:write',
+                            'app_mention',
+                            'im:history',
+                            'im:read',
+                            'im:write',
+                            'channels:history',
+                          ],
+                        },
+                      },
+                      settings: {
+                        event_subscriptions: {
+                          request_url: slackWebhookUrl,
+                          bot_events: ['app_mention', 'message.im', 'message.channels'],
+                        },
+                        org_deploy_enabled: false,
+                        socket_mode_enabled: false,
+                        token_rotation_enabled: false,
+                      },
+                    },
+                    null,
+                    2,
+                  );
 
-                      <div style={{ marginBottom: 12 }}>
-                        <label style={{ display: 'block', marginBottom: 5 }}>BOT USER OAUTH TOKEN</label>
-                        <input
-                          type="password"
-                          className="input"
-                          style={{ width: '100%', fontFamily: 'var(--font-mono)' }}
-                          placeholder="xoxb-your-slack-bot-token"
-                          value={slackBotToken}
-                          onChange={(e) => setSlackBotToken(e.target.value)}
-                        />
-                      </div>
-
-                      <div style={{ marginBottom: 14 }}>
-                        <label style={{ display: 'block', marginBottom: 5 }}>SLACK SIGNING SECRET</label>
-                        <input
-                          type="password"
-                          className="input"
-                          style={{ width: '100%', fontFamily: 'var(--font-mono)' }}
-                          placeholder="From Slack App Basic Information"
-                          value={slackSigningSecret}
-                          onChange={(e) => setSlackSigningSecret(e.target.value)}
-                        />
-                      </div>
-
-                      <div style={{ display: 'flex', gap: 10 }}>
-                        <button
-                          className="btn btn-primary"
-                          type="button"
-                          disabled={isSavingSlack}
-                          onClick={() => void handleConnectSlack()}
-                        >
-                          {isSavingSlack ? 'Saving...' : 'Save & Activate Slack ↗'}
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="ws-card">
-                      <h3>Slack App Setup Guide</h3>
-                      <ol style={{ paddingLeft: 18, lineHeight: 1.8, fontSize: 13, marginTop: 12 }}>
-                        <li>Go to <strong>api.slack.com/apps</strong> and click <strong>Create New App &gt; From scratch</strong>.</li>
-                        <li>Under <strong>OAuth &amp; Permissions</strong>, add the Bot Token Scope: <code>chat:write</code>.</li>
-                        <li>Install the App to your workspace and copy the <strong>Bot User OAuth Token</strong> (starts with <code>xoxb-</code>).</li>
-                        <li>Under <strong>Event Subscriptions</strong>, toggle On and set the Request URL:</li>
-                      </ol>
-
-                      <div style={{ background: 'var(--bg)', padding: 12, borderRadius: 8, border: '1px solid var(--border)', marginTop: 8, marginBottom: 12 }}>
-                        <div style={{ fontSize: 11, fontWeight: 600 }}>EVENT REQUEST URL:</div>
-                        <div className="mono" style={{ fontSize: 11, wordBreak: 'break-all', marginTop: 2 }}>
-                          https://api.tanat.space/api/webhooks/slack/{slackChannel?.id || selectedInstId || 'channel_id'}
+                  return (
+                    <div className="ws-grid-2">
+                      <div className="ws-card">
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                          <h3>Connect Slack Workspace</h3>
+                          <span className={`ws-pill ${slackChannel?.status === 'connected' ? 'connected' : 'pending'}`}>
+                            {slackChannel?.status === 'connected' ? 'Active & Live' : 'Not Connected'}
+                          </span>
                         </div>
+
+                        <div style={{ padding: 10, borderRadius: 8, background: 'var(--bg)', border: '1px solid var(--border)', marginBottom: 14, fontSize: 12.5, lineHeight: 1.5 }}>
+                          📍 <strong>Where to configure:</strong> Slack apps are managed in your web browser at{' '}
+                          <a href="https://api.slack.com/apps" target="_blank" rel="noreferrer" style={{ textDecoration: 'underline', fontWeight: 600 }}>
+                            api.slack.com/apps ↗
+                          </a>{' '}
+                          (not inside the Slack desktop application).
+                        </div>
+
+                        <div style={{ marginBottom: 12 }}>
+                          <label style={{ display: 'block', marginBottom: 5 }}>
+                            SELECT AGENT INSTALLATION
+                          </label>
+                          <select
+                            className="input"
+                            style={{ width: '100%' }}
+                            value={selectedInstId}
+                            onChange={(e) => setSelectedInstId(e.target.value)}
+                          >
+                            {installations.map((inst) => (
+                              <option key={inst.id} value={inst.id}>
+                                {inst.agent_name || inst.agent_id} ({inst.id})
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <div style={{ marginBottom: 12 }}>
+                          <label style={{ display: 'block', marginBottom: 5 }}>
+                            BOT USER OAUTH TOKEN (STARTS WITH <code>xoxb-</code>)
+                          </label>
+                          <input
+                            type="password"
+                            className="input"
+                            style={{ width: '100%', fontFamily: 'var(--font-mono)' }}
+                            placeholder="xoxb-1234567890-..."
+                            value={slackBotToken}
+                            onChange={(e) => setSlackBotToken(e.target.value)}
+                          />
+                          <p className="muted" style={{ fontSize: 11, marginTop: 4 }}>
+                            Found in <strong>api.slack.com/apps</strong> &gt; Your App &gt; <strong>OAuth &amp; Permissions</strong>.
+                          </p>
+                        </div>
+
+                        <div style={{ marginBottom: 14 }}>
+                          <label style={{ display: 'block', marginBottom: 5 }}>SLACK SIGNING SECRET</label>
+                          <input
+                            type="password"
+                            className="input"
+                            style={{ width: '100%', fontFamily: 'var(--font-mono)' }}
+                            placeholder="32-character secret"
+                            value={slackSigningSecret}
+                            onChange={(e) => setSlackSigningSecret(e.target.value)}
+                          />
+                          <p className="muted" style={{ fontSize: 11, marginTop: 4 }}>
+                            Found in <strong>Basic Information</strong> &gt; <strong>App Credentials</strong> &gt; <strong>Signing Secret</strong>.
+                          </p>
+                        </div>
+
+                        <div style={{ display: 'flex', gap: 10 }}>
+                          <button
+                            className="btn btn-primary"
+                            type="button"
+                            disabled={isSavingSlack}
+                            onClick={() => void handleConnectSlack()}
+                          >
+                            {isSavingSlack ? 'Saving...' : 'Save & Activate Slack ↗'}
+                          </button>
+                          {slackChannel && (
+                            <button
+                              className="btn btn-danger"
+                              type="button"
+                              onClick={async () => {
+                                await updateChannelStatus(slackChannel.id, { status: 'disabled' });
+                                await loadWorkspace();
+                                flash('Slack channel paused.');
+                              }}
+                            >
+                              Disconnect
+                            </button>
+                          )}
+                        </div>
+
+                        {slackChannel?.status === 'connected' && (
+                          <div style={{ marginTop: 18, padding: 12, borderRadius: 8, background: 'var(--bg)', border: '1px solid var(--border)' }}>
+                            <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--accent)' }}>✓ Live Events Webhook Active</div>
+                            <div className="mono" style={{ fontSize: 11, marginTop: 4, wordBreak: 'break-all' }}>
+                              {slackWebhookUrl}
+                            </div>
+                            {slackChannel.last_seen_at && (
+                              <div className="muted" style={{ fontSize: 11, marginTop: 4 }}>
+                                Last message handled: {new Date(slackChannel.last_seen_at).toLocaleString()}
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
 
-                      <p style={{ fontSize: 12, color: 'var(--muted)' }}>
-                        5. Under <strong>Subscribe to bot events</strong>, add <code>message.channels</code> or <code>app_mention</code>, then reinstall the app.
-                      </p>
+                      <div className="ws-card">
+                        {slackChannel?.status === 'connected' ? (
+                          <div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                              <h3>🧪 How to Test Your Slack Bot</h3>
+                              <span className="ws-pill connected">Ready to Test</span>
+                            </div>
+
+                            <p style={{ fontSize: 13.5, lineHeight: 1.6, marginBottom: 16 }}>
+                              Your Slack app is connected! Test it right inside your Slack workspace using either method:
+                            </p>
+
+                            <div style={{ padding: 14, borderRadius: 10, background: 'var(--bg)', border: '1px solid var(--border)', marginBottom: 14 }}>
+                              <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 6 }}>
+                                Option 1: Direct Message (Private 1-on-1)
+                              </div>
+                              <ol style={{ paddingLeft: 18, fontSize: 12.5, color: 'var(--muted)', margin: 0, lineHeight: 1.7 }}>
+                                <li>Open your regular Slack app (desktop or browser).</li>
+                                <li>In the left sidebar under <strong>Apps</strong>, click <strong>+ Add apps</strong> and select your bot.</li>
+                                <li>Send any business inquiry (e.g. <em>&quot;What is our refund process?&quot;</em>).</li>
+                                <li>The agent will reply directly in the chat thread.</li>
+                              </ol>
+                            </div>
+
+                            <div style={{ padding: 14, borderRadius: 10, background: 'var(--bg)', border: '1px solid var(--border)', marginBottom: 14 }}>
+                              <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 6 }}>
+                                Option 2: In Any Public or Private Channel
+                              </div>
+                              <ol style={{ paddingLeft: 18, fontSize: 12.5, color: 'var(--muted)', margin: 0, lineHeight: 1.7 }}>
+                                <li>Go to the Slack channel (e.g. <code>#general</code> or <code>#team-help</code>).</li>
+                                <li>Type: <code>/invite @{botName}</code> and press Enter.</li>
+                                <li>Mention the bot: <code>@{botName} Can you summarize our standard work hours?</code></li>
+                                <li>The bot will reply in the thread, visible to the whole channel.</li>
+                              </ol>
+                            </div>
+
+                            <div style={{ padding: 14, borderRadius: 10, background: 'var(--bg)', border: '1px solid var(--border)' }}>
+                              <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 6 }}>
+                                Check Live Run Telemetry
+                              </div>
+                              <p style={{ fontSize: 12.5, color: 'var(--muted)', margin: '0 0 10px 0' }}>
+                                View token usage, model inference speed, and knowledge source references for Slack interactions:
+                              </p>
+                              <button
+                                className="btn btn-sm"
+                                type="button"
+                                onClick={() => {
+                                  setSection('activity');
+                                  setActivityTab('runs');
+                                }}
+                              >
+                                View Live Runs &amp; Telemetry →
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                              <h3>⚡ Recommended: 1-Click App Manifest</h3>
+                              <span className="ws-pill connected" style={{ fontSize: 10 }}>Fastest</span>
+                            </div>
+                            <p style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 12, lineHeight: 1.5 }}>
+                              Skip manual menu hunting! Paste this ready-to-use Manifest in Slack to configure permissions, bot users, and webhook URLs in seconds:
+                            </p>
+
+                            <ol style={{ paddingLeft: 18, lineHeight: 1.75, fontSize: 12.5, marginBottom: 12 }}>
+                              <li>
+                                Open{' '}
+                                <a href="https://api.slack.com/apps" target="_blank" rel="noreferrer" style={{ textDecoration: 'underline', fontWeight: 600 }}>
+                                  api.slack.com/apps ↗
+                                </a>{' '}
+                                in your browser.
+                              </li>
+                              <li>
+                                Click <strong>Create New App</strong> → select <strong>From an app manifest</strong>.
+                              </li>
+                              <li>Select your workspace, choose <strong>JSON</strong> tab, and paste the snippet below:</li>
+                            </ol>
+
+                            <pre className="ws-CodeBox" style={{ maxHeight: 180, fontSize: 11, marginBottom: 10 }}>
+                              {slackManifestJson}
+                            </pre>
+
+                            <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
+                              <button
+                                className="btn btn-sm btn-primary"
+                                type="button"
+                                onClick={async () => {
+                                  await navigator.clipboard.writeText(slackManifestJson);
+                                  flash('Copied Slack Manifest JSON to clipboard.');
+                                }}
+                              >
+                                Copy Manifest JSON
+                              </button>
+                              <a
+                                href="https://api.slack.com/apps"
+                                target="_blank"
+                                rel="noreferrer"
+                                className="btn btn-sm"
+                              >
+                                Open api.slack.com/apps ↗
+                              </a>
+                            </div>
+
+                            <ol start={4} style={{ paddingLeft: 18, lineHeight: 1.75, fontSize: 12.5, color: 'var(--muted)' }}>
+                              <li>Click <strong>Next</strong> → <strong>Create</strong>.</li>
+                              <li>In the yellow banner at the top, click <strong>Install to Workspace</strong> and authorize.</li>
+                              <li>
+                                Copy the <strong>Bot User OAuth Token</strong> (from <em>OAuth &amp; Permissions</em>) and <strong>Signing Secret</strong> (from <em>Basic Information</em>) into the fields on the left.
+                              </li>
+                            </ol>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  );
+                })()}
 
                 {/* Configured Agent Channels Grid */}
                 <div className="ws-card" style={{ marginTop: 20 }}>
