@@ -14,6 +14,7 @@ const DOC_SECTIONS = [
   { id: 'vibecoding', label: '5. Vibecoding (llms.txt & MCP)' },
   { id: 'api', label: '6. REST API & Governance' },
   { id: 'security', label: '7. Security & TEE Isolation' },
+  { id: 'channels', label: '8. Messaging Channels (Telegram, WhatsApp, Slack)' },
 ];
 
 export default function DocsPage() {
@@ -413,6 +414,36 @@ console.log(reply.content, reply.sources_used, reply.proposed_action);`;
                     authorized operator approves them.
                   </li>
                 </ul>
+              </section>
+
+              {/* 8. Messaging Channels */}
+              <section id="channels" className="t-problem" style={{ padding: 28 }}>
+                <span className="t-problem-num">08 / MESSAGING CHANNELS</span>
+                <h2>Telegram, WhatsApp &amp; Slack Integration</h2>
+                <p>
+                  Tanat allows businesses to deploy the exact same agent brain across messaging channels with no code or server management required.
+                </p>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16, marginTop: 16 }}>
+                  <div style={{ padding: 16, borderRadius: 12, border: '1px solid var(--t-border)', background: 'var(--t-bone)' }}>
+                    <h3 style={{ fontSize: 16, marginBottom: 8 }}>✈️ Telegram Bot</h3>
+                    <p style={{ fontSize: 13, color: 'var(--t-ink-muted)', lineHeight: 1.6 }}>
+                      Connect via <strong>@BotFather</strong> token. Tanat automatically sets the webhook URL (<code>https://api.tanat.space/api/webhooks/telegram/:channelId</code>) with secret token verification.
+                    </p>
+                  </div>
+                  <div style={{ padding: 16, borderRadius: 12, border: '1px solid var(--t-border)', background: 'var(--t-bone)' }}>
+                    <h3 style={{ fontSize: 16, marginBottom: 8 }}>💬 WhatsApp Business</h3>
+                    <p style={{ fontSize: 13, color: 'var(--t-ink-muted)', lineHeight: 1.6 }}>
+                      Connect official Meta WhatsApp Cloud API using your Phone Number ID, Permanent System User Token, and Webhook verification challenge (<code>hub.challenge</code>).
+                    </p>
+                  </div>
+                  <div style={{ padding: 16, borderRadius: 12, border: '1px solid var(--t-border)', background: 'var(--t-bone)' }}>
+                    <h3 style={{ fontSize: 16, marginBottom: 8 }}>⚡ Slack Workspace</h3>
+                    <p style={{ fontSize: 13, color: 'var(--t-ink-muted)', lineHeight: 1.6 }}>
+                      Deploy internal team agents into Slack channels using Slack Events API with HMAC-SHA256 signature verification and <code>chat.postMessage</code> bot tokens.
+                    </p>
+                  </div>
+                </div>
               </section>
             </div>
           </div>

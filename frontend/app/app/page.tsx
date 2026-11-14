@@ -12,6 +12,8 @@ import {
   createKnowledge,
   createMemory,
   createPublishableKey,
+  createChannel,
+  setupTelegramChannel,
   createVerifiedUserToken,
   deleteKnowledge,
   deleteMemory,
@@ -142,6 +144,19 @@ export default function Dashboard() {
   const [widgetOrigins, setWidgetOrigins] = useState(() =>
     typeof window !== 'undefined' ? window.location.origin : 'https://tanat.space',
   );
+
+  // Messaging Channel form state
+  const [activeChannelTab, setActiveChannelTab] = useState<'website' | 'telegram' | 'whatsapp' | 'slack'>('website');
+  const [tgBotToken, setTgBotToken] = useState('');
+  const [isSavingTg, setIsSavingTg] = useState(false);
+  const [waPhoneId, setWaPhoneId] = useState('');
+  const [waAccessToken, setWaAccessToken] = useState('');
+  const [waVerifyToken, setWaVerifyToken] = useState('tanat_wa_verify_' + Math.random().toString(36).substring(2, 10));
+  const [waAppSecret, setWaAppSecret] = useState('');
+  const [isSavingWa, setIsSavingWa] = useState(false);
+  const [slackBotToken, setSlackBotToken] = useState('');
+  const [slackSigningSecret, setSlackSigningSecret] = useState('');
+  const [isSavingSlack, setIsSavingSlack] = useState(false);
 
   // Activity sub-tab
   const [activityTab, setActivityTab] = useState<'approvals' | 'runs'>('approvals');
@@ -429,6 +444,136 @@ export default function Dashboard() {
       win.TanatWidget?.open();
     }, 350);
     flash('Launched live widget in the bottom corner of this page.');
+  }
+
+  async function handleConnectTelegram() {
+    const instId = selectedInstId || installations[0]?.id;
+    if (!instId) {
+      setError('Please select an agent installation first.');
+      return;
+    }
+    const token = tgBotToken.trim();
+    if (!token) {
+      setError('Please paste your Telegram Bot Token from @BotFather.');
+      return;
+    }
+
+    setIsSavingTg(true);
+    try {
+      let ch = channels.find((c) => (c.channel || c.channel_type) === 'telegram');
+      if (!ch) {
+        ch = await createChannel({
+          installation_id: instId,
+          channel: 'telegram',
+          config: { bot_token: token },
+          status: 'pending',
+        });
+      } else {
+        await updateChannelStatus(ch.id, {
+          config: { bot_token: token },
+        });
+      }
+
+      const setupRes = await setupTelegramChannel(ch.id);
+      await loadWorkspace();
+      flash(`Telegram Bot connected! Webhook active: ${setupRes.webhook_url}`);
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Failed to connect Telegram Bot. Check your Bot Token.');
+    } finally {
+      setIsSavingTg(false);
+    }
+  }
+
+  async function handleConnectWhatsApp() {
+    const instId = selectedInstId || installations[0]?.id;
+    if (!instId) {
+      setError('Please select an agent installation first.');
+      return;
+    }
+    const phoneId = waPhoneId.trim();
+    const token = waAccessToken.trim();
+    const verify = waVerifyToken.trim();
+    const appSecret = waAppSecret.trim();
+
+    if (!phoneId) {
+      setError('Please provide your WhatsApp Phone Number ID from Meta Developer console.');
+      return;
+    }
+
+    setIsSavingWa(true);
+    try {
+      let ch = channels.find((c) => (c.channel || c.channel_type) === 'whatsapp');
+      const config = {
+        phone_number_id: phoneId,
+        access_token: token || undefined,
+        verify_token: verify,
+        app_secret: appSecret || undefined,
+      };
+
+      if (!ch) {
+        await createChannel({
+          installation_id: instId,
+          channel: 'whatsapp',
+          config,
+          status: 'connected',
+        });
+      } else {
+        await updateChannelStatus(ch.id, {
+          status: 'connected',
+          config,
+        });
+      }
+      await loadWorkspace();
+      flash('WhatsApp Cloud API channel configured and activated!');
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Failed to configure WhatsApp channel.');
+    } finally {
+      setIsSavingWa(false);
+    }
+  }
+
+  async function handleConnectSlack() {
+    const instId = selectedInstId || installations[0]?.id;
+    if (!instId) {
+      setError('Please select an agent installation first.');
+      return;
+    }
+    const botToken = slackBotToken.trim();
+    const signingSecret = slackSigningSecret.trim();
+
+    if (!botToken && !signingSecret) {
+      setError('Please provide your Slack Bot User OAuth Token (xoxb-...) or Signing Secret.');
+      return;
+    }
+
+    setIsSavingSlack(true);
+    try {
+      let ch = channels.find((c) => (c.channel || c.channel_type) === 'slack');
+      const config = {
+        bot_token: botToken || undefined,
+        signing_secret: signingSecret || undefined,
+      };
+
+      if (!ch) {
+        await createChannel({
+          installation_id: instId,
+          channel: 'slack',
+          config,
+          status: 'connected',
+        });
+      } else {
+        await updateChannelStatus(ch.id, {
+          status: 'connected',
+          config,
+        });
+      }
+      await loadWorkspace();
+      flash('Slack Workspace channel configured and activated!');
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Failed to configure Slack channel.');
+    } finally {
+      setIsSavingSlack(false);
+    }
   }
 
   const activePubKey = useMemo(
@@ -1644,253 +1789,631 @@ Option B (Custom Chat UI): Call POST ${PUBLIC_BASE_URL}/api/public/v1/sessions w
             </div>
           )}
 
-          {/* ── 4. CHANNELS & WEBSITE WIDGET INSTALLER ───────────────── */}
-          {section === 'channels' && (
-            <div className="ws-page">
-              <div className="ws-head">
-                <div>
-                  <h1>Channels & Website Widget Installer</h1>
-                  <p>
-                    Customize your Shadow-DOM website widget, lock publishable keys
-                    to your domains, copy your embed snippet, or test the widget
-                    live on this page.
-                  </p>
-                </div>
-                <button
-                  className="btn btn-primary"
-                  onClick={launchLiveWidgetPreview}
-                >
-                  Launch Live Widget Preview ↗
-                </button>
-              </div>
+          {/* ── 4. CHANNELS & INTEGRATIONS ───────────────────────────── */}
+          {section === 'channels' && (() => {
+            const tgChannel = channels.find((c) => (c.channel || c.channel_type) === 'telegram');
+            const waChannel = channels.find((c) => (c.channel || c.channel_type) === 'whatsapp');
+            const slackChannel = channels.find((c) => (c.channel || c.channel_type) === 'slack');
 
-              <div className="ws-grid-2">
-                <div className="ws-card">
-                  <h3>1. Configure Website Widget</h3>
-                  <div style={{ marginTop: 12, marginBottom: 10 }}>
-                    <label style={{ display: 'block', marginBottom: 5 }}>
-                      SELECT AGENT INSTALLATION
-                    </label>
-                    <select
-                      className="input"
-                      style={{ width: '100%' }}
-                      value={selectedInstId}
-                      onChange={(e) => setSelectedInstId(e.target.value)}
-                    >
-                      {installations.map((inst) => (
-                        <option key={inst.id} value={inst.id}>
-                          {inst.agent_name || inst.agent_id} ({inst.id})
-                        </option>
-                      ))}
-                    </select>
+            return (
+              <div className="ws-page">
+                <div className="ws-head">
+                  <div>
+                    <h1>Channels & Messaging Deployments</h1>
+                    <p>
+                      Deploy your AI agent across website, messaging platforms, and internal workspaces.
+                      All channels are connected to the same central knowledge base, memory, and governance rules.
+                    </p>
                   </div>
-
-                  <div className="ws-grid-3" style={{ marginBottom: 10 }}>
-                    <div>
-                      <label style={{ display: 'block', marginBottom: 5 }}>
-                        THEME
-                      </label>
-                      <select
-                        className="input"
-                        style={{ width: '100%' }}
-                        value={widgetTheme}
-                        onChange={(e) =>
-                          setWidgetTheme(e.target.value as 'light' | 'dark')
-                        }
-                      >
-                        <option value="light">Light</option>
-                        <option value="dark">Dark</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label style={{ display: 'block', marginBottom: 5 }}>
-                        ACCENT COLOR
-                      </label>
-                      <input
-                        className="input"
-                        style={{ width: '100%' }}
-                        value={widgetAccent}
-                        onChange={(e) => setWidgetAccent(e.target.value)}
-                      />
-                    </div>
-                    <div>
-                      <label style={{ display: 'block', marginBottom: 5 }}>
-                        POSITION
-                      </label>
-                      <select
-                        className="input"
-                        style={{ width: '100%' }}
-                        value={widgetPosition}
-                        onChange={(e) =>
-                          setWidgetPosition(
-                            e.target.value as 'bottom-right' | 'bottom-left',
-                          )
-                        }
-                      >
-                        <option value="bottom-right">Bottom Right</option>
-                        <option value="bottom-left">Bottom Left</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div style={{ marginBottom: 10 }}>
-                    <label style={{ display: 'block', marginBottom: 5 }}>
-                      WELCOME GREETING
-                    </label>
-                    <input
-                      className="input"
-                      style={{ width: '100%' }}
-                      value={widgetWelcome}
-                      onChange={(e) => setWidgetWelcome(e.target.value)}
-                    />
-                  </div>
-
-                  <div style={{ marginBottom: 14 }}>
-                    <label style={{ display: 'block', marginBottom: 5 }}>
-                      ALLOWED DOMAINS (CORS ALLOWLIST)
-                    </label>
-                    <input
-                      className="input"
-                      style={{ width: '100%' }}
-                      placeholder="https://yourcompany.com, http://localhost:3000"
-                      value={widgetOrigins}
-                      onChange={(e) => setWidgetOrigins(e.target.value)}
-                    />
-                  </div>
-
-                  <div style={{ display: 'flex', gap: 8 }}>
+                  {activeChannelTab === 'website' && (
                     <button
                       className="btn btn-primary"
-                      type="button"
-                      onClick={() => void handleGeneratePublishableKey()}
-                    >
-                      Save Config & Issue Publishable Key
-                    </button>
-                    <button
-                      className="btn"
-                      type="button"
                       onClick={launchLiveWidgetPreview}
                     >
-                      Preview Widget
+                      Launch Live Widget Preview ↗
                     </button>
-                  </div>
+                  )}
                 </div>
 
-                <div className="ws-card">
-                  <h3>2. Copy Embed Code</h3>
-                  <p style={{ marginBottom: 10 }}>
-                    Paste into any HTML <code>&lt;body&gt;</code>, Shopify theme,
-                    WordPress header, Webflow site, or Next.js layout.
-                  </p>
-                  <pre className="ws-CodeBox">{htmlWidgetSnippet}</pre>
-                  <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
-                    <button
-                      className="btn btn-sm btn-primary"
-                      onClick={async () => {
-                        await navigator.clipboard.writeText(htmlWidgetSnippet);
-                        flash('Copied HTML widget snippet.');
-                      }}
-                    >
-                      Copy HTML Snippet
-                    </button>
-                    <button
-                      className="btn btn-sm"
-                      onClick={async () => {
-                        await navigator.clipboard.writeText(reactWidgetSnippet);
-                        flash('Copied React / Next.js snippet.');
-                      }}
-                    >
-                      Copy Next.js Snippet
-                    </button>
-                  </div>
+                {/* Sub-navigation tabs */}
+                <div style={{ display: 'flex', gap: 10, marginBottom: 20, flexWrap: 'wrap' }}>
+                  <button
+                    className={`btn ${activeChannelTab === 'website' ? 'btn-primary' : ''}`}
+                    onClick={() => setActiveChannelTab('website')}
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                  >
+                    <span>🌐</span>
+                    <span>Website Chat Widget</span>
+                    <span className="ws-pill connected" style={{ fontSize: 10 }}>Live</span>
+                  </button>
+                  <button
+                    className={`btn ${activeChannelTab === 'telegram' ? 'btn-primary' : ''}`}
+                    onClick={() => setActiveChannelTab('telegram')}
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                  >
+                    <span>✈️</span>
+                    <span>Telegram Bot</span>
+                    {tgChannel?.status === 'connected' ? (
+                      <span className="ws-pill connected" style={{ fontSize: 10 }}>Connected</span>
+                    ) : (
+                      <span className="ws-pill" style={{ fontSize: 10 }}>Setup</span>
+                    )}
+                  </button>
+                  <button
+                    className={`btn ${activeChannelTab === 'whatsapp' ? 'btn-primary' : ''}`}
+                    onClick={() => setActiveChannelTab('whatsapp')}
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                  >
+                    <span>💬</span>
+                    <span>WhatsApp Business</span>
+                    {waChannel?.status === 'connected' ? (
+                      <span className="ws-pill connected" style={{ fontSize: 10 }}>Connected</span>
+                    ) : (
+                      <span className="ws-pill" style={{ fontSize: 10 }}>Setup</span>
+                    )}
+                  </button>
+                  <button
+                    className={`btn ${activeChannelTab === 'slack' ? 'btn-primary' : ''}`}
+                    onClick={() => setActiveChannelTab('slack')}
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                  >
+                    <span>⚡</span>
+                    <span>Slack Workspace</span>
+                    {slackChannel?.status === 'connected' ? (
+                      <span className="ws-pill connected" style={{ fontSize: 10 }}>Connected</span>
+                    ) : (
+                      <span className="ws-pill" style={{ fontSize: 10 }}>Setup</span>
+                    )}
+                  </button>
+                </div>
 
-                  <div style={{ marginTop: 16 }}>
-                    <label style={{ display: 'block', marginBottom: 6 }}>
-                      ACTIVE PUBLISHABLE KEYS ({pubKeys.length})
-                    </label>
-                    {pubKeys.map((pk) => (
-                      <div
-                        key={pk.id}
-                        style={{
-                          padding: '8px 10px',
-                          borderRadius: 8,
-                          background: 'var(--bg)',
-                          border: '1px solid var(--border)',
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center',
-                          marginBottom: 6,
-                          fontSize: 12,
-                        }}
-                      >
+                {/* TAB 1: WEBSITE WIDGET */}
+                {activeChannelTab === 'website' && (
+                  <div className="ws-grid-2">
+                    <div className="ws-card">
+                      <h3>1. Configure Website Widget</h3>
+                      <div style={{ marginTop: 12, marginBottom: 10 }}>
+                        <label style={{ display: 'block', marginBottom: 5 }}>
+                          SELECT AGENT INSTALLATION
+                        </label>
+                        <select
+                          className="input"
+                          style={{ width: '100%' }}
+                          value={selectedInstId}
+                          onChange={(e) => setSelectedInstId(e.target.value)}
+                        >
+                          {installations.map((inst) => (
+                            <option key={inst.id} value={inst.id}>
+                              {inst.agent_name || inst.agent_id} ({inst.id})
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div className="ws-grid-3" style={{ marginBottom: 10 }}>
                         <div>
-                          <code>{pk.key_value}</code>
-                          <div className="muted" style={{ fontSize: 10.5 }}>
-                            Origins: {pk.allowed_origins}
-                          </div>
+                          <label style={{ display: 'block', marginBottom: 5 }}>THEME</label>
+                          <select
+                            className="input"
+                            style={{ width: '100%' }}
+                            value={widgetTheme}
+                            onChange={(e) => setWidgetTheme(e.target.value as 'light' | 'dark')}
+                          >
+                            <option value="light">Light</option>
+                            <option value="dark">Dark</option>
+                          </select>
                         </div>
-                        {pk.is_active ? (
-                          <button
-                            className="btn btn-sm btn-danger"
-                            style={{ height: 24 }}
-                            onClick={async () => {
-                              await revokePublishableKey(pk.id);
-                              await loadWorkspace();
+                        <div>
+                          <label style={{ display: 'block', marginBottom: 5 }}>ACCENT COLOR</label>
+                          <input
+                            className="input"
+                            style={{ width: '100%' }}
+                            value={widgetAccent}
+                            onChange={(e) => setWidgetAccent(e.target.value)}
+                          />
+                        </div>
+                        <div>
+                          <label style={{ display: 'block', marginBottom: 5 }}>POSITION</label>
+                          <select
+                            className="input"
+                            style={{ width: '100%' }}
+                            value={widgetPosition}
+                            onChange={(e) => setWidgetPosition(e.target.value as 'bottom-right' | 'bottom-left')}
+                          >
+                            <option value="bottom-right">Bottom Right</option>
+                            <option value="bottom-left">Bottom Left</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <div style={{ marginBottom: 10 }}>
+                        <label style={{ display: 'block', marginBottom: 5 }}>WELCOME GREETING</label>
+                        <input
+                          className="input"
+                          style={{ width: '100%' }}
+                          value={widgetWelcome}
+                          onChange={(e) => setWidgetWelcome(e.target.value)}
+                        />
+                      </div>
+
+                      <div style={{ marginBottom: 14 }}>
+                        <label style={{ display: 'block', marginBottom: 5 }}>ALLOWED DOMAINS (CORS ALLOWLIST)</label>
+                        <input
+                          className="input"
+                          style={{ width: '100%' }}
+                          placeholder="https://yourcompany.com, http://localhost:3000"
+                          value={widgetOrigins}
+                          onChange={(e) => setWidgetOrigins(e.target.value)}
+                        />
+                      </div>
+
+                      <div style={{ display: 'flex', gap: 8 }}>
+                        <button
+                          className="btn btn-primary"
+                          type="button"
+                          onClick={() => void handleGeneratePublishableKey()}
+                        >
+                          Save Config & Issue Publishable Key
+                        </button>
+                        <button
+                          className="btn"
+                          type="button"
+                          onClick={launchLiveWidgetPreview}
+                        >
+                          Preview Widget
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="ws-card">
+                      <h3>2. Copy Embed Code</h3>
+                      <p style={{ marginBottom: 10 }}>
+                        Paste into any HTML <code>&lt;body&gt;</code>, Shopify theme, WordPress header, Webflow site, or Next.js layout.
+                      </p>
+                      <pre className="ws-CodeBox">{htmlWidgetSnippet}</pre>
+                      <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+                        <button
+                          className="btn btn-sm btn-primary"
+                          onClick={async () => {
+                            await navigator.clipboard.writeText(htmlWidgetSnippet);
+                            flash('Copied HTML widget snippet.');
+                          }}
+                        >
+                          Copy HTML Snippet
+                        </button>
+                        <button
+                          className="btn btn-sm"
+                          onClick={async () => {
+                            await navigator.clipboard.writeText(reactWidgetSnippet);
+                            flash('Copied React / Next.js snippet.');
+                          }}
+                        >
+                          Copy Next.js Snippet
+                        </button>
+                      </div>
+
+                      <div style={{ marginTop: 16 }}>
+                        <label style={{ display: 'block', marginBottom: 6 }}>
+                          ACTIVE PUBLISHABLE KEYS ({pubKeys.length})
+                        </label>
+                        {pubKeys.map((pk) => (
+                          <div
+                            key={pk.id}
+                            style={{
+                              padding: '8px 10px',
+                              borderRadius: 8,
+                              background: 'var(--bg)',
+                              border: '1px solid var(--border)',
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
+                              marginBottom: 6,
+                              fontSize: 12,
                             }}
                           >
-                            Revoke
+                            <div>
+                              <code>{pk.key_value}</code>
+                              <div className="muted" style={{ fontSize: 10.5 }}>
+                                Origins: {pk.allowed_origins}
+                              </div>
+                            </div>
+                            {pk.is_active ? (
+                              <button
+                                className="btn btn-sm btn-danger"
+                                style={{ height: 24 }}
+                                onClick={async () => {
+                                  await revokePublishableKey(pk.id);
+                                  await loadWorkspace();
+                                }}
+                              >
+                                Revoke
+                              </button>
+                            ) : (
+                              <span className="ws-pill">Revoked</span>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* TAB 2: TELEGRAM BOT */}
+                {activeChannelTab === 'telegram' && (
+                  <div className="ws-grid-2">
+                    <div className="ws-card">
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                        <h3>Connect Telegram Bot</h3>
+                        <span className={`ws-pill ${tgChannel?.status === 'connected' ? 'connected' : 'pending'}`}>
+                          {tgChannel?.status === 'connected' ? 'Active & Live' : 'Not Connected'}
+                        </span>
+                      </div>
+                      <p style={{ marginBottom: 14 }}>
+                        Give your customers instant 24/7 AI support directly in Telegram. We register the webhook automatically with Telegram servers.
+                      </p>
+
+                      <div style={{ marginBottom: 12 }}>
+                        <label style={{ display: 'block', marginBottom: 5 }}>
+                          SELECT AGENT INSTALLATION
+                        </label>
+                        <select
+                          className="input"
+                          style={{ width: '100%' }}
+                          value={selectedInstId}
+                          onChange={(e) => setSelectedInstId(e.target.value)}
+                        >
+                          {installations.map((inst) => (
+                            <option key={inst.id} value={inst.id}>
+                              {inst.agent_name || inst.agent_id} ({inst.id})
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div style={{ marginBottom: 14 }}>
+                        <label style={{ display: 'block', marginBottom: 5 }}>
+                          TELEGRAM BOT TOKEN (FROM @BotFather)
+                        </label>
+                        <input
+                          className="input"
+                          style={{ width: '100%', fontFamily: 'var(--font-mono)' }}
+                          placeholder="123456789:ABCdefGhIJKlmNoPQRsTUVwxyZ_0123456"
+                          value={tgBotToken}
+                          onChange={(e) => setTgBotToken(e.target.value)}
+                        />
+                        <p className="muted" style={{ fontSize: 11, marginTop: 4 }}>
+                          Your bot token is encrypted at rest and used only to communicate with Telegram Bot API.
+                        </p>
+                      </div>
+
+                      <div style={{ display: 'flex', gap: 10 }}>
+                        <button
+                          className="btn btn-primary"
+                          type="button"
+                          disabled={isSavingTg}
+                          onClick={() => void handleConnectTelegram()}
+                        >
+                          {isSavingTg ? 'Registering with Telegram...' : 'Connect Telegram Bot ↗'}
+                        </button>
+                        {tgChannel && (
+                          <button
+                            className="btn btn-danger"
+                            type="button"
+                            onClick={async () => {
+                              await updateChannelStatus(tgChannel.id, { status: 'disabled' });
+                              await loadWorkspace();
+                              flash('Telegram channel paused.');
+                            }}
+                          >
+                            Disconnect
                           </button>
-                        ) : (
-                          <span className="ws-pill">Revoked</span>
                         )}
                       </div>
-                    ))}
+
+                      {tgChannel?.status === 'connected' && (
+                        <div style={{ marginTop: 18, padding: 12, borderRadius: 8, background: 'var(--bg)', border: '1px solid var(--border)' }}>
+                          <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--accent)' }}>✓ Live Webhook Configured</div>
+                          <div className="mono" style={{ fontSize: 11, marginTop: 4, wordBreak: 'break-all' }}>
+                            https://api.tanat.space/api/webhooks/telegram/{tgChannel.id}
+                          </div>
+                          {tgChannel.last_seen_at && (
+                            <div className="muted" style={{ fontSize: 11, marginTop: 4 }}>
+                              Last message handled: {new Date(tgChannel.last_seen_at).toLocaleString()}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="ws-card">
+                      <h3>How to get your Bot Token in 30 seconds</h3>
+                      <ol style={{ paddingLeft: 18, lineHeight: 1.8, fontSize: 13, marginTop: 12 }}>
+                        <li>Open the Telegram app and search for <strong>@BotFather</strong> (verified with blue checkmark).</li>
+                        <li>Click <strong>Start</strong> and send the command: <code>/newbot</code></li>
+                        <li>Give your bot a friendly name (e.g. <em>Acme Support</em>) and a unique username ending in <code>bot</code> (e.g. <em>acme_support_bot</em>).</li>
+                        <li>BotFather will reply with an <strong>HTTP API Token</strong> formatted like <code>123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11</code>.</li>
+                        <li>Paste that token on the left and click <strong>Connect Telegram Bot</strong>. That's it!</li>
+                      </ol>
+
+                      <div style={{ marginTop: 20, padding: 12, borderRadius: 8, background: 'var(--card-bg)', border: '1px solid var(--border)' }}>
+                        <div style={{ fontWeight: 600, fontSize: 12, marginBottom: 4 }}>💡 Shared Brain</div>
+                        <p className="muted" style={{ fontSize: 11.5, margin: 0 }}>
+                          Your Telegram bot automatically answers using the knowledge base, policies, and FAQs you upload in Tanat. No separate training or prompt duplication required.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* TAB 3: WHATSAPP BUSINESS */}
+                {activeChannelTab === 'whatsapp' && (
+                  <div className="ws-grid-2">
+                    <div className="ws-card">
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                        <h3>Configure WhatsApp Cloud API</h3>
+                        <span className={`ws-pill ${waChannel?.status === 'connected' ? 'connected' : 'pending'}`}>
+                          {waChannel?.status === 'connected' ? 'Active & Live' : 'Not Connected'}
+                        </span>
+                      </div>
+                      <p style={{ marginBottom: 14 }}>
+                        Connect your official Meta WhatsApp Business account. Inbound customer chats are processed by your agent and replies are sent automatically.
+                      </p>
+
+                      <div style={{ marginBottom: 12 }}>
+                        <label style={{ display: 'block', marginBottom: 5 }}>PHONE NUMBER ID</label>
+                        <input
+                          className="input"
+                          style={{ width: '100%', fontFamily: 'var(--font-mono)' }}
+                          placeholder="e.g. 104928492849284"
+                          value={waPhoneId}
+                          onChange={(e) => setWaPhoneId(e.target.value)}
+                        />
+                      </div>
+
+                      <div style={{ marginBottom: 12 }}>
+                        <label style={{ display: 'block', marginBottom: 5 }}>PERMANENT SYSTEM ACCESS TOKEN</label>
+                        <input
+                          type="password"
+                          className="input"
+                          style={{ width: '100%', fontFamily: 'var(--font-mono)' }}
+                          placeholder="EAAB..."
+                          value={waAccessToken}
+                          onChange={(e) => setWaAccessToken(e.target.value)}
+                        />
+                      </div>
+
+                      <div style={{ marginBottom: 12 }}>
+                        <label style={{ display: 'block', marginBottom: 5 }}>WEBHOOK VERIFY TOKEN</label>
+                        <div style={{ display: 'flex', gap: 6 }}>
+                          <input
+                            className="input"
+                            style={{ width: '100%', fontFamily: 'var(--font-mono)' }}
+                            value={waVerifyToken}
+                            onChange={(e) => setWaVerifyToken(e.target.value)}
+                          />
+                          <button
+                            className="btn btn-sm"
+                            type="button"
+                            onClick={() => {
+                              navigator.clipboard.writeText(waVerifyToken);
+                              flash('Copied verify token.');
+                            }}
+                          >
+                            Copy
+                          </button>
+                        </div>
+                      </div>
+
+                      <div style={{ marginBottom: 14 }}>
+                        <label style={{ display: 'block', marginBottom: 5 }}>META APP SECRET (OPTIONAL FOR HMAC)</label>
+                        <input
+                          type="password"
+                          className="input"
+                          style={{ width: '100%', fontFamily: 'var(--font-mono)' }}
+                          placeholder="Your Meta App Secret"
+                          value={waAppSecret}
+                          onChange={(e) => setWaAppSecret(e.target.value)}
+                        />
+                      </div>
+
+                      <div style={{ display: 'flex', gap: 10 }}>
+                        <button
+                          className="btn btn-primary"
+                          type="button"
+                          disabled={isSavingWa}
+                          onClick={() => void handleConnectWhatsApp()}
+                        >
+                          {isSavingWa ? 'Saving...' : 'Save & Activate WhatsApp ↗'}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="ws-card">
+                      <h3>Meta Developer Setup Guide</h3>
+                      <ol style={{ paddingLeft: 18, lineHeight: 1.8, fontSize: 13, marginTop: 12 }}>
+                        <li>Log into <strong>developers.facebook.com</strong> and open your Business App.</li>
+                        <li>In the left sidebar, click <strong>WhatsApp &gt; API Setup</strong>.</li>
+                        <li>Copy your <strong>Phone number ID</strong> and paste it on the left.</li>
+                        <li>Under <strong>Configuration &gt; Webhook</strong>, click <strong>Edit</strong> and enter:</li>
+                      </ol>
+
+                      <div style={{ background: 'var(--bg)', padding: 12, borderRadius: 8, border: '1px solid var(--border)', marginTop: 8, marginBottom: 12 }}>
+                        <div style={{ fontSize: 11, fontWeight: 600 }}>CALLBACK URL:</div>
+                        <div className="mono" style={{ fontSize: 11, wordBreak: 'break-all', marginTop: 2 }}>
+                          https://api.tanat.space/api/webhooks/whatsapp/{waChannel?.id || selectedInstId || 'channel_id'}
+                        </div>
+                        <div style={{ fontSize: 11, fontWeight: 600, marginTop: 8 }}>VERIFY TOKEN:</div>
+                        <div className="mono" style={{ fontSize: 11, marginTop: 2 }}>
+                          {waVerifyToken}
+                        </div>
+                      </div>
+
+                      <p style={{ fontSize: 12, color: 'var(--muted)' }}>
+                        5. Click <strong>Verify and Save</strong> in Meta, then click <strong>Manage Webhook fields</strong> and check the <code>messages</code> box.
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* TAB 4: SLACK WORKSPACE */}
+                {activeChannelTab === 'slack' && (
+                  <div className="ws-grid-2">
+                    <div className="ws-card">
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                        <h3>Connect Slack Workspace</h3>
+                        <span className={`ws-pill ${slackChannel?.status === 'connected' ? 'connected' : 'pending'}`}>
+                          {slackChannel?.status === 'connected' ? 'Active & Live' : 'Not Connected'}
+                        </span>
+                      </div>
+                      <p style={{ marginBottom: 14 }}>
+                        Deploy an internal AI assistant in your Slack team for HR, IT helpdesk, internal SOPs, or sales queries.
+                      </p>
+
+                      <div style={{ marginBottom: 12 }}>
+                        <label style={{ display: 'block', marginBottom: 5 }}>BOT USER OAUTH TOKEN</label>
+                        <input
+                          type="password"
+                          className="input"
+                          style={{ width: '100%', fontFamily: 'var(--font-mono)' }}
+                          placeholder="xoxb-your-slack-bot-token"
+                          value={slackBotToken}
+                          onChange={(e) => setSlackBotToken(e.target.value)}
+                        />
+                      </div>
+
+                      <div style={{ marginBottom: 14 }}>
+                        <label style={{ display: 'block', marginBottom: 5 }}>SLACK SIGNING SECRET</label>
+                        <input
+                          type="password"
+                          className="input"
+                          style={{ width: '100%', fontFamily: 'var(--font-mono)' }}
+                          placeholder="From Slack App Basic Information"
+                          value={slackSigningSecret}
+                          onChange={(e) => setSlackSigningSecret(e.target.value)}
+                        />
+                      </div>
+
+                      <div style={{ display: 'flex', gap: 10 }}>
+                        <button
+                          className="btn btn-primary"
+                          type="button"
+                          disabled={isSavingSlack}
+                          onClick={() => void handleConnectSlack()}
+                        >
+                          {isSavingSlack ? 'Saving...' : 'Save & Activate Slack ↗'}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="ws-card">
+                      <h3>Slack App Setup Guide</h3>
+                      <ol style={{ paddingLeft: 18, lineHeight: 1.8, fontSize: 13, marginTop: 12 }}>
+                        <li>Go to <strong>api.slack.com/apps</strong> and click <strong>Create New App &gt; From scratch</strong>.</li>
+                        <li>Under <strong>OAuth &amp; Permissions</strong>, add the Bot Token Scope: <code>chat:write</code>.</li>
+                        <li>Install the App to your workspace and copy the <strong>Bot User OAuth Token</strong> (starts with <code>xoxb-</code>).</li>
+                        <li>Under <strong>Event Subscriptions</strong>, toggle On and set the Request URL:</li>
+                      </ol>
+
+                      <div style={{ background: 'var(--bg)', padding: 12, borderRadius: 8, border: '1px solid var(--border)', marginTop: 8, marginBottom: 12 }}>
+                        <div style={{ fontSize: 11, fontWeight: 600 }}>EVENT REQUEST URL:</div>
+                        <div className="mono" style={{ fontSize: 11, wordBreak: 'break-all', marginTop: 2 }}>
+                          https://api.tanat.space/api/webhooks/slack/{slackChannel?.id || selectedInstId || 'channel_id'}
+                        </div>
+                      </div>
+
+                      <p style={{ fontSize: 12, color: 'var(--muted)' }}>
+                        5. Under <strong>Subscribe to bot events</strong>, add <code>message.channels</code> or <code>app_mention</code>, then reinstall the app.
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Configured Agent Channels Grid */}
+                <div className="ws-card" style={{ marginTop: 20 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                    <h3>All Connected Channels ({channels.length})</h3>
+                    <div className="muted" style={{ fontSize: 12 }}>
+                      Each channel routes to your active agent installations
+                    </div>
+                  </div>
+                  <div className="ws-grid-3">
+                    {channels.map((ch) => {
+                      const type = ch.channel || ch.channel_type || 'channel';
+                      const icon =
+                        type === 'telegram'
+                          ? '✈️'
+                          : type === 'whatsapp'
+                            ? '💬'
+                            : type === 'slack'
+                              ? '⚡'
+                              : '🌐';
+
+                      return (
+                        <div
+                          key={ch.id}
+                          style={{
+                            padding: 14,
+                            borderRadius: 10,
+                            background: 'var(--bg)',
+                            border: '1px solid var(--border)',
+                          }}
+                        >
+                          <div
+                            style={{
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
+                              marginBottom: 8,
+                            }}
+                          >
+                            <span style={{ fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                              <span>{icon}</span>
+                              <span style={{ textTransform: 'capitalize' }}>{type}</span>
+                            </span>
+                            <span className={`ws-pill ${ch.status}`}>{ch.status}</span>
+                          </div>
+                          <div className="mono muted" style={{ fontSize: 10.5, marginBottom: 6 }}>
+                            Channel ID: {ch.id}
+                          </div>
+                          <div className="mono muted" style={{ fontSize: 10.5, marginBottom: 10 }}>
+                            Installation: {ch.installation_id}
+                          </div>
+                          {ch.last_seen_at && (
+                            <div className="muted" style={{ fontSize: 10.5, marginBottom: 10 }}>
+                              Active: {new Date(ch.last_seen_at).toLocaleTimeString()}
+                            </div>
+                          )}
+                          <div style={{ display: 'flex', gap: 6 }}>
+                            <button
+                              className="btn btn-sm"
+                              onClick={async () => {
+                                const next = ch.status === 'connected' || ch.status === 'active' ? 'disabled' : 'connected';
+                                await updateChannelStatus(ch.id, { status: next });
+                                await loadWorkspace();
+                              }}
+                            >
+                              {ch.status === 'connected' || ch.status === 'active' ? 'Pause' : 'Resume'}
+                            </button>
+                            <button
+                              className="btn btn-sm"
+                              onClick={() => {
+                                if (type === 'telegram') setActiveChannelTab('telegram');
+                                else if (type === 'whatsapp') setActiveChannelTab('whatsapp');
+                                else if (type === 'slack') setActiveChannelTab('slack');
+                                else setActiveChannelTab('website');
+                              }}
+                            >
+                              Configure
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               </div>
-
-              <div className="ws-card">
-                <h3>Configured Agent Channels ({channels.length})</h3>
-                <div className="ws-grid-3" style={{ marginTop: 12, marginBottom: 0 }}>
-                  {channels.map((ch) => (
-                    <div
-                      key={ch.id}
-                      style={{
-                        padding: 14,
-                        borderRadius: 10,
-                        background: 'var(--bg)',
-                        border: '1px solid var(--border)',
-                      }}
-                    >
-                      <div
-                        style={{
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          marginBottom: 6,
-                        }}
-                      >
-                        <strong>{ch.name}</strong>
-                        <span className={`ws-pill ${ch.status}`}>{ch.status}</span>
-                      </div>
-                      <div className="mono" style={{ fontSize: 11, marginBottom: 10 }}>
-                        Channel: {ch.channel_type} · Inst: {ch.installation_id}
-                      </div>
-                      <button
-                        className="btn btn-sm"
-                        onClick={async () => {
-                          const next = ch.status === 'active' ? 'paused' : 'active';
-                          await updateChannelStatus(ch.id, { status: next });
-                          await loadWorkspace();
-                        }}
-                      >
-                        {ch.status === 'active' ? 'Pause Channel' : 'Activate Channel'}
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
+            );
+          })()}
 
           {/* ── 5. INTEGRATIONS CATALOGUE ────────────────────────────── */}
           {section === 'integrations' && (

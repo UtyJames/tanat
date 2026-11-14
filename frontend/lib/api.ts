@@ -317,17 +317,35 @@ export function listChannels(): Promise<AgentChannel[]> {
   return request<AgentChannel[]>('GET', '/onboarding/channels');
 }
 
+export function createChannel(input: {
+  installation_id: string;
+  channel: 'website' | 'whatsapp' | 'telegram' | 'slack' | 'teams' | 'email' | 'api';
+  config?: Record<string, unknown>;
+  status?: 'connected' | 'pending' | 'error' | 'disabled';
+}): Promise<AgentChannel> {
+  return request<AgentChannel>('POST', '/onboarding/channels', input);
+}
+
 export function updateChannelStatus(
   channelId: string,
   input: {
-    status?: 'active' | 'pending' | 'paused' | 'coming_soon';
+    status?: 'connected' | 'pending' | 'error' | 'disabled' | 'active' | 'paused' | 'coming_soon';
     config?: Record<string, unknown>;
   },
-): Promise<{ updated: boolean }> {
-  return request<{ updated: boolean }>(
+): Promise<{ data: AgentChannel }> {
+  return request<{ data: AgentChannel }>(
     'PATCH',
     `/onboarding/channels/${channelId}`,
     input,
+  );
+}
+
+export function setupTelegramChannel(
+  channelId: string,
+): Promise<{ connected: boolean; webhook_url: string; description?: string }> {
+  return request<{ connected: boolean; webhook_url: string; description?: string }>(
+    'POST',
+    `/onboarding/channels/${channelId}/setup-telegram`,
   );
 }
 

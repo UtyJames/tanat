@@ -39,6 +39,7 @@ import { authRouter } from './routes/auth';
 import { onboardingRouter } from './routes/onboarding';
 import { createPublicRouter } from './routes/public';
 import { platformRouter } from './routes/platform';
+import { createWebhooksRouter } from './routes/webhooks';
 
 export type IntentsFactory = (env: Env) => NearIntentsService;
 
@@ -177,6 +178,10 @@ app.route('/api/auth', authRouter);
 // Public widget API. It has its own publishable-key auth and per-key CORS.
 app.use('/api/public/*', preAuthRateLimit());
 app.route('/api/public/v1', createPublicRouter(nearAiFactory));
+
+// Webhook receivers for Telegram, WhatsApp, Slack (own signature validation)
+app.use('/api/webhooks/*', preAuthRateLimit());
+app.route('/api/webhooks', createWebhooksRouter(nearAiFactory));
 
 // ── Authenticated API routes ──────────────────────────────────────────
 const api = new Hono<HonoEnv>();

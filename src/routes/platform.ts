@@ -423,7 +423,7 @@ export const INTEGRATION_CATALOGUE = [
     description:
       'Deploy your agent to a Telegram bot handle via BotFather token and webhook.',
     capabilities: ['Direct & group messages', 'Inline approval buttons', 'Shared agent brain'],
-    availability: 'beta',
+    availability: 'live',
   },
   {
     provider: 'whatsapp',
@@ -432,7 +432,7 @@ export const INTEGRATION_CATALOGUE = [
     description:
       'Connect an official Meta WhatsApp Business number to your Tanat agents.',
     capabilities: ['Customer messaging', 'Template notifications', 'Human escalation'],
-    availability: 'beta',
+    availability: 'live',
   },
   {
     provider: 'slack',
@@ -441,7 +441,7 @@ export const INTEGRATION_CATALOGUE = [
     description:
       'Deploy internal HR, IT, Knowledge, and Operations agents directly into Slack channels.',
     capabilities: ['Internal team Q&A', 'Approval notifications', 'Escalation alerts'],
-    availability: 'coming_soon',
+    availability: 'live',
   },
   {
     provider: 'shopify',

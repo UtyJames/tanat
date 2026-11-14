@@ -668,7 +668,8 @@ onboardingRouter.get('/channels', async (c) => {
 
 const channelUpdateSchema = z
   .object({
-    status: z.enum(['connected', 'pending', 'error', 'disabled']),
+    status: z.enum(['connected', 'pending', 'error', 'disabled']).optional(),
+    config: z.record(z.string(), z.unknown()).optional(),
   })
   .strict();
 
@@ -676,32 +677,210 @@ onboardingRouter.patch('/channels/:id', validateBody(channelUpdateSchema), async
   const tenantId = c.get('tenantId');
   const body = getValidatedBody<z.infer<typeof channelUpdateSchema>>(c);
 
-  const exists = await c.env.DB.prepare(
-    'SELECT channel FROM agent_channels WHERE id = ? AND tenant_id = ?',
+  const existing = await c.env.DB.prepare(
+    'SELECT * FROM agent_channels WHERE id = ? AND tenant_id = ?',
   )
     .bind(c.req.param('id'), tenantId)
-    .first<{ channel: string }>();
+    .first<{
+      id: string;
+      channel: string;
+      status: string;
+      config: string;
+    }>();
 
-  if (!exists) throw new NotFoundError('Channel');
+  if (!existing) throw new NotFoundError('Channel');
 
-  // Messaging channels cannot be marked connected from the dashboard until the
-  // provider handshake exists. Refuse rather than record a fake success.
-  if (
-    body.status === 'connected' &&
-    ['whatsapp', 'telegram', 'slack', 'email'].includes(exists.channel)
-  ) {
-    throw new ValidationError(
-      `${exists.channel} connections are not available in this build. The channel stays pending until its connector ships.`,
+  const prevConfig = (() => {
+    try {
+      return JSON.parse(existing.config || '{}');
+    } catch {
+      return {};
+    }
+  })();
+
+  const newConfig = body.config ? { ...prevConfig, ...body.config } : prevConfig;
+
+  // Validation when marking connected
+  if (body.status === 'connected') {
+    if (existing.channel === 'telegram') {
+      if (!newConfig.bot_token) {
+        throw new ValidationError('Telegram Bot Token is required before activating this channel.');
+      }
+    } else if (existing.channel === 'whatsapp') {
+      if (!newConfig.phone_number_id && !newConfig.verify_token) {
+        throw new ValidationError('WhatsApp Phone Number ID and Verify Token are required.');
+      }
+    } else if (existing.channel === 'slack') {
+      if (!newConfig.bot_token && !newConfig.signing_secret) {
+        throw new ValidationError('Slack Bot Token or Signing Secret is required.');
+      }
+    } else if (existing.channel === 'email') {
+      throw new ValidationError(
+        'Email channel connector is in private beta. Contact support to enable custom inbound email routing.',
+      );
+    }
+  }
+
+  const nextStatus = body.status ?? existing.status;
+  const configStr = JSON.stringify(newConfig);
+
+  await c.env.DB.prepare(
+    "UPDATE agent_channels SET status = ?, config = ?, updated_at = datetime('now') WHERE id = ? AND tenant_id = ?",
+  )
+    .bind(nextStatus, configStr, c.req.param('id'), tenantId)
+    .run();
+
+  return c.json({
+    data: {
+      id: c.req.param('id'),
+      channel: existing.channel,
+      status: nextStatus,
+      config: newConfig,
+    },
+  });
+});
+
+// ── POST /channels — add a new channel binding ────────────────────────
+const createChannelSchema = z
+  .object({
+    installation_id: z.string().min(1),
+    channel: z.enum(['website', 'whatsapp', 'telegram', 'slack', 'teams', 'email', 'api']),
+    config: z.record(z.string(), z.unknown()).optional().default({}),
+    status: z.enum(['connected', 'pending', 'error', 'disabled']).optional().default('pending'),
+  })
+  .strict();
+
+onboardingRouter.post('/channels', validateBody(createChannelSchema), async (c) => {
+  const tenantId = c.get('tenantId');
+  const body = getValidatedBody<z.infer<typeof createChannelSchema>>(c);
+
+  // Verify installation belongs to tenant
+  const install = await c.env.DB.prepare(
+    "SELECT id FROM installations WHERE id = ? AND tenant_id = ? AND status = 'active'",
+  )
+    .bind(body.installation_id, tenantId)
+    .first();
+
+  if (!install) throw new NotFoundError('Agent installation');
+
+  const id = generateId('chn');
+  const configStr = JSON.stringify(body.config ?? {});
+
+  await c.env.DB.prepare(
+    `INSERT INTO agent_channels
+       (id, tenant_id, installation_id, channel, status, config, created_at, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
+     ON CONFLICT(installation_id, channel)
+     DO UPDATE SET
+       status = excluded.status,
+       config = excluded.config,
+       updated_at = datetime('now')`,
+  )
+    .bind(id, tenantId, body.installation_id, body.channel, body.status, configStr)
+    .run();
+
+  const saved = await c.env.DB.prepare(
+    'SELECT * FROM agent_channels WHERE installation_id = ? AND channel = ? AND tenant_id = ?',
+  )
+    .bind(body.installation_id, body.channel, tenantId)
+    .first();
+
+  return c.json({ data: saved }, 201);
+});
+
+// ── POST /channels/:id/setup-telegram — automated webhook registration ──
+onboardingRouter.post('/channels/:id/setup-telegram', async (c) => {
+  const tenantId = c.get('tenantId');
+  const channelId = c.req.param('id');
+
+  const row = await c.env.DB.prepare(
+    "SELECT * FROM agent_channels WHERE id = ? AND tenant_id = ? AND channel = 'telegram'",
+  )
+    .bind(channelId, tenantId)
+    .first<{
+      id: string;
+      config: string;
+      status: string;
+    }>();
+
+  if (!row) throw new NotFoundError('Telegram Channel');
+
+  const cfg: Record<string, unknown> = (() => {
+    try {
+      return JSON.parse(row.config || '{}');
+    } catch {
+      return {};
+    }
+  })();
+
+  const botToken = typeof cfg.bot_token === 'string' ? cfg.bot_token.trim() : '';
+  if (!botToken) {
+    throw new ValidationError('Please enter and save your Telegram Bot Token first.');
+  }
+
+  const webhookSecret = generateId('tgsec');
+  const webhookUrl = `https://api.tanat.space/api/webhooks/telegram/${channelId}`;
+
+  // Call Telegram setWebhook API
+  let tgResult: any = null;
+  try {
+    const res = await fetch(`https://api.telegram.org/bot${botToken}/setWebhook`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        url: webhookUrl,
+        secret_token: webhookSecret,
+        allowed_updates: ['message', 'edited_message'],
+        drop_pending_updates: false,
+      }),
+    });
+    tgResult = await res.json().catch(() => null);
+  } catch (err) {
+    throw new AppError(
+      `Failed to connect to Telegram Bot API: ${err instanceof Error ? err.message : 'Network error'}`,
+      502,
+      'TELEGRAM_API_ERROR',
     );
   }
 
+  if (!tgResult || !tgResult.ok) {
+    throw new AppError(
+      `Telegram error: ${tgResult?.description ?? 'Invalid bot token or setWebhook failure'}`,
+      400,
+      'TELEGRAM_SETUP_ERROR',
+    );
+  }
+
+  // Save secret and mark connected
+  const updatedConfig = {
+    ...cfg,
+    webhook_secret: webhookSecret,
+    webhook_url: webhookUrl,
+    telegram_bot_info: tgResult,
+  };
+
   await c.env.DB.prepare(
-    "UPDATE agent_channels SET status = ?, updated_at = datetime('now') WHERE id = ? AND tenant_id = ?",
+    "UPDATE agent_channels SET status = 'connected', config = ?, updated_at = datetime('now') WHERE id = ?",
   )
-    .bind(body.status, c.req.param('id'), tenantId)
+    .bind(JSON.stringify(updatedConfig), channelId)
     .run();
 
-  return c.json({ data: { id: c.req.param('id'), status: body.status } });
+  await logAudit(c.env.DB, {
+    tenantId,
+    action: 'channel.telegram_connected',
+    resourceType: 'agent_channel',
+    resourceId: channelId,
+    actorId: c.get('apiKeyId'),
+    details: { webhook_url: webhookUrl },
+  });
+
+  return c.json({
+    data: {
+      connected: true,
+      webhook_url: webhookUrl,
+      description: tgResult.description,
+    },
+  });
 });
 
 // ── PATCH /onboarding/state — persist step progress without deploying ─

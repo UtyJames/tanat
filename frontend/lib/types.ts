@@ -194,12 +194,15 @@ export interface PublishableKey {
 export interface AgentChannel {
   id: string;
   tenant_id: string;
-  agent_id: string;
+  agent_id?: string;
+  agent_name?: string;
   installation_id: string;
-  channel_type: 'website' | 'whatsapp' | 'telegram' | 'slack' | 'shopify' | 'email' | 'api' | 'custom';
-  name: string;
-  config: string;
-  status: 'active' | 'pending' | 'paused' | 'coming_soon';
+  channel?: 'website' | 'whatsapp' | 'telegram' | 'slack' | 'teams' | 'email' | 'api';
+  channel_type?: 'website' | 'whatsapp' | 'telegram' | 'slack' | 'shopify' | 'email' | 'api' | 'custom';
+  name?: string;
+  config: string | Record<string, unknown>;
+  status: 'connected' | 'pending' | 'error' | 'disabled' | 'active' | 'paused' | 'coming_soon';
+  last_seen_at?: string | null;
   created_at: string;
   updated_at: string;
 }
