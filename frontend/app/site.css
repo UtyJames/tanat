@@ -1949,32 +1949,36 @@
 
 .start {
   display: grid;
-  grid-template-columns: 0.82fr 1.18fr;
+  grid-template-columns: 0.85fr 1.15fr;
   min-height: 100vh;
-  background: var(--paper);
+  background: var(--bone);
+  font-family: 'Switzer', var(--font-inter), var(--font-sans);
 }
 
 .start-aside {
   position: sticky;
   top: 0;
   height: 100vh;
-  background: var(--ink);
-  color: var(--bone);
+  background:
+    radial-gradient(95% 75% at 50% 0%, rgba(0, 236, 151, 0.34) 0%, transparent 62%),
+    radial-gradient(80% 70% at 88% 92%, rgba(0, 184, 118, 0.25) 0%, transparent 65%),
+    linear-gradient(165deg, #07261c 0%, #0a3628 52%, #07231a 100%);
+  color: #ffffff;
   padding: 34px 38px 30px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  border-right: 1px solid var(--line);
 }
 
 .start-aside::after {
   content: "";
   position: absolute;
-  width: 460px;
-  height: 460px;
-  left: -180px;
-  bottom: -240px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(201, 242, 107, 0.22), transparent 65%);
+  inset: 0;
+  opacity: 0.22;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.75'/%3E%3C/svg%3E");
+  mix-blend-mode: overlay;
 }
 
 .start-aside-top {
@@ -1996,12 +2000,12 @@
 }
 
 .start-aside-sub {
-  max-width: 340px;
-  font-size: 14px;
+  max-width: 360px;
+  font-size: 14.5px;
   line-height: 1.6;
-  color: rgba(246, 243, 234, 0.58);
+  color: rgba(255, 255, 255, 0.82);
   position: relative;
-  z-index: 1;
+  z-index: 2;
 }
 
 .start-steps {
@@ -2050,20 +2054,20 @@
 }
 
 .start-step.done .start-step-num {
-  background: rgba(201, 242, 107, 0.16);
-  border-color: rgba(201, 242, 107, 0.4);
+  background: rgba(0, 236, 151, 0.16);
+  border-color: rgba(0, 236, 151, 0.45);
   color: var(--lime);
 }
 
 .start-aside-foot {
   margin-top: auto;
-  padding-top: 20px;
-  border-top: 1px solid var(--line-dark);
+  padding-top: 18px;
+  border-top: 1px dashed rgba(255, 255, 255, 0.22);
   font-family: var(--font-mono);
-  font-size: 10px;
-  color: rgba(246, 243, 234, 0.36);
+  font-size: 11px;
+  color: #00ec97;
   position: relative;
-  z-index: 1;
+  z-index: 2;
 }
 
 .start-main {
@@ -2089,32 +2093,38 @@
 }
 
 .start-card {
-  max-width: 660px;
+  max-width: 760px;
   margin: 0 auto;
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  padding: 34px;
+  box-shadow: 0 20px 50px -28px rgba(0, 0, 0, 0.16);
 }
 
 .start-progress {
   display: flex;
-  gap: 5px;
-  margin-bottom: 30px;
+  gap: 6px;
+  margin-bottom: 28px;
 }
 
 .start-progress i {
-  height: 3px;
+  height: 3.5px;
   flex: 1;
   border-radius: 999px;
-  background: rgba(12, 13, 11, 0.1);
+  background: rgba(20, 20, 20, 0.1);
   overflow: hidden;
 }
 
 .start-progress i.done {
-  background: var(--ink);
+  background: #00ec97;
 }
 
 .start-card h1 {
-  font-size: clamp(34px, 4.4vw, 48px);
-  line-height: 1;
-  letter-spacing: -0.05em;
+  font-family: 'Switzer', var(--font-inter), var(--font-display);
+  font-size: clamp(30px, 4vw, 42px);
+  line-height: 1.06;
+  letter-spacing: -0.025em;
   margin-bottom: 12px;
 }
 

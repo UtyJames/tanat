@@ -3,7 +3,15 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Logo, CheckIcon, ArrowIcon } from '@/components/brand/Logo';
+import '../landing.css';
+import { CheckIcon, ArrowIcon } from '@/components/brand/Logo';
+import {
+  LovableLogo,
+  SlackLogo,
+  TanatMascotIcon,
+  TelegramLogo,
+  WebflowLogo,
+} from '@/components/brand/PlatformLogos';
 import { FormattedPreview } from '@/components/FormattedPreview';
 import { getSuggestedQuestions } from '@/lib/chat-suggestions';
 import {
@@ -687,27 +695,60 @@ Integrate our Tanat AI agent ("${agentName}") into this application:
   }, [deployResult, agentName]);
 
   return (
-    <div className="start">
+    <div className="start tn-site">
       <aside className="start-aside">
-        <div className="start-aside-top">
-          <Link href="/" aria-label="Tanat home">
-            <Logo size={28} tone="bone" />
-          </Link>
-          <span
-            className="t-pill"
-            style={{ background: 'rgba(201,242,107,.16)', color: '#c9f26b' }}
-          >
-            Guided Setup
-          </span>
+        <div className="tn-hero-wireframe" />
+        <span className="tn-pushpin tn-pushpin-left" aria-hidden="true" />
+        <span className="tn-pushpin tn-pushpin-right" aria-hidden="true" />
+        <div className="tn-pixel-corner" style={{ bottom: 18, right: 24 }} aria-hidden="true" />
+
+        {/* Subtle Floating Platform Logos */}
+        <div
+          className="tn-float-badge"
+          style={{ right: 24, top: 82, width: 44, height: 44, animation: 'tn-float-b 5.8s ease-in-out infinite' }}
+          aria-hidden="true"
+        >
+          <LovableLogo size={22} />
+        </div>
+        <div
+          className="tn-float-badge"
+          style={{ right: 28, bottom: 96, width: 44, height: 44, animation: 'tn-float-a 6.2s ease-in-out infinite' }}
+          aria-hidden="true"
+        >
+          <TelegramLogo size={22} />
+        </div>
+        <div
+          className="tn-float-badge"
+          style={{ right: 86, bottom: 150, width: 42, height: 42, animation: 'tn-float-b 6.5s ease-in-out infinite' }}
+          aria-hidden="true"
+        >
+          <SlackLogo size={20} />
+        </div>
+        <div
+          className="tn-float-badge"
+          style={{ right: 88, top: 140, width: 42, height: 42, animation: 'tn-float-a 5.5s ease-in-out infinite' }}
+          aria-hidden="true"
+        >
+          <WebflowLogo size={20} />
         </div>
 
-        <h2>AI infrastructure for your business.</h2>
+        <div className="start-aside-top" style={{ position: 'relative', zIndex: 2 }}>
+          <Link href="/" className="tn-brand" style={{ color: '#ffffff' }} aria-label="Tanat home">
+            <TanatMascotIcon size={34} />
+            <span>Tanat</span>
+          </Link>
+          <span className="tn-mint-pill">Guided Setup</span>
+        </div>
+
+        <h2 style={{ color: '#ffffff', position: 'relative', zIndex: 2 }}>
+          Set up your private AI in minutes.
+        </h2>
         <p className="start-aside-sub">
-          Set up your workspace, choose the right AI agents for your industry,
-          connect your knowledge, and deploy with confidence.
+          Connect your business info, choose your channels, and go live across
+          websites, Telegram, WhatsApp, and Slack — zero infra headaches.
         </p>
 
-        <div className="start-steps" style={{ gap: 6 }}>
+        <div className="start-steps" style={{ gap: 6, position: 'relative', zIndex: 2 }}>
           {STEP_LABELS.map((label, index) => (
             <button
               key={label}
