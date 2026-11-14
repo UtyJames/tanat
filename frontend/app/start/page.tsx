@@ -4,6 +4,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Logo, CheckIcon, ArrowIcon } from '@/components/brand/Logo';
+import { FormattedPreview } from '@/components/FormattedPreview';
+import { getSuggestedQuestions } from '@/lib/chat-suggestions';
 import {
   ApiError,
   completeOnboarding,
@@ -1642,7 +1644,7 @@ Integrate our Tanat AI agent ("${agentName}") into this application:
                           m.role === 'user' ? 't-bubble-user' : 't-bubble-agent'
                         }`}
                       >
-                        {m.content}
+                        <FormattedPreview content={m.content} />
                       </div>
                       {m.role === 'assistant' && (
                         <div
@@ -1673,9 +1675,37 @@ Integrate our Tanat AI agent ("${agentName}") into this application:
                 <div
                   style={{
                     display: 'flex',
+                    flexWrap: 'wrap',
+                    gap: 6,
+                    padding: '8px 10px 0',
+                    borderTop: '1px solid var(--line)',
+                  }}
+                >
+                  {getSuggestedQuestions(testMessages).map((q) => (
+                    <button
+                      key={q}
+                      type="button"
+                      disabled={testBusy}
+                      onClick={() => void handleTestMessage(q)}
+                      style={{
+                        background: 'transparent',
+                        border: '1px solid var(--line)',
+                        borderRadius: 999,
+                        padding: '4px 10px',
+                        fontSize: 11.5,
+                        cursor: testBusy ? 'not-allowed' : 'pointer',
+                        color: 'inherit',
+                      }}
+                    >
+                      {q}
+                    </button>
+                  ))}
+                </div>
+                <div
+                  style={{
+                    display: 'flex',
                     gap: 8,
                     padding: 10,
-                    borderTop: '1px solid var(--line)',
                   }}
                 >
                   <input

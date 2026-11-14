@@ -1471,3 +1471,40 @@ h3 {
   word-break: break-word;
 }
 
+/* ── Chat Suggested Questions Bar ─────────────────────────────────────── */
+.chat-suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 10px 24px 0;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+}
+
+.chat-suggestion-chip {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  border-radius: 999px;
+  padding: 5px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease, transform 0.1s ease;
+  text-align: left;
+}
+
+.chat-suggestion-chip:hover:not(:disabled) {
+  border-color: var(--accent);
+  background: rgba(59, 130, 246, 0.08);
+}
+
+.chat-suggestion-chip:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.chat-suggestion-chip:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+

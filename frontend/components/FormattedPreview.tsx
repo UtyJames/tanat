@@ -15,8 +15,13 @@ export function FormattedPreview({ content }: FormattedPreviewProps) {
     );
   }
 
+  // Normalize inline markdown bullet runs (e.g. "things like: - **Item** ... - **Item 2** ...")
+  const normalized = content
+    .replace(/:\s+-\s+(?=\*\*)/g, ':\n- ')
+    .replace(/\s+-\s+(?=\*\*)/g, '\n- ');
+
   // Parse lines into blocks
-  const lines = content.split('\n');
+  const lines = normalized.split('\n');
   const elements: React.ReactNode[] = [];
   let currentList: { type: 'ul' | 'ol'; items: string[] } | null = null;
 
@@ -148,7 +153,7 @@ export function FormattedPreview({ content }: FormattedPreviewProps) {
   flushList();
 
   return (
-    <div className="kn-rendered-content" style={{ fontSize: 13, color: 'var(--text-primary)' }}>
+    <div className="kn-rendered-content" style={{ fontSize: 'inherit', color: 'inherit' }}>
       {elements}
     </div>
   );

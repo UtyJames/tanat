@@ -17,6 +17,8 @@ import type {
   Session,
 } from '@/lib/types';
 import ActionCard from './ActionCard';
+import { FormattedPreview } from './FormattedPreview';
+import { getSuggestedQuestions } from '@/lib/chat-suggestions';
 
 interface Props {
   tenantName: string;
@@ -156,8 +158,8 @@ export default function Chat({ tenantName, onActionsChanged }: Props) {
     }
   }, [installationId]);
 
-  const handleSend = useCallback(async () => {
-    const text = input.trim();
+  const handleSend = useCallback(async (overrideText?: string) => {
+    const text = (overrideText ?? input).trim();
     if (!text || sending) return;
 
     setSending(true);
@@ -180,7 +182,9 @@ export default function Chat({ tenantName, onActionsChanged }: Props) {
         content: text,
       };
       setMessages((previous) => [...previous, optimistic]);
-      setInput('');
+      if (overrideText === undefined) {
+        setInput('');
+      }
 
       const reply = await sendMessage(activeSessionId, text);
       setMessages((previous) => [
@@ -278,7 +282,7 @@ export default function Chat({ tenantName, onActionsChanged }: Props) {
           {messages.map((message) => (
             <div key={message.id} className={`message message-${message.role}`}>
               <div className="message-bubble">
-                <p>{message.content}</p>
+                <FormattedPreview content={message.content} />
                 {message.proposedAction && (
                   <ActionCard
                     action={message.proposedAction}
@@ -304,8 +308,25 @@ export default function Chat({ tenantName, onActionsChanged }: Props) {
           <div ref={bottomRef} />
         </div>
 
+        {installationId && (
+          <div className="chat-suggestions" aria-label="Suggested questions">
+            {getSuggestedQuestions(messages).map((question) => (
+              <button
+                key={question}
+                type="button"
+                className="chat-suggestion-chip"
+                disabled={sending}
+                onClick={() => void handleSend(question)}
+              >
+                {question}
+              </button>
+            ))}
+          </div>
+        )}
+
         <form
           className="chat-input-bar"
+          style={installationId ? { borderTop: 'none', paddingTop: 10 } : undefined}
           onSubmit={(event) => {
             event.preventDefault();
             void handleSend();

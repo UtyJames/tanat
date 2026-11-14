@@ -101,12 +101,21 @@
       '.tw-close { background: transparent; border: none; color: #9EA398; cursor: pointer; font-size: 18px; line-height: 1; padding: 4px 8px; border-radius: 8px; }',
       '.tw-close:hover { color: #FFFFFF; background: rgba(255,255,255,0.08); }',
       '.tw-msgs { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 10px; }',
-      '.tw-msg { max-width: 85%; padding: 11px 14px; border-radius: 14px; font-size: 13.5px; line-height: 1.48; word-wrap: break-word; white-space: pre-wrap; }',
+      '.tw-msg { max-width: 85%; padding: 11px 14px; border-radius: 14px; font-size: 13.5px; line-height: 1.5; word-wrap: break-word; }',
+      '.tw-msg p { margin: 0 0 6px 0; }',
+      '.tw-msg p:last-child { margin-bottom: 0; }',
+      '.tw-msg ul, .tw-msg ol { margin: 6px 0 6px 18px; padding: 0; }',
+      '.tw-msg li { margin-bottom: 4px; }',
+      '.tw-msg code { font-family: monospace; font-size: 12px; padding: 1px 4px; border-radius: 4px; background: rgba(128,128,128,0.16); }',
       '.tw-msg-assistant { align-self: flex-start; background: ' + bgCard + '; color: ' + fgText + '; border: 1px solid ' + borderCol + '; border-bottom-left-radius: 4px; }',
       '.tw-msg-user { align-self: flex-end; background: #0C0D0B; color: #F6F3EA; border-bottom-right-radius: 4px; }',
       '.tw-sources { margin-top: 6px; font-size: 11px; color: ' + fgMuted + '; display: flex; flex-wrap: wrap; gap: 4px; }',
       '.tw-source-tag { padding: 2px 6px; border-radius: 6px; background: rgba(201,242,107,0.14); font-family: monospace; font-size: 10.5px; }',
-      '.tw-form { display: flex; gap: 8px; padding: 12px 14px; background: ' + bgCard + '; border-top: 1px solid ' + borderCol + '; }',
+      '.tw-suggestions { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px 14px 4px; background: ' + bgCard + '; border-top: 1px solid ' + borderCol + '; }',
+      '.tw-suggestion-chip { border: 1px solid ' + borderCol + '; background: ' + bgSurface + '; color: ' + fgText + '; border-radius: 999px; padding: 4px 10px; font-size: 11.5px; cursor: pointer; text-align: left; transition: border-color 0.15s ease; }',
+      '.tw-suggestion-chip:hover:not(:disabled) { border-color: ' + accent + '; }',
+      '.tw-suggestion-chip:disabled { opacity: 0.45; cursor: default; }',
+      '.tw-form { display: flex; gap: 8px; padding: 10px 14px 12px; background: ' + bgCard + '; }',
       '.tw-input { flex: 1; border: 1px solid ' + borderCol + '; background: ' + bgSurface + '; color: ' + fgText + '; border-radius: 10px; padding: 10px 12px; font-size: 13.5px; outline: none; }',
       '.tw-send { border: none; border-radius: 10px; padding: 0 15px; background: ' + accent + '; color: #0C0D0B; font-weight: 650; font-size: 13px; cursor: pointer; }',
       '.tw-send:disabled { opacity: 0.5; cursor: default; }',
@@ -125,6 +134,7 @@
       '    <button class="tw-close" id="tw-close-btn" aria-label="Close">×</button>',
       '  </div>',
       '  <div class="tw-msgs" id="tw-msgs"></div>',
+      '  <div class="tw-suggestions" id="tw-suggestions"></div>',
       '  <form class="tw-form" id="tw-form">',
       '    <input class="tw-input" id="tw-input" type="text" placeholder="Write a message…" autocomplete="off" />',
       '    <button class="tw-send" id="tw-send" type="submit">Send</button>',
@@ -146,6 +156,7 @@
     var launcher = wrap.querySelector('#tw-launcher');
     var closeBtn = wrap.querySelector('#tw-close-btn');
     var msgsEl = wrap.querySelector('#tw-msgs');
+    var suggestionsEl = wrap.querySelector('#tw-suggestions');
     var formEl = wrap.querySelector('#tw-form');
     var inputEl = wrap.querySelector('#tw-input');
     var sendBtn = wrap.querySelector('#tw-send');
@@ -155,11 +166,134 @@
     var sessionId = null;
     var bootstrapped = false;
     var busy = false;
+    var askedSet = {};
+
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+    }
+
+    function formatInline(escaped) {
+      return escaped
+        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.+?)\*/g, '<em>$1</em>')
+        .replace(/`([^`]+)`/g, '<code>$1</code>');
+    }
+
+    function formatMessageHtml(text) {
+      var normalized = String(text || '')
+        .replace(/:\s+-\s+(?=\*\*)/g, ':\n- ')
+        .replace(/\s+-\s+(?=\*\*)/g, '\n- ');
+      var lines = normalized.split('\n');
+      var html = [];
+      var listType = null;
+
+      function closeList() {
+        if (listType) {
+          html.push('</' + listType + '>');
+          listType = null;
+        }
+      }
+
+      for (var i = 0; i < lines.length; i++) {
+        var raw = lines[i].trim();
+        if (!raw) {
+          closeList();
+          continue;
+        }
+        var bulletMatch = raw.match(/^[-*•]\s+(.*)$/);
+        if (bulletMatch) {
+          if (listType !== 'ul') {
+            closeList();
+            listType = 'ul';
+            html.push('<ul>');
+          }
+          html.push('<li>' + formatInline(escapeHtml(bulletMatch[1])) + '</li>');
+          continue;
+        }
+        var numMatch = raw.match(/^(\d+)\.\s+(.*)$/);
+        if (numMatch) {
+          if (listType !== 'ol') {
+            closeList();
+            listType = 'ol';
+            html.push('<ol>');
+          }
+          html.push('<li>' + formatInline(escapeHtml(numMatch[2])) + '</li>');
+          continue;
+        }
+        closeList();
+        html.push('<p>' + formatInline(escapeHtml(raw)) + '</p>');
+      }
+      closeList();
+      return html.join('');
+    }
+
+    function renderSuggestions(lastText) {
+      if (!suggestionsEl) return;
+      var lower = String(lastText || '').toLowerCase();
+      var candidates = [];
+      if (lower.indexOf('product') !== -1 || lower.indexOf('pricing') !== -1 || lower.indexOf('laptop') !== -1) {
+        candidates.push('What products and pricing tiers do you offer?');
+      }
+      if (lower.indexOf('order') !== -1 || lower.indexOf('payment') !== -1) {
+        candidates.push('How do orders and payments work?');
+      }
+      if (lower.indexOf('shipping') !== -1 || lower.indexOf('delivery') !== -1 || lower.indexOf('track') !== -1) {
+        candidates.push('What are your shipping timelines?');
+      }
+      if (lower.indexOf('return') !== -1 || lower.indexOf('refund') !== -1) {
+        candidates.push('How do I request a return or refund?');
+      }
+      if (lower.indexOf('support') !== -1 || lower.indexOf('repair') !== -1 || lower.indexOf('troubleshoot') !== -1) {
+        candidates.push('How do I get technical support?');
+      }
+      candidates.push(
+        'What can you help me with?',
+        'What products or services do you offer?',
+        'What is your return & refund policy?',
+        'How do I track my order?'
+      );
+
+      var shown = [];
+      for (var i = 0; i < candidates.length && shown.length < 3; i++) {
+        var q = candidates[i];
+        if (!askedSet[q.toLowerCase()] && shown.indexOf(q) === -1) {
+          shown.push(q);
+        }
+      }
+
+      suggestionsEl.innerHTML = '';
+      shown.forEach(function (q) {
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'tw-suggestion-chip';
+        btn.textContent = q;
+        btn.disabled = busy;
+        btn.addEventListener('click', function () {
+          sendUserText(q);
+        });
+        suggestionsEl.appendChild(btn);
+      });
+    }
+
+    function setSuggestionsDisabled(disabled) {
+      if (!suggestionsEl) return;
+      var btns = suggestionsEl.querySelectorAll('button');
+      for (var i = 0; i < btns.length; i++) {
+        btns[i].disabled = disabled;
+      }
+    }
 
     function addBubble(role, text, sources) {
       var div = document.createElement('div');
       div.className = 'tw-msg tw-msg-' + role;
-      div.textContent = text;
+      if (text === '…') {
+        div.textContent = '…';
+      } else {
+        div.innerHTML = formatMessageHtml(text);
+      }
       if (Array.isArray(sources) && sources.length > 0) {
         var srcWrap = document.createElement('div');
         srcWrap.className = 'tw-sources';
@@ -196,12 +330,17 @@
               (res.data.agent && res.data.agent.greeting) ||
               'Hello! How can I help you today?';
             addBubble('assistant', greeting);
+            renderSuggestions(greeting);
           } else {
-            addBubble('assistant', customGreeting || 'Hello! How can I help you today?');
+            var fallback = customGreeting || 'Hello! How can I help you today?';
+            addBubble('assistant', fallback);
+            renderSuggestions(fallback);
           }
         })
         .catch(function () {
-          addBubble('assistant', customGreeting || 'Hello! How can I help you today?');
+          var fallback = customGreeting || 'Hello! How can I help you today?';
+          addBubble('assistant', fallback);
+          renderSuggestions(fallback);
         });
     }
 
@@ -242,14 +381,14 @@
       panel.classList.remove('open');
     });
 
-    formEl.addEventListener('submit', function (e) {
-      e.preventDefault();
-      var text = (inputEl.value || '').trim();
+    function sendUserText(rawText) {
+      var text = (rawText || '').trim();
       if (!text || busy) return;
-      inputEl.value = '';
+      askedSet[text.toLowerCase()] = true;
       addBubble('user', text);
       busy = true;
       sendBtn.disabled = true;
+      setSuggestionsDisabled(true);
       var thinking = addBubble('assistant', '…');
 
       ensureSession()
@@ -269,6 +408,7 @@
           msgsEl.removeChild(thinking);
           if (res && res.data && res.data.content) {
             addBubble('assistant', res.data.content, res.data.sources_used);
+            renderSuggestions(res.data.content);
           } else {
             addBubble(
               'assistant',
@@ -284,8 +424,17 @@
         .finally(function () {
           busy = false;
           sendBtn.disabled = false;
+          setSuggestionsDisabled(false);
           inputEl.focus();
         });
+    }
+
+    formEl.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var text = (inputEl.value || '').trim();
+      if (!text || busy) return;
+      inputEl.value = '';
+      sendUserText(text);
     });
 
     window.TanatWidget = {

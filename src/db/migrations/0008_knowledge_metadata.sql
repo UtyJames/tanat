@@ -4,3 +4,4 @@
 -- ============================================================================
 
 ALTER TABLE knowledge_sources ADD COLUMN metadata TEXT NOT NULL DEFAULT '{}';
+
