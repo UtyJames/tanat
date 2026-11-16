@@ -99,9 +99,9 @@ Run any of the checks below to verify every claim directly against the codebase 
 
 ### Deploy to Staff
 - **Slack Integration:** `X-Slack-Signature` + replay-window verification for `@agent` mentions and direct messages (`POST /api/webhooks/slack/:channelId`).
-- **Team RBAC:** Invite staff with least-privilege roles (`owner`, `admin`, `operator`, `member`, `auditor`), granular permissions, and per-agent access scoping.
+- **Team RBAC:** Invite staff with least-privilege roles (`admin`, `operator`, `viewer`, plus `owner` / `member` / `auditor` via `PATCH /api/v1/privacy/members/:id/role`), granular permissions, and per-agent access scoping.
 - **Human-in-the-Loop Approvals:** Agents can propose NEAR transfers or sensitive actions, but cannot self-approve (`proposer ≠ approver`), and per-tenant spending limits + idempotency keys protect every execution.
-- **1-Click Privacy & Security Centre (`/app` → Privacy):** Rotate/revoke encryption keys, verify live NEAR AI TEE attestation, inspect per-message ECDSA receipts, manage active staff sessions, export business data, or schedule deletion.
+- **Privacy & Security Centre (`/app` → Privacy):** Rotate encryption keys, enable/disable Zero-Operator BYOK, verify live NEAR AI TEE attestation, inspect per-message ECDSA receipts, manage active staff sessions, export business data, or schedule deletion (specific DEKs can also be revoked via `POST /api/v1/privacy/keys/:id/revoke`).
 
 ---
 
@@ -125,7 +125,7 @@ git clone https://github.com/UtyJames/tanat.git
 cd tanat
 npm install
 
-npm test          # 10 test files, 142 tests
+npm test          # 10 test files, 143 tests
 npm run typecheck # TypeScript strict check
 npm run build:worker
 ```
@@ -134,7 +134,7 @@ npm run build:worker
 
 ```bash
 npm run dev:node
-# Auto-initializes local SQLite/D1 with migrations 0001–0010 + seed data
+# Auto-initializes local SQLite/D1 with migrations 0001–0011 + seed data
 ```
 
 Optional `.dev.vars` (gitignored) for live external keys:
@@ -172,7 +172,7 @@ See [tee/README.md](tee/README.md) for `TEE_RUNTIME_MODE=dstack_cvm`, `TEE_STRIC
 |------|----------|---------|
 | **Auth** | `POST /api/auth/otp/request`, `POST /api/auth/otp/verify` | 6-digit email OTP (`mode: "login"` vs `"signup"` strictly separated; 7-day revocable sessions) |
 | **Privacy & TEE** | `GET /api/v1/privacy/status`, `POST /api/v1/privacy/tee-verify`, `GET /api/v1/privacy/tee-receipts` | Enclave status, live nonce-bound TDX/GPU attestation, & persisted `secp256k1` receipts |
-| **Encryption** | `POST /api/v1/privacy/keys/rotate`, `DELETE /api/v1/privacy/keys/:id` | Per-business DEK rotation & immediate revocation |
+| **Encryption** | `POST /api/v1/privacy/keys/rotate`, `POST /api/v1/privacy/keys/:id/revoke`, `POST /api/v1/privacy/byok/enable`, `POST /api/v1/privacy/byok/disable` | Per-business DEK rotation, immediate revocation, & Zero-Operator BYOK key custody |
 | **Chat** | `POST /api/v1/sessions`, `POST /api/v1/sessions/:id/messages` | Encrypted chat + knowledge minimization + TEE signature verification |
 | **Channels** | `POST /api/webhooks/whatsapp/:id`, `/telegram/:id`, `/slack/:id` | HMAC/token-verified live customer & staff channel webhooks |
 | **Approvals & NEAR** | `GET /api/v1/actions`, `POST /api/v1/actions/:id/approve`, `POST /api/v1/near/intents/quote` | Dual-party human approvals & NEAR Intents dry-run quotes |
