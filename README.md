@@ -32,7 +32,7 @@ Run any of the checks below to verify every claim directly against the codebase 
 
 | Check | Do X (Command / Action) | See Y (Expected Result) |
 |-------|-------------------------|-------------------------|
-| **1. Full Test Suite (143 tests)** | `npm test` | Exits `0` with **10 test files, 143 tests passing** (tenant isolation, Zero-Operator BYOK, RBAC, AES-256-GCM rotation/revocation, TEE `secp256k1` ECDSA verification, WhatsApp/Telegram/Slack webhooks, auth, NEAR Intents). |
+| **1. Full Test Suite (143 tests)** | `npm test` | Exits `0` with **10 test files, 143 tests passing** (tenant isolation, Zero-Operator BYOK, RBAC, AES-256-GCM rotation/revocation, TEE `secp256k1` ECDSA verification, WhatsApp/Telegram/Slack webhooks, auth, NEAR payment approvals). |
 | **2. Strict TypeScript Check** | `npm run typecheck` | Exits `0` with **0 TypeScript errors**. |
 | **3. Live Production API** | `curl -s https://api.tanat.space/health` | Returns `200 OK` JSON (`{"status":"ok",...}`). |
 | **4. Unregistered Login Guard** | `curl -s -X POST https://api.tanat.space/api/auth/otp/request -H "Content-Type: application/json" -d "{\"email\":\"nobody@example.com\",\"mode\":\"login\"}"` | Returns HTTP `404` with `"code":"ACCOUNT_NOT_FOUND"` (never provisions or leaks access to unregistered emails; `/login` UI routes user to `/start`). |
@@ -47,7 +47,7 @@ Run any of the checks below to verify every claim directly against the codebase 
 ```text
 ┌──────────────────────────────────────────────────────────────────────┐
 │                  Customer & Staff Surfaces                           │
-│   Customers: Website Widget · WhatsApp · Telegram · NEAR Intents     │
+│   Customers: Website Widget · WhatsApp · Telegram · Payment Links    │
 │   Staff:     Slack (@agent & DMs) · Web Workspace · Privacy Centre   │
 └───────────────────────────────┬──────────────────────────────────────┘
                                 │ Bearer Token / OTP Session / HMAC
@@ -92,10 +92,10 @@ Run any of the checks below to verify every claim directly against the codebase 
 ## Built for Real Businesses: Customers & Staff in One Place
 
 ### Deploy to Customers
-- **Website Chat Widget:** Issue origin-locked publishable keys (`pk_...`, wildcard `*` blocked in production) and drop the widget onto any site.
+- **Website Chat Widget:** Issue origin-locked publishable keys (`pk_...`, wildcard `*` blocked in production) and drop `tanat-widget.js` onto any site.
 - **WhatsApp Business Cloud API:** Built-in Meta `hub.challenge` verification, `X-Hub-Signature-256` HMAC-SHA256 validation, and live Graph API replies (`POST /api/webhooks/whatsapp/:channelId`).
 - **Telegram:** Webhook secret-token validation and instant Bot API replies (`POST /api/webhooks/telegram/:channelId`).
-- **NEAR Intents Checkout & Payout Previews:** Asset discovery (`GET /api/v1/near/intents/tokens`) and `1Click` dry-run quotes (`POST /api/v1/near/intents/quote`).
+- **Knowledge-Grounded Support & NEAR Payment Links:** Upload `.pdf`, `.docx`, `.txt`, `.csv`, or `.md` docs in **Knowledge & Memory** so customer channels answer from approved business info, and create hosted **NEAR Payment Links** (`/pay`).
 
 ### Deploy to Staff
 - **Slack Integration:** `X-Slack-Signature` + replay-window verification for `@agent` mentions and direct messages (`POST /api/webhooks/slack/:channelId`).
@@ -109,7 +109,7 @@ Run any of the checks below to verify every claim directly against the codebase 
 
 1. **Privacy & Private AI:** Per-business `AES-256-GCM` envelope encryption, context minimization, secret redaction, live NEAR AI Cloud TEE attestation + `secp256k1` receipt verification, and the `tee/` `dstack`/TDX enclave bundle.
 2. **AI Security & Defense:** Composite-FK multi-tenant isolation, DB triggers, non-wildcard RBAC, fail-closed KMS/TEE checks, prompt-injection defense, and security alert logging.
-3. **Agent Economy & Unstoppable DeFi:** Dual-party approval gates, configurable NEAR spending caps, and NEAR Intents `1Click` quote previews.
+3. **Agent Economy & Unstoppable DeFi:** Dual-party human approval gates for agent-proposed NEAR transfers, configurable NEAR spending caps, and hosted NEAR payment links (`/pay`).
 
 ---
 
@@ -175,7 +175,7 @@ See [tee/README.md](tee/README.md) for `TEE_RUNTIME_MODE=dstack_cvm`, `TEE_STRIC
 | **Encryption** | `POST /api/v1/privacy/keys/rotate`, `POST /api/v1/privacy/keys/:id/revoke`, `POST /api/v1/privacy/byok/enable`, `POST /api/v1/privacy/byok/disable` | Per-business DEK rotation, immediate revocation, & Zero-Operator BYOK key custody |
 | **Chat** | `POST /api/v1/sessions`, `POST /api/v1/sessions/:id/messages` | Encrypted chat + knowledge minimization + TEE signature verification |
 | **Channels** | `POST /api/webhooks/whatsapp/:id`, `/telegram/:id`, `/slack/:id` | HMAC/token-verified live customer & staff channel webhooks |
-| **Approvals & NEAR** | `GET /api/v1/actions`, `POST /api/v1/actions/:id/approve`, `POST /api/v1/near/intents/quote` | Dual-party human approvals & NEAR Intents dry-run quotes |
+| **Approvals & NEAR** | `GET /api/v1/actions`, `POST /api/v1/actions/:id/approve`, `POST /api/v1/actions/:id/execute` | Dual-party human approvals & NEAR transfer execution |
 
 ---
 
